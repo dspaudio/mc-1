@@ -48,9 +48,11 @@ are errors, not waived warnings. Each compiler command has a 60-second timeout.
 No installation or flashing command is included. Hardware installation, boot checks,
 calibration verification and real-time measurement require a separate device test.
 
-The development Mac's Docker daemon left new ARM and x86 containers in Created state,
-even for `uname`; existing unrelated containers were not restarted. CI on native Linux
-provides the independent target compilation path. Both host and pi32v2 CI jobs have passed; see the validation record for the exact commit, image hash and section sizes.
+The development Mac's Linux x86-64 Docker build reproduces the native Linux CI app
+and package bytes. The target report includes the compiler installation path, which
+differs between Docker (`/opt/jieli`) and CI (`/tmp/mcfm-toolchain/...`); compare image
+hashes and section sizes when checking across environments. See the validation
+record for the exact source revision, checks and measured section sizes.
 
 ## Experimental .fwsc package
 
