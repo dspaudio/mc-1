@@ -1,6 +1,6 @@
 # MC-1 0.1.0 validation record
 
-Host tests pass on the development Mac: 12 distinct presets, 16 drum models,
+Host tests pass on the development Mac: 48 distinct presets, 16 drum models,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,
 UI and screen bounds, LA resonance/control regressions, version 1 migration and
 version 2 FX/demo round trips, and 6,236 interrupted storage operations. Unreadable

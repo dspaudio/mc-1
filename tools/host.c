@@ -69,7 +69,7 @@ int main(int argc,char **argv) {
         else if(!strcmp(cmd,"stop")) mc_stop(&engine);
         else if(sscanf(line,"part %d",&a)==1&&a>=0&&a<4) engine.selected=(uint8_t)a;
         else if(sscanf(line,"pattern %d",&a)==1) mc_queue(&engine,(unsigned)a);
-        else if(sscanf(line,"preset %d",&a)==1) { mc_preset(&engine,engine.selected,(unsigned)a);if(engine.selected<3&&a>=0&&a<12) ui.preset[engine.selected]=(uint8_t)a; }
+        else if(sscanf(line,"preset %d",&a)==1) { mc_preset(&engine,engine.selected,(unsigned)a);if(engine.selected<3&&a>=0&&a<MC_PRESETS) ui.preset[engine.selected]=(uint8_t)a; }
         else if(sscanf(line,"knob %d %d",&a,&b)==2) mc_ui_encoder(&engine,&ui,(unsigned)a,b);
         else if(sscanf(line,"button %d",&a)==1) mc_ui_button(&engine,&ui,(unsigned)a);
         else if(sscanf(line,"key %d %d",&a,&b)==2) mc_ui_key(&engine,&ui,(unsigned)a,b);

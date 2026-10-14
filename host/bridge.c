@@ -17,7 +17,7 @@ void host_action(unsigned kind,int a,int b) {
         } else if(held_part[a]<3) mc_off(&engine,held_part[a],held_note[a]);
     }
     else if(kind==3&&a>=0&&a<4) engine.selected=(uint8_t)a;
-    else if(kind==4&&a>=0&&a<12&&engine.selected<3) { ui.preset[engine.selected]=(uint8_t)a;mc_preset(&engine,engine.selected,(unsigned)a); }
+    else if(kind==4&&a>=0&&a<MC_PRESETS&&engine.selected<3) { ui.preset[engine.selected]=(uint8_t)a;mc_preset(&engine,engine.selected,(unsigned)a); }
     else if(kind==5) mc_queue(&engine,(unsigned)a);
     if(ui.load_request&&!engine.playing) { unsigned demo=ui.load_request-1;mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY"; }
     if(ui.save_request) { ui.message="USE EXPORT PROJECT";ui.save_request=0; }

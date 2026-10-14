@@ -26,7 +26,7 @@ for wave in ['saw', 'square']:
     array('mc_'+wave,rows)
 rng=random.Random(0x4d43464d)
 rows=[]
-for kind in range(6):
+for kind in range(12):
     row=[]
     for i in range(512):
         t=i/22050
@@ -37,11 +37,17 @@ for kind in range(6):
         elif kind==2: v=noise*.8+math.sin(2*math.pi*523*t)*.2
         elif kind==3: v=math.sin(2*math.pi*784*t)*math.sin(2*math.pi*1121*t)
         elif kind==4: v=math.sin(2*math.pi*261.63*t)+noise*.15
-        else: v=math.sin(2*math.pi*1568*t)*.5+math.sin(2*math.pi*2571*t)*.4
+        elif kind==5: v=math.sin(2*math.pi*1568*t)*.5+math.sin(2*math.pi*2571*t)*.4
+        elif kind==6: v=(math.sin(2*math.pi*523*t)+.35*math.sin(2*math.pi*1572*t))*math.exp(-i/180)+noise*.18*math.exp(-i/30)
+        elif kind==7: v=.6*math.sin(2*math.pi*784*t)+.25*math.sin(2*math.pi*1831*t)+noise*.15*math.exp(-i/45)
+        elif kind==8: v=.55*math.sin(2*math.pi*523*t)+.3*math.sin(2*math.pi*1046*t)+.15*math.sin(2*math.pi*1569*t)
+        elif kind==9: v=.55*noise+.3*math.sin(2*math.pi*523*t)+.15*math.sin(2*math.pi*1569*t)
+        elif kind==10: v=(.5*math.sin(2*math.pi*523*t)+.25*math.sin(2*math.pi*1046*t)+.15*math.sin(2*math.pi*1569*t))*(1-math.exp(-i/40))
+        else: v=.6*math.sin(2*math.pi*1046*t)+.3*math.sin(2*math.pi*2911*t)*math.exp(-i/100)
         row.append(round(max(-1,min(1,v*env))*16000))
     rows.append(row)
 array('mc_attack',rows)
 array('mc_frequency',[round(440*2**((n-69)/12)*2**32/44100) for n in range(109)],'uint32_t')
 array('mc_pcm_rate',[round(.5*2**((n-60)/12)*65536) for n in range(109)],'uint32_t')
 (root/'src/tables.h').write_text('\n'.join(out)+'\n')
-print('Generated 6 x 512 original PCM attacks (6144 bytes), oscillator LUTs and tuning.')
+print('Generated 12 x 512 original PCM attacks (12288 bytes), oscillator LUTs and tuning.')

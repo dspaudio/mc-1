@@ -13,7 +13,7 @@ int mc_project_valid(const McProject *p) {
     for(unsigned i=0;i<4;i++) if(p->fx[i]>127) return 0;
     for(unsigned t=0;t<3;t++) {
         const McPatch *s=&p->patch[t]; const uint8_t *b=(const uint8_t *)s;
-        if(s->engine>1||s->wave>2||s->pcm>5) return 0;
+        if(s->engine>1||s->wave>2||s->pcm>=MC_PCM_ATTACKS) return 0;
         for(unsigned j=3;j<sizeof *s;j++) if(b[j]>127) return 0;
     }
     for(unsigned t=0;t<4;t++) if(p->level[t]>127||p->pan[t]>127) return 0;

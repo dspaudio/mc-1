@@ -11,7 +11,8 @@
 #define MC_PATTERNS 4
 #define MC_STEPS 16
 #define MC_PARTS 4
-#define MC_PRESETS 12
+#define MC_PRESETS 48
+#define MC_PCM_ATTACKS 12
 #define MC_PROJECT_BYTES 2120
 #define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
 enum { MC_LA, MC_ACID };

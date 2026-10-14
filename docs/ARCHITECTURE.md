@@ -8,7 +8,7 @@ startup, HAL, LCD-transfer and libc support is inherited. There is no hidden leg
 FM6, tape, radio, editor or ROM bank in the image.
 
 Eight melodic voice structs are shared by three parts. LA uses two detuned band-limited
-lookup oscillators, six short PCM attack choices with a crossfade to synthesized sustain,
+lookup oscillators, twelve short PCM attack choices with a crossfade to synthesized sustain,
 an envelope and two lowpass stages. Acid uses a monophonic voice per part, destination-step
 legato slide, accent and a bounded original four-stage feedback filter. This is a musical
 approximation, not a circuit model. Controls are 0–127 macros. Envelopes are quantized linear
@@ -58,7 +58,7 @@ It is not a 512 KiB free sample pool.
 Host `sizeof(McEngine)` is 56,212 bytes, including a 2,120-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
-measurement. Six original attack tables occupy 6,144 bytes of XIP, not a sample-memory allocation.
+measurement. Twelve original attack tables occupy 12,288 bytes of XIP, not a sample-memory allocation.
 
 The [target report](target-report.json) records a 37,628-byte app, 67,648-byte globals,
 2,784-byte RAM code and zero pool. Host engine state is 56,212 B, including fixed effect buffers.

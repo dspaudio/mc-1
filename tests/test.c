@@ -42,14 +42,17 @@ static void render_n(McEngine *s,unsigned frames) {
     while(frames) { unsigned n=frames>4096?4096:frames;mc_render(s,x,n);frames-=n; }
 }
 static void engines(void) {
-    uint32_t hashes[12];
+    uint32_t hashes[MC_PRESETS];
     for(unsigned p=0;p<MC_PRESETS;p++) {
-        mc_init(&e);mc_preset(&e,0,p);mc_note(&e,0,60,110,0,MC_RATE);
+        mc_init(&e);mc_preset(&e,0,p);assert(mc_project_valid(&e.project));
+        uint8_t record[MC_RECORD_BYTES];McProject decoded;uint32_t seq;
+        assert(mc_encode(&e.project,1,record,sizeof record)>0);assert(!mc_decode(&decoded,&seq,record,sizeof record));
+        assert(!memcmp(&decoded.patch[0],&mc_presets[p],sizeof(McPatch)));mc_note(&e,0,60,110,0,MC_RATE);
         mc_render(&e,x,4096);assert(energy(x,8192)>10000);hashes[p]=mc_crc(x,sizeof x);
         render_n(&e,MC_RATE*5);for(unsigned i=0;i<MC_VOICES;i++) assert(!e.voice[i].active);
         assert(!e.clips);
     }
-    for(unsigned i=0;i<12;i++) for(unsigned j=i+1;j<12;j++) assert(hashes[i]!=hashes[j]);
+    for(unsigned i=0;i<MC_PRESETS;i++) for(unsigned j=i+1;j<MC_PRESETS;j++) assert(hashes[i]!=hashes[j]);
     for(unsigned sound=0;sound<MC_DRUMS;sound++) {
         mc_init(&e);mc_drum(&e,sound,120);mc_render(&e,x,4096);assert(energy(x,8192)>10000);
         render_n(&e,MC_RATE*4);for(unsigned i=0;i<MC_DRUM_VOICES;i++) assert(!e.drum[i].env);
@@ -68,7 +71,7 @@ static void engines(void) {
     mc_init(&e);mc_preset(&e,0,0);
     for(unsigned i=0;i<30;i++) { mc_note(&e,0,40+i,100,0,0);mc_render(&e,x,1); }
     assert(e.steals==22);
-    puts("PASS: 12 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
+    puts("PASS: 48 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
 }
 static void knob_audio(void) {
     McUi ua,ub;

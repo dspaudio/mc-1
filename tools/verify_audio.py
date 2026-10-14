@@ -8,7 +8,7 @@ subprocess.run(['make','all'],cwd=root,check=True)
 exe=root/'build/mc1-host'
 subprocess.run([str(exe),'render',str(root/'build/demo.wav'),'16'],check=True)
 files=[root/'build/demo.wav']
-for i in range(12):
+for i in range(len(json.loads((root/'presets.json').read_text()))):
     p=root/f'build/preset-{i:02d}.wav';subprocess.run([str(exe),'preset',str(i),str(p)],check=True);files.append(p)
 results=[]
 for p in files:
@@ -23,4 +23,4 @@ for p in files:
         results.append({'file':p.name,'frames':len(samples)//2,'peak':peak,'rms':round(rms,2),'dc_mean':round(mean,3),'sha256_pcm':hashlib.sha256(raw).hexdigest()})
 report={'source':'actual shared C core, host-rendered; not real-device audio','renders':results}
 (root/'build/audio-report.json').write_text(json.dumps(report,indent=2)+'\n')
-print('PASS: 13 audio renders; non-silent, no saturation, bounded DC, release silence')
+print('PASS: 49 audio renders; non-silent, no saturation, bounded DC, release silence')
