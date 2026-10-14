@@ -1,0 +1,45 @@
+name: build-and-test
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test all
+      - name: Sanitizers
+        run: |
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
+          build/test-sanitized
+      - run: python3 tools/gen_assets.py && git diff --exit-code src/tables.h
+      - run: python3 tools/verify_audio.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: host-audio-evidence
+          path: |
+            build/audio-report.json
+            build/demo.wav
+  target:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verified official compiler
+        run: |
+          curl --fail --location --retry 3 https://jl-update.oss-cn-shenzhen.aliyuncs.com/jieli-linux-toolchains-20260730.1.tar.xz -o /tmp/jieli.tar.xz
+          echo 'a1545cddbc451a06bac43eb5cd96d831470c42a97c5c0b1f98879a20fc7647bd  /tmp/jieli.tar.xz' | sha256sum -c -
+          mkdir -p /tmp/mcfm-toolchain
+          tar -xJf /tmp/jieli.tar.xz -C /tmp/mcfm-toolchain
+      - name: Target compile and memory guards (not a hardware test)
+        env:
+          JIELI_TOOLCHAIN: /tmp/mcfm-toolchain/jieli-linux-toolchains-20260730.1
+        run: make target
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experimental-raw-app-NOT-INSTALLER
+          path: |
+            build/mcfm-1.elf
+            build/mcfm-1.app.bin
+            build/mcfm-1.dis
+            build/mcfm-1.symbols
+            build/target-report.json

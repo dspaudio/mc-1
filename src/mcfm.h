@@ -1,0 +1,66 @@
+/* SPDX-License-Identifier: GPL-3.0-only
+ * Copyright (C) 2026 dspaudio */
+#ifndef MCFM_H
+#define MCFM_H
+#include <stdint.h>
+#define MC_RATE 44100
+#define MC_VOICES 8
+#define MC_DRUMS 16
+#define MC_DRUM_VOICES 6
+#define MC_PATTERNS 4
+#define MC_STEPS 16
+#define MC_PARTS 4
+#define MC_PRESETS 12
+#define MC_PROJECT_BYTES 2112
+#define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
+enum { MC_LA, MC_ACID };
+enum { MC_ACCENT=1, MC_SLIDE=2 };
+typedef struct {
+    uint8_t engine, wave, pcm, pcm_mix, cutoff, resonance, attack, decay;
+    uint8_t sustain, release, glide, level;
+} McPatch;
+typedef struct { uint8_t note[3], velocity, gate, flags; uint16_t drums; } McStep;
+typedef struct {
+    uint16_t bpm;
+    uint8_t swing, reserved;
+    McPatch patch[3];
+    uint8_t level[4], pan[4], drum_level[MC_DRUMS];
+    McStep step[MC_PATTERNS][MC_PARTS][MC_STEPS];
+} McProject;
+typedef struct {
+    uint32_t phase, phase2, increment, target, pcm_pos, gate_left, age;
+    int32_t envelope, attack_step, decay_step, release_step, filter[4];
+    uint8_t active, part, note, velocity, stage, accent;
+    McPatch patch;
+} McVoice;
+typedef struct { uint32_t phase, age; int32_t env, noise_lp; uint8_t velocity, sound; } McDrum;
+typedef struct {
+    McProject project;
+    McVoice voice[MC_VOICES];
+    McDrum drum[MC_DRUM_VOICES];
+    uint32_t random, clock, elapsed, events, steals, peak, clips;
+    int32_t dc_in, dc_out;
+    uint8_t playing, pattern, queued, step, mute, selected, recording, edit_step;
+    uint16_t master;
+} McEngine;
+extern const McPatch mc_presets[MC_PRESETS];
+extern const char *const mc_preset_names[MC_PRESETS];
+void mc_init(McEngine *e);
+void mc_factory(McProject *p);
+void mc_start(McEngine *e);
+void mc_stop(McEngine *e);
+void mc_queue(McEngine *e, unsigned pattern);
+void mc_mute(McEngine *e, unsigned part);
+void mc_note(McEngine *e, unsigned part, unsigned note, unsigned velocity, unsigned flags, uint32_t gate);
+void mc_off(McEngine *e, unsigned part, unsigned note);
+void mc_drum(McEngine *e, unsigned drum, unsigned velocity);
+void mc_render(McEngine *e, int16_t *stereo, unsigned frames);
+void mc_preset(McEngine *e, unsigned part, unsigned preset);
+void mc_control(McEngine *e, unsigned part, unsigned knob, int delta);
+int mc_project_valid(const McProject *p);
+uint32_t mc_crc(const void *data, unsigned n);
+int mc_encode(const McProject *p, uint32_t sequence, uint8_t *out, unsigned n);
+int mc_decode(McProject *p, uint32_t *sequence, const uint8_t *in, unsigned n);
+/* Decode both committed records; corruption never modifies the destination. */
+int mc_recover(McProject *p, uint32_t *sequence, const uint8_t *a, const uint8_t *b);
+#endif
