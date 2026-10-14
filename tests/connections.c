@@ -13,11 +13,18 @@
 #define FELUCCA_UAC 1
 #define FELUCCA_UAC_48K 0
 #define FELUCCA_CDC 0
+#ifndef FELUCCA_OTA
 #define FELUCCA_OTA 0
+#endif
 #define RING_PUBLISH() __asm__ volatile("" ::: "memory")
 static void fm1_delay_ms(uint32_t ms) { (void)ms; }
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 #include "../firmware/update/usb.c"
+#if FELUCCA_OTA
+static uint32_t ota_test_ms;
+static uint32_t ota_now_ms(void) { return ota_test_ms; }
+static void ota_idle(void) { ota_test_ms++; }
+#endif
 /* 실제 UART HAL의 레지스터 쓰기 순서를 호스트 메모리로 검증한다. */
 static volatile uint32_t uart_registers[15];
 static volatile uint32_t *uart_register(uint32_t addr)
@@ -167,7 +174,7 @@ static void test_descriptors(void)
     check("no CDC classes or IADs", iad_n == 0 &&
           if_class[0] == 1 && if_class[1] == 1 && if_class[2] == 1);
     {
-        static const char *names[] = {"dspaudio", "MC-1"};
+        static const char *names[] = {"M-VAVE", "MC-1 / M-VAVE FM-1"};
         int names_ok = 1;
         for (i = 0; i < 2; i++) {
             const uint8_t *s;
@@ -177,7 +184,7 @@ static void test_descriptors(void)
             for (uint32_t j = 0; j < strlen(names[i]); j++)
                 names_ok &= s[2 + j * 2] == (uint8_t)names[i][j] && s[3 + j * 2] == 0;
         }
-        check("USB manufacturer dspaudio and product MC-1", names_ok);
+        check("USB 제조사 M-VAVE 및 제품명 MC-1 / M-VAVE FM-1", names_ok);
     }
 }
 
@@ -597,8 +604,22 @@ static void test_midi_edges(void)
     };
     mi_r = mi_w;
     uint32_t w0 = mi_w;
-    check("USB SysEx: all endings ignored, UBOOT/OTA keys inert",
-          ep1_take(keys, sizeof keys) && mi_w == w0 && !usb.uboot_req && !usb.ota_req);
+    check("USB SysEx: UBOOT inert and OTA follows enabled configuration",
+          ep1_take(keys, sizeof keys) && mi_w == w0 && !usb.uboot_req &&
+          usb.ota_req == (unsigned)FELUCCA_OTA);
+#if FELUCCA_OTA
+    usb_ota_clear_queues();
+    static const uint8_t query[] = {0x04,0xf0,1,2,0x07,3,4,0xf7};
+    const uint8_t *frame; uint32_t length;
+    assert(ep1_take(query, sizeof query) && ota_frame_get(&frame, &length));
+    assert(length == 4 && !memcmp(frame, "\1\2\3\4", 4));
+    ota_frame_done(); assert(!ota_frame_get(&frame, &length));
+    static const uint8_t reply[] = {0xf0,1,2,3,4,0xf7};
+    usb.config = 1;
+    assert(!ota_wire_send(reply, sizeof reply) && so_w - so_r == 2);
+    assert(sx_out_q[so_r % SXQ] == 0x0201f004u && sx_out_q[(so_r + 1) % SXQ] == 0xf7040307u);
+    so_r = so_w; usb.config = 0;
+#endif
     const uint8_t partial[] = {0x09, 0x90, 60, 100, 0x09, 0x90, 61};
     check("USB incomplete event tail is ignored",
           ep1_take(partial, sizeof partial) && mi_w == w0 + 1);

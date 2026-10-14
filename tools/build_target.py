@@ -17,9 +17,9 @@ def run(tool,*args):
     return subprocess.check_output(command,text=True,stderr=subprocess.STDOUT,timeout=60)
 try:
     version=run('pi32v2/bin/clang','--version')
-    for source,name in [('firmware/crt0.S','crt0'),('firmware/hal/fm1_vec.S','vec'),('firmware/hal/fm1_isr.S','isr'),('firmware/app.c','app')]:
+    for source,name in [('firmware/crt0.S','crt0'),('firmware/hal/fm1_vec.S','vec'),('firmware/hal/fm1_isr.S','isr'),('firmware/app.c','app'),('firmware/update/ota_flash.c','ota_flash')]:
         print(run('pi32v2/bin/clang','-target','pi32v2','-Os','-ffunction-sections','-fno-builtin','-Wall','-Werror','-Wno-unused-function','-Ifirmware/hal','-Isrc','-c',source,'-o',f'build/{name}.o'),end='')
-    print(run('pi32v2/bin/ld','-T','firmware/app.ld','build/crt0.o','build/vec.o','build/isr.o','build/app.o','-o','build/mc-1.elf'),end='')
+    print(run('pi32v2/bin/ld','-T','firmware/app.ld','build/crt0.o','build/vec.o','build/isr.o','build/app.o','build/ota_flash.o','-o','build/mc-1.elf'),end='')
     symbols=run('common/bin/objdump','-t','build/mc-1.elf')
     dis=run('common/bin/objdump','-d','build/mc-1.elf')
     ram=run('common/bin/objdump','-d','-j','.ram_text','build/mc-1.elf')

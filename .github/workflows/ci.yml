@@ -22,6 +22,14 @@ jobs:
           build/test-connections-sanitized
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/connection_routing.c -o build/test-connection-routing-sanitized
           build/test-connection-routing-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all tests/panel_leds.c -o build/test-panel-leds-sanitized
+          build/test-panel-leds-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/ota_entry_test.c -o build/test-ota-entry-sanitized
+          build/test-ota-entry-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all tests/panel_refresh.c -o build/test-panel-refresh-sanitized
+          build/test-panel-refresh-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wno-unused-function -DFELUCCA_OTA=1 -fsanitize=address,undefined -fno-sanitize-recover=all tests/connections.c -o build/test-connections-ota-sanitized
+          build/test-connections-ota-sanitized
       - run: python3 tools/gen_assets.py && python3 tools/gen_recorded_pcm.py && python3 tools/gen_presets.py && git diff --exit-code src/recorded_pcm.h src/tables.h src/presets.h src/factory.c host/index.html README.md docs/PRESETS.md
       - run: python3 tests/host_http.py
       - run: python3 tools/verify_audio.py
@@ -60,6 +68,8 @@ jobs:
           diff docs/package-report.json build/package-report.json
           cc -O1 -g -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ldr_test.c -o build/ldr-test
           build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ota_test.c -o build/test-ota-sanitized
+          build/test-ota-sanitized build/mc-1-EXPERIMENTAL.fwsc
       - uses: actions/upload-artifact@v4
         if: always()
         with:

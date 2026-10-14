@@ -80,10 +80,15 @@ the final 16-bit stereo block before the separate hardware DMA scaling.
 See [connection details and unsupported BLE runtime](MIDI.md).
 
 44,100 Hz stereo; target DMA halves contain 128 frames, giving **2,902 microseconds** per half.
-Audio IRQ priority 3; input scanning timer priority 4 at 10 kHz. The ISR records worst render
-microseconds and deadline misses in `max_audio_us` / `deadline_misses` for debugger inspection.
-A zero host overrun count cannot establish a device deadline. UI updates use eight-row DMA
-strips and do not mask interrupts for full frames. Input mutations use short IRQ-off sections.
+오디오 IRQ 우선순위는 3, 10 kHz 입력 TIMER5는 4다. `max_render_us`는 렌더
+구간 경과 시간, `max_audio_us`는 ISR 처리 경과 시간이며 선점 시간을 포함한다.
+`max_audio_interval_us`는 ISR 시작 간격의 최댓값이다. `deadline_misses`는
+처리 시간 초과 또는 처리 중 DMA free-half 변경을 세며, 후자는
+`audio_half_changes`에도 기록한다. 진입 지연이나 두 반절 이상 누락을
+완전히 검출하는 지표는 아니다. 호스트의 0회 overrun은 기기 기한을 입증하지 않는다.
+정상 화면 갱신은 DMA가 끝난 단일 버퍼에 루프당 8행을 렌더·전송한다.
+마지막 전송 완료 관측 후 50ms를 기다리므로 입력 처리를 한 프레임 전체 동안
+막지 않는다. OTA 진행 표시는 동기 draw를 사용한다. Input mutations use short IRQ-off sections.
 Flash save stops audio DMA, writes only when transport is stopped, then zeros/restarts DMA.
 
 부팅 시 프로젝트 복원은 UART·USB·오디오 시작 전에 IRQ를 끈 상태에서 완료한다.
@@ -120,8 +125,8 @@ RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack u
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 482,684-byte app, 46,656-byte globals,
-2,784-byte RAM code and 304,708-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 490,740-byte app, 50,036-byte globals,
+5,568-byte RAM code and 304,708-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety
@@ -131,7 +136,10 @@ little endian; it does not dump compiler structs. The header includes magic, ver
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
 
-Only `0x99000..0xAAFFF` is writable: two 36 KiB banks, each spanning nine 4 KiB sectors. A save
+프로젝트 저장 드라이버의 쓰기 범위는 `0x99000..0xAAFFF`다.
+별도의 OTA 드라이버는 `0xE0000..0xE4FFF` staging만 쓴다. 기록 섹터 전체의
+삭제·readback 검증이 끝나기 전에는 로더 섹터를 변경하지 않는다. 두 범위를
+서로 넓히지 않는다. Two 36 KiB project banks each span nine 4 KiB sectors. A save
 preserves the last valid bank, erases the other bank's sectors, writes payload, then writes the commit header.
 No boot-time formatting or autosave occurs. Users explicitly confirm SAVE twice while stopped.
 If another firmware used these sectors, confirmed SAVE replaces that data. Earlier development
@@ -147,7 +155,11 @@ failure modes still need device validation. Save-readback errors are reported on
 ## Current limitations
 
 Default panel mapping only; no imported calibration. No onboard BLE MIDI runtime, TRS output,
-in-app firmware updater, sample import, effect sends, undo or on-panel chord editing.
+sample import, effect sends, undo or on-panel chord editing.
+앱은 Felucca 호환 USB 업데이터를 활성화하지만 실기기 재업데이트는 미검증이다.
+업데이트 진입 시 재생을 정지하고, 실패 복귀 후에도 정지 상태를 유지한다.
+외부 MIDI 채널·transport 정리는 TX 큐 폐기 뒤 다시 게시하며 새 Note On보다
+먼저 처리한다. 크기가 기록 섹터를 침범하는 loader 패키지는 거부한다.
 Melodic steps can store three notes; live/step recording currently writes one. Per-drum LEVEL is
 a kit-level control, while each drum step shares velocity. Pattern sounds are project-wide.
 Muting is immediate and may click. Tone quality, note transitions and noise floor need listening

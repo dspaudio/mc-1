@@ -28,6 +28,14 @@ static void lcd_sync(void)          /* finish the running transfer (before touch
     lcd_busy = 0;
 }
 
+static int lcd_idle(void)
+{
+    if (lcd_busy && !(FM1_LCD_SPI_CON & 0x8000u))
+        return 0;
+    lcd_sync();
+    return 1;
+}
+
 static void lcd_cmd(uint8_t c)
 {
     lcd_sync();

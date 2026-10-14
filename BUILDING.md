@@ -93,11 +93,21 @@ actual electrical power-loss or USB test. Never install `previous-test-only.fwsc
 기다린다. 호스트 오류 주입으로 이러한 경로를 검사하지만 실제 전원 차단 복구를
 검증한 것은 아니다.
 
-**Recovery boundary:** this preview audio app has no USB updater. After installing,
-it cannot itself start another M-UPGRADE session. The implemented stopped-transport
-five-second OCT−/OCT+ hold enters UBOOT, but the physical recovery path and the
-necessary external recovery utility have not been verified. Do not treat a package
-build as permission to flash or as a verified reversible installation. Retain a
-known working recovery method before a separately authorized hardware trial.
+**업데이트·복구 경계:** 현재 앱은 `FELUCCA_OTA=1`로 Felucca 호환
+M-UPGRADE의 식별·업데이트 진입을 활성화한다. JEDEC를 확인한 뒤 재생을
+정지하고 로더를 staging하며, 실패하면 오디오·UART·일반 USB 서비스를
+복구한다. 외부 MIDI 정리는 새 Note On보다 먼저 게시한다. 정상 부팅에도
+staging 정리를 연결했다. 호스트 오류 주입 검사는 실제 USB 핸드셰이크·
+재업데이트·부팅·전원 차단 복구의 검증을 대신하지 않는다.
+
+로더 본문은 최대 16,352바이트다. 32바이트 JLFS 헤더와 함께
+`0xE4000` 기록 섹터 앞에서 끝나야 하며, 초과 패키지는 삭제 전에 거부한다.
+알려진 더 큰 공식 stock loader를 사용하는 원본 V15 패키지는 이 경로에서
+수용하지 않는다. 현재 검증 대상은 MC-1 자체 로더 패키지이며, 순정 V15
+복귀에는 별도의 검증된 복구 경로가 필요하다.
+
+재생 정지 상태에서 OCT−/OCT+를 5초 누르면 UBOOT로 진입하는 코드는
+유지한다. 이번 수정본에서 그 물리 복구 경로는 미검증이다. 패키지 빌드는
+실기기 쓰기 권한이나 가역적인 설치 검증을 대신하지 않는다.
 SDK binaries remain outside source; packages carry the Apache-2.0 assets described
 in NOTICE.md and LICENSES/Apache-2.0-AC79.txt.

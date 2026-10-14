@@ -6,7 +6,7 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange selections, bright-green playback indicators and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.3.0:** the native host engine, sequencer, display and storage tests work. Target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, USB enumeration, physical MIDI, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.3.0:** 검증 범위는 [validation record](docs/VALIDATION.md)에 기록한다. 이전 실험 설치에서는 USB 재연결을 확인했지만 소리 깨짐과 재업데이트 진입 기능 누락이 보고됐고, 기기는 순정 V15로 복구됐다. 현재 소스는 USB 업데이트 진입과 실패 복귀를 구현하지만 수정본의 실기기 설치·재업데이트·전원 차단 복구·오디오 기한은 미검증이다. `.app.bin`은 설치 패키지가 아니다. [패키지 경계](BUILDING.md#experimental-fwsc-package)를 확인한다.
 
 ![Actual shared C drum screen](docs/drums.png)
 

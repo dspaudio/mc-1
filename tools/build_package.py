@@ -37,6 +37,8 @@ for pos in range(0,len(raw),4096):
     assert len(compressed)<=4096 and lz4blk.decompress(compressed)==block
     blocks+=struct.pack('<II',len(compressed),len(block))+compressed
 body=head(pkg.crc16(raw),len(raw),0x1c0a800,0)+blocks
+# 32 B JLFS 헤더와 본문은 복구 기록 섹터 0xE4000 앞에서 끝나야 한다.
+assert len(body)<=0x4000-32, 'Loader overlaps OTA recovery-record sector'
 ota=head(pkg.crc16(body),32,len(body),0x41)+body
 (out/'ota.bin').write_bytes(ota)
 pkg.SDK=sdk

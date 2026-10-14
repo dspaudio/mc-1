@@ -11,7 +11,8 @@
 #include "fm1_audio.h"
 #include "fm1_adc.h"
 #include "fm1_lcd_hw.h"
-/* No write can reach calibration, bootloader, OTA, samples or global settings. */
+#include "panel_leds.h"
+/* 프로젝트 드라이버는 calibration, bootloader, OTA, samples, global settings를 쓰지 않는다. */
 #define FL_RANGE_OK(off,n) ((uint32_t)(off)>=0x99000u && (uint32_t)(off)<=0xab000u && (uint32_t)(n)<=0xab000u-(uint32_t)(off))
 #include "fm1_flash.h"
 #include "libc.c"
@@ -26,12 +27,18 @@
 #include "../src/midi.c"
 #define HALF_FRAMES 128u
 #define FELUCCA_CDC 0
-#define FELUCCA_OTA 0
+#define FELUCCA_OTA 1
+#define FELUCCA_OTA_DRYRUN 0
+#define OTA_IDENTITY "FM-1_900"
 #define FELUCCA_UAC 1
 #define FELUCCA_UAC_48K 0
 #define MC_USB_APP 1
+#define MC_OTA_TX_LOCK() fm1_irq_off()
+#define MC_OTA_TX_UNLOCK() fm1_irq_on()
 #define RING_PUBLISH() __asm__ volatile("csync" ::: "memory")
 #include "update/usb.c"
+#include "update/ota.c"
+#include "update/ota_flash.h"
 #include "connection/midi_uart.c"
 #include "connection/routing.c"
 #define FRAMES 128u
@@ -43,13 +50,21 @@ static int32_t usb_block[FRAMES*2];
 static volatile uint8_t in_audio;
 static uint16_t strip[240*8];
 static volatile uint32_t milliseconds, max_audio_us, deadline_misses;
+static volatile uint32_t max_render_us, max_audio_interval_us, audio_half_changes;
+static uint32_t previous_audio_start;
 static uint8_t flash_ok,irq_ready;
+static volatile uint8_t ota_usb_owner;
+static uint32_t ota_poll_tick;
+static volatile uint32_t ota_step;
+static volatile int32_t ota_result_code;
 extern void isr_alnk0(void),isr_timer5(void);
 void fm1_timer5_irq(void) {
     static uint32_t last,acc,sub,owed;
     fm1_timer5_ack();fm1_input_tick();
     uint32_t now=fm1_ticks();acc+=now-last;last=now;
     while(acc>=24000u) { acc-=24000u;milliseconds++; }
+    /* staging 중에는 main만 SIE INDEX와 USB 큐를 소비한다. 시각·패널 스캔은 유지한다. */
+    if(ota_usb_owner) { owed=0;return; }
     unsigned usb_due=sub%5u==0;
     if(usb_due)owed|=1u;
     if(sub%5u==2u)owed|=2u;
@@ -64,20 +79,30 @@ void fm1_alnk0_irq(void) {
     uint8_t p=fm1_audio_pending();fm1_audio_ack_aux(p);
     if(p&FM1_AUDIO_HALF) {
         uint32_t start=fm1_ticks(),half=fm1_audio_free_half();
+        if(previous_audio_start) {
+            uint32_t interval=(start-previous_audio_start)/24;
+            if(interval>max_audio_interval_us)max_audio_interval_us=interval;
+        }
+        previous_audio_start=start;
         in_audio=1;RING_PUBLISH();
         connection_midi_input(&engine);
         uac_render_start();
+        uint32_t render_start=fm1_ticks();
         mc_render(&engine,block,FRAMES);
+        uint32_t render_us=(fm1_ticks()-render_start)/24;
+        if(render_us>max_render_us)max_render_us=render_us;
         for(unsigned i=0;i<FRAMES*2;i++)usb_block[i]=block[i];
         uac_tap(usb_block,FRAMES);
         connection_midi_output(&engine);
-        RING_PUBLISH();in_audio=0;
         /* Retain inherited 24-bit format and -6 dB hardware output ceiling. */
         for(unsigned i=0;i<FRAMES*2;i++) dma[half*FRAMES*2+i]=(int32_t)block[i]*128;
+        unsigned changed=fm1_audio_free_half()!=half;
+        if(changed)audio_half_changes++;
         fm1_audio_ack_half();
         uint32_t us=(fm1_ticks()-start)/24;
         if(us>max_audio_us) max_audio_us=us;
-        if(us>=FRAMES*1000000u/MC_RATE) deadline_misses++;
+        if(us>=FRAMES*1000000u/MC_RATE||changed) deadline_misses++;
+        RING_PUBLISH();in_audio=0;
     }
 }
 static int read_flash(uint32_t off,void *out,unsigned n) {
@@ -97,15 +122,38 @@ static const McStorage storage={read_flash,erase_flash,program_flash};
 static void audio_pause(void) {
     fm1_irq_off();fm1_irq_mask(FM1_IRQ_ALNK0);
     fm1_audio_stop();uac.go=0;RING_PUBLISH();uac.feed=0;
+    previous_audio_start=0;
     connection_midi_pause(&engine);fm1_irq_on();
 }
-static void draw(void) {
-    for(unsigned y=0;y<240;y+=8) {
-        lcd_sync();mc_ui_strip(&engine,&ui,y,8,strip);
-        for(unsigned i=0;i<240*8;i++) strip[i]=(uint16_t)((strip[i]>>8)|(strip[i]<<8));
-        lcd_blit(0,y,240,8,strip);
+#include "panel_refresh.c"
+static uint32_t ota_now_ms(void) { return milliseconds; }
+static void ota_idle(void) {
+    fm1_wdt_feed();
+    if(ota_usb_owner) {
+        uint32_t now=fm1_ticks();
+        if(now-ota_poll_tick>=500u*FM1_TICKS_PER_US) {
+            ota_poll_tick=now;usb_poll();mi_r=mi_w;
+        }
     }
 }
+static int ota_erase(uint32_t off) {
+    ota_idle();int rc=mc_ota_flash_erase(off);ota_idle();return rc;
+}
+static int ota_prog(uint32_t off,const void *p,uint32_t n) {
+    ota_idle();int rc=mc_ota_flash_program(off,p,n);ota_idle();return rc;
+}
+static int ota_fread(uint32_t off,void *p,uint32_t n) { return mc_ota_flash_read(off,p,n); }
+static void ota_show(uint32_t step,int32_t code) {
+    ota_step=step;ota_result_code=code;
+    ui.message=step==9?(code==-16?"UPDATE CLEANUP FAILED":"UPDATE FAILED"):
+        step==5?"UPDATE REBOOT":"UPDATING - KEEP USB";
+    draw();lcd_sync();ota_idle();
+}
+static void ota_commit(const uint8_t *parm) {
+    fm1_irq_off();usb_detach();fm1_guard_unlock_top();fm1_enter_update(parm);
+}
+#include "update/ota_app.c"
+#include "update/ota_entry.c"
 static void fm1_fault(const fm1_crash_t *crash) {
     (void)crash;fm1_audio_stop();fm1_guard_unlock_top();fm1_enter_uboot();
 }
@@ -127,12 +175,20 @@ void fm1_cstart(void) {
     usb_start();uart_midi_init();
     fm1_timer5_start(isr_timer5,4);fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);
     fm1_guard_lock_top();irq_ready=1;fm1_irq_enable_all();
-    uint32_t notes=0,both_since=0,frame=0;
+    mc_ota_boot_service();
+    uint32_t notes=0,both_since=0;
+    uint8_t led_playing=255,led_step=255;
     uint8_t held_part[27]={0},held_note[27]={0};
     static const uint8_t buttons[14]={2,3,4,5,6,7,8,9,10,11,12,13,0,1};
     static const uint8_t encoders[7]={0,1,6,2,3,4,5};
     for(;;) {
         fm1_wdt_feed();uint32_t now=milliseconds;mc_ui_tick(&ui,now);usb_retry(now);
+        if(mc_ota_entry_service()) {
+            /* 업데이트 중 쌓인 패널 조작이 복귀 직후 실행되지 않게 한다. */
+            (void)fm1_input_edges(0);
+            for(unsigned i=0;i<7;i++)(void)fm1_enc_take(encoders[i]);
+            notes=fm1_in.notes;both_since=0;continue;
+        }
         uint32_t pressed=fm1_input_edges(0),current=fm1_in.notes;
         for(unsigned i=0;i<14;i++) if(pressed&(1u<<buttons[i])) {
             fm1_irq_off();mc_ui_button(&engine,&ui,i);fm1_irq_on();
@@ -166,6 +222,7 @@ void fm1_cstart(void) {
                 fm1_irq_off();for(unsigned i=0;i<FRAMES*4;i++) dma[i]=0;
                 fm1_guard_unlock_top();fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);fm1_guard_lock_top();
                 connection_midi_resume();fm1_irq_on();
+                panel_refresh_restart();
             }
         }
         if(ui.save_request) {
@@ -180,7 +237,10 @@ void fm1_cstart(void) {
             } else ui.message="FLASH UNAVAILABLE";
         }
         fm1_led_key(12,engine.playing);fm1_led_key(13,engine.recording);
-        for(unsigned i=0;i<16;i++) fm1_led_key(14+i,engine.playing&&engine.step==i);
-        if(now-frame>=50) { draw();frame=now; }
+        if(led_playing!=engine.playing||led_step!=engine.step) {
+            led_playing=engine.playing;led_step=engine.step;
+            mc_panel_step_leds(led_playing,led_step,fm1_led_key);
+        }
+        panel_draw_service(milliseconds);
     }
 }

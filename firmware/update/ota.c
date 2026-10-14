@@ -9,8 +9,7 @@
  *     loader at 0xE0000 (outside Felucca's store), ask 0xE0000000 ("success"),
  *     then write the UPDATA_PARM record (flash 0xE4F00 + RAM 0x01C7FD88) and
  *     reset. The SPL runs the loader, which installs the package.
- * Nothing is committed before the host's "success"; any failure erases the
- * staging area and Felucca carries on.
+ * 호스트의 success 전에는 commit하지 않는다. 정리 검증이 실패하면 로더를 보존한다.
  *
  * The firmware (felucca.c) and the host test supply these hooks:
  *   ota_wire_send(p, n)        one complete F0..F7 message to the host
@@ -23,6 +22,7 @@
  */
 #define OTA_AREA 0x000E0000u                     /* staged loader, 5 x 4 KiB */
 #define OTA_AREA_LEN 0x5000u
+#define OTA_RECORD_SECTOR (OTA_AREA + 0x4000u)
 #define OTA_RES (OTA_AREA + OTA_AREA_LEN - 0x100u)  /* 0xE4F00 = 4K boundary - 256: SPL scan */
 #define OTA_LDR_HCRC 0xEBAAu                     /* official update loader (usb_hid_ota.bin) */
 #define OTA_LDR_DCRC 0x5881u
@@ -266,7 +266,24 @@ static int ota_ufw(uint8_t *hdr, uint32_t *fl_off, uint32_t *fl_len, uint32_t *o
     return 0;
 }
 
-static int ota_stage(void)                       /* steps 1..6; 0 = host said success */
+/* 기록 섹터 전체가 지워졌다는 확인은 로더 변경의 선행 조건이다. */
+static int ota_erase_verified(uint32_t off)
+{
+    uint8_t b[256];
+    uint32_t j, k;
+    if (ota_erase(off))
+        return -16;
+    for (j = 0; j < 0x1000u; j += sizeof b) {
+        if (ota_fread(off + j, b, sizeof b))
+            return -16;
+        for (k = 0; k < sizeof b; k++)
+            if (b[k] != 0xFFu)
+                return -16;
+    }
+    return 0;
+}
+
+static int ota_stage(int *started)               /* steps 1..6; 0 = host said success */
 {
     static uint8_t hdr[0x400], b[512], mine[512];
     uint32_t i, n, ota_off, ota_len, fl_off, fl_len, fl_crc, c, len, own, official;
@@ -275,15 +292,17 @@ static int ota_stage(void)                       /* steps 1..6; 0 = host said su
     ota_show(1, 0);
     if ((rc = ota_ufw(hdr, &fl_off, &fl_len, &ota_off, &ota_len, &fl_crc)) != 0)
         return rc;
-    if (!fl_off || !ota_off)
+    if (!fl_off || !ota_off || fl_len < 0x93000u || fl_len > 0x100000u || fl_off > 0xFFFFFFFFu - fl_len)
         return -3;
+    if (ota_len < 512u || ota_off > 0xFFFFFFFFu - ota_len)
+        return -7;
     /* 2. which loader: the official one (known CRCs; it rewrites the whole flash.bin
      *    including the head) or Felucca's own (app area only, checks the chip key) */
     if (ota_read(ota_off, b, 512))
         return -6;
     len = ota_rd32(b + 8);
     if (ota_crc16(b + 2, 30, 0) != ota_rd16(b) || ota_rd32(b + 4) != 0x20u || b[12] != 0x41u ||
-        ota_len != len + 0x20u || len > OTA_AREA_LEN - 0x200u || ota_crc16(b + 0x22, 30, 0) != ota_rd16(b + 0x20) ||
+        len > 0x4000u - 32u || ota_len != len + 0x20u || ota_crc16(b + 0x22, 30, 0) != ota_rd16(b + 0x20) ||
         ota_rd32(b + 0x20 + 8) != 0x01C0A800u)
         return -7;
     official = ota_rd16(b) == OTA_LDR_HCRC && ota_rd16(b + 2) == OTA_LDR_DCRC && len == OTA_LDR_LEN;
@@ -305,7 +324,10 @@ static int ota_stage(void)                       /* steps 1..6; 0 = host said su
     if (ota_read(ota_off, b, 512))
         return -6;
     c = ota_rd16(b + 2);                                    /* outer dcrc of the body */
-    for (i = 0; i < OTA_AREA_LEN; i += 0x1000u)
+    *started = 1;
+    if (ota_erase_verified(OTA_RECORD_SECTOR))
+        return -8;
+    for (i = 0; i < 0x4000u; i += 0x1000u)
         if (ota_erase(OTA_AREA + i))
             return -8;
     {
@@ -339,11 +361,17 @@ static int ota_stage(void)                       /* steps 1..6; 0 = host said su
     return -13;
 }
 
-static void ota_unstage(void)
+static int ota_unstage(void)
 {
     uint32_t i;
-    for (i = 0; i < OTA_AREA_LEN; i += 0x1000u)
-        ota_erase(OTA_AREA + i);
+    int failed = 0;
+    /* 기록 무효화 검증 실패 시 로더를 한 바이트도 변경하지 않는다. */
+    if (ota_erase_verified(OTA_RECORD_SECTOR))
+        return -16;
+    for (i = 0x4000u; i; i -= 0x1000u)
+        if (ota_erase_verified(OTA_AREA + i - 0x1000u))
+            failed = 1;
+    return failed ? -16 : 0;
 }
 
 /* returns only when nothing was committed (refused, failed, or dry run) */
@@ -352,11 +380,12 @@ static int ota_session(void)
     static uint8_t parm[112];
     uint8_t back[112];
     uint32_t i;
-    int rc;
+    int rc, started = 0;
     ota_deadline = ota_now_ms() + 120000u;          /* step 1 normally takes ~5 s; a stalled host gives up after 2 min */
-    rc = ota_stage();
+    rc = ota_stage(&started);
     if (rc) {
-        ota_unstage();
+        if (started && ota_unstage())
+            rc = -16;
         ota_show(9, rc);
         return rc;
     }
@@ -371,9 +400,9 @@ static int ota_session(void)
     ota_wr32(parm + 72, OTA_AREA);
     ota_wr16(parm, ota_crc16(parm + 2, 78, 0));
 #if FELUCCA_OTA_DRYRUN
-    ota_unstage();
-    ota_show(9, 1);                                 /* 1 = dry run complete */
-    return 1;
+    rc = ota_unstage();
+    ota_show(9, rc ? rc : 1);                       /* 1 = dry run complete */
+    return rc ? rc : 1;
 #endif
 #ifndef FELUCCA_OTA_RAMONLY
 #define FELUCCA_OTA_RAMONLY 0                       /* 1: RAM record only, no power-loss resume (a power
@@ -381,9 +410,9 @@ static int ota_session(void)
 #endif
     if (!FELUCCA_OTA_RAMONLY && (ota_prog(OTA_RES, parm, sizeof parm) || ota_fread(OTA_RES, back, sizeof back) ||
         !ota_memeq(back, parm, sizeof parm))) {
-        ota_unstage();
-        ota_show(9, -14);
-        return -14;
+        rc = ota_unstage() ? -16 : -14;
+        ota_show(9, rc);
+        return rc;
     }
     ota_show(5, 0);
     ota_commit(parm);
@@ -402,7 +431,7 @@ static int ota_boot_cleanup(void)
         used |= a[i] != 0xFFu;
     for (i = 0; i < 8u; i++)
         used |= r[i] != 0xFFu;
-    if (used)
-        ota_unstage();
+    if (used && ota_unstage())
+        return -16;
     return (int)used;
 }

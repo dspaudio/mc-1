@@ -3,7 +3,7 @@ CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion
 CORE = src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c
 HEADERS = src/mcfm.h src/midi.h src/presets.h src/recorded_pcm.h src/store.h src/ui.h src/tables.h
-.PHONY: all test render clean assets target
+.PHONY: all test test-ota render clean assets target
 all: build/mc1-host
 build:
 	mkdir -p build
@@ -33,7 +33,22 @@ build/test-storage: $(CORE) $(HEADERS) tests/storage.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/storage.c -o $@
 build/test-effects-modes: src/effects.c $(HEADERS) tests/effects_modes.c | build
 	$(CC) $(CFLAGS) -Isrc src/effects.c tests/effects_modes.c -lm -o $@
-test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes
+build/test-panel-leds: firmware/panel_leds.h tests/panel_leds.c | build
+	$(CC) $(CFLAGS) tests/panel_leds.c -o $@
+build/test-ota: firmware/update/ota.c tests/ota_test.c | build
+	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function tests/ota_test.c -o $@
+build/ldr-test: firmware/update/ota.c firmware/loader/ldr_core.c tests/ldr_test.c | build
+	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function tests/ldr_test.c -o $@
+build/test-ota-entry: $(CORE) $(HEADERS) firmware/update/ota_app.c firmware/update/ota_entry.c firmware/connection/routing.c tests/ota_entry_test.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/ota_entry_test.c -o $@
+build/test-panel-refresh: firmware/panel_refresh.c tests/panel_refresh.c | build
+	$(CC) $(CFLAGS) tests/panel_refresh.c -o $@
+build/test-connections-ota: firmware/update/usb.c tests/connections.c | build
+	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function -DFELUCCA_OTA=1 tests/connections.c -o $@
+test-ota: build/test-ota build/ldr-test
+	./build/test-ota build/mc-1-EXPERIMENTAL.fwsc
+	./build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
+test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota
 	./build/test
 	./build/test-ui-input
 	./build/test-performance
@@ -46,6 +61,10 @@ test: build/test build/test-ui-input build/test-performance build/test-patterns 
 	./build/test-connection-routing
 	./build/test-storage
 	./build/test-effects-modes
+	./build/test-panel-leds
+	./build/test-ota-entry
+	./build/test-panel-refresh
+	./build/test-connections-ota
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16
 assets:

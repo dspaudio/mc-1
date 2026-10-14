@@ -266,8 +266,8 @@ static int usb_cdc_now(void) { return 0; }
 #endif
 static const uint8_t STR0[4] = {4, 3, 0x09, 0x04};
 #ifdef MC_USB_APP
-static const uint8_t STR1[] = {18, 3, 'd',0,'s',0,'p',0,'a',0,'u',0,'d',0,'i',0,'o',0};
-static const uint8_t STR2[] = {10, 3, 'M',0,'C',0,'-',0,'1',0};
+static const uint8_t STR1[] = {14, 3, 'M',0,'-',0,'V',0,'A',0,'V',0,'E',0};
+static const uint8_t STR2[] = {38, 3, 'M',0,'C',0,'-',0,'1',0,' ',0,'/',0,' ',0,'M',0,'-',0,'V',0,'A',0,'V',0,'E',0,' ',0,'F',0,'M',0,'-',0,'1',0};
 #else
 static const uint8_t STR1[] = {42, 3, 'H', 0, 0xFC, 0, 'g', 0, 'e', 0, 'l', 0, 't', 0, 'o', 0, 'n', 0, ' ', 0, 'I', 0,
                                'n', 0, 's', 0, 't', 0, 'r', 0, 'u', 0, 'm', 0, 'e', 0, 'n', 0, 't', 0, 's', 0};
@@ -679,9 +679,6 @@ stall:
 /* SysEx assembly: only short commands matter here */
 static void sysex_byte(uint8_t b)
 {
-#ifdef MC_USB_APP
-    (void)b; /* Application MIDI cannot request updater or bootloader entry. */
-#else
     static const uint8_t UBOOT_KEY[6] = {0xF0, 0x22, 0x24, 0x35, 0x7D, 0xF7};
     if (b >= 0xF8u)
         return;                                        /* realtime may occur anywhere in SysEx */
@@ -716,8 +713,11 @@ static void sysex_byte(uint8_t b)
         uint32_t i, ok = usb.sx_len == 6u;
         for (i = 0; ok && i < 6u; i++)
             ok = usb.sysex[i] == UBOOT_KEY[i];
-        if (ok)
+        if (ok) {
+#ifndef MC_USB_APP
             usb.uboot_req = 1;
+#endif
+        }
 #if FELUCCA_OTA
         else if (usb.sx_len == 6u && usb.sysex[1] == 0x22 && usb.sysex[2] == 0x24 && usb.sysex[3] == 0x35 &&
                  usb.sysex[4] == 0x7F)
@@ -731,7 +731,6 @@ static void sysex_byte(uint8_t b)
 #endif
         usb.sx_on = 0;
     }
-#endif
 }
 
 /* one USB-MIDI event packet: SysEx bytes to sysex_byte, channel voice messages and the clock /
@@ -827,12 +826,33 @@ static void ota_idle(void);
 static int ota_wire_send(const uint8_t *p, uint32_t n)   /* F0..F7 -> USB-MIDI SysEx packets */
 {
     uint32_t i = 0, t0 = ota_now_ms();
+#ifdef MC_USB_APP
+    uint32_t packets = n / 3u + (n % 3u != 0u);
+    if (packets > SXQ)
+        return -1;
+    /* 앱의 짧은 응답 전체를 한 번에 게시한다. reset ISR이 중간 enqueue와 경합하지 않는다. */
+    while (SXQ - (so_w - so_r) < packets) {
+        if (!*(volatile uint8_t *)&usb.config || ota_now_ms() - t0 > 200u)
+            return -1;
+        ota_idle();
+    }
+#ifdef MC_OTA_TX_LOCK
+    MC_OTA_TX_LOCK();
+#endif
+    if (!usb.config) {
+#ifdef MC_OTA_TX_UNLOCK
+        MC_OTA_TX_UNLOCK();
+#endif
+        return -1;
+    }
+#endif
     sx_busy = 1;
     while (i < n) {
         uint32_t k = n - i >= 3u ? 3u : n - i, pkt;
         uint32_t cin = k == 3u && i + 3u < n ? 4u : k == 3u ? 7u : 4u + k;   /* 4 continues; 5/6/7 end */
         pkt = cin | (uint32_t)p[i] << 8 | (k > 1u ? (uint32_t)p[i + 1] << 16 : 0u) |
               (k > 2u ? (uint32_t)p[i + 2] << 24 : 0u);
+#ifndef MC_USB_APP
         while (so_w - so_r >= SXQ) {
             if (!*(volatile uint8_t *)&usb.config || ota_now_ms() - t0 > 200u) {
                 sx_busy = 0;
@@ -840,12 +860,16 @@ static int ota_wire_send(const uint8_t *p, uint32_t n)   /* F0..F7 -> USB-MIDI S
             }
             ota_idle();
         }
+#endif
         sx_out_q[so_w % SXQ] = pkt;
         RING_PUBLISH();
         so_w++;
         i += k;
     }
     sx_busy = 0;
+#if defined(MC_USB_APP) && defined(MC_OTA_TX_UNLOCK)
+    MC_OTA_TX_UNLOCK();
+#endif
     return 0;
 }
 static int ota_frame_get(const uint8_t **p, uint32_t *n)
@@ -862,6 +886,30 @@ static void ota_frame_done(void)
     RING_PUBLISH();                                     /* done with the frame before the ISR may refill it */
     sx_ready = 0;
 }
+
+#ifdef MC_USB_APP
+/* IRQ가 꺼져 있고 소유권이 main으로 넘어온 경계에서만 호출한다. */
+static void usb_ota_clear_queues(void)
+{
+    mi_r = mi_w;
+    mo_r = mo_w;
+    so_r = so_w;
+    sx_ready = sx_collect = sx_busy = 0;
+    sx_pos = sx_frame_len = 0;
+    usb.sx_on = usb.sx_len = 0;
+    usb.ota_req = usb.uboot_req = 0;
+    RING_PUBLISH();
+}
+
+static void usb_ota_flush_tx(void)
+{
+    if (usb.up && usb.config) {
+        sie_wr(S_INDEX, 1);
+        /* DATA 토글은 유지하고 이전 연주/업데이트의 미전송 패킷만 폐기한다. */
+        sie_wr(S_TXCSR1, 0x08u);
+    }
+}
+#endif
 #endif
 
 static void ep1_tx(void)
@@ -882,12 +930,14 @@ static void ep1_tx(void)
         sie_wr(S_TXCSR1, csr & ~0x80u);
 #if FELUCCA_OTA
     while (so_r != so_w && n < 64u) {                   /* SysEx first, never split by notes */
+        RING_PUBLISH();
         uint32_t pkt = sx_out_q[so_r % SXQ];
         ep1tx[n] = (uint8_t)pkt;
         ep1tx[n + 1] = (uint8_t)(pkt >> 8);
         ep1tx[n + 2] = (uint8_t)(pkt >> 16);
         ep1tx[n + 3] = (uint8_t)(pkt >> 24);
         n += 4u;
+        RING_PUBLISH();
         so_r++;
     }
     while (!sx_busy && so_r == so_w && mo_r != mo_w && n < 64u) {
