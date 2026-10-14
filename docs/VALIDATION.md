@@ -31,7 +31,7 @@ for source evidence and the distinction from OS-provided Web MIDI ports.
 No device was flashed. FM-1 USB, MIDI, RF, CPU deadlines and listening still
 require hardware validation.
 
-The final pi32v2 app uses 482,220 bytes of its 581,564-byte slot, leaving 99,344.
+The final pi32v2 app uses 482,268 bytes of its 581,564-byte slot, leaving 99,296.
 Static RAM sections total 354,144 bytes: globals 46,656, engine pool 304,704 and
 RAM code 2,784. The pool retains 39,360 bytes within its reserved region. These
 linker measurements do not establish CPU deadlines or stack high-water marks.

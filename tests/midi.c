@@ -80,5 +80,10 @@ int main(void) {
         else input(1,0x80,53,0);
         assert(mc_midi_pop(&e,&m)&&m.data[0]==0x80&&m.data[1]==53&&!e.midi.count);
     }
+    mc_init(&e);mc_drum(&e,0,100);render(100);drain();
+    int32_t tail=e.drum[0].env;assert(tail>0);mc_stop(&e);assert(e.drum[0].env==tail);
+    unsigned drum_cleanup=0;while(mc_midi_pop(&e,&m)) if(m.data[0]==0xb9&&m.data[1]==123) drum_cleanup++;
+    assert(drum_cleanup==1);render(1);assert(buffer[0]||buffer[1]);
+    input(1,0xb9,120,0);for(unsigned i=0;i<MC_DRUM_VOICES;i++) assert(!e.drum[i].env);
     printf("PASS MIDI: parser/running status/realtime/sustain/CC/program/bend/drum+note record/no echo/gate off/panic/60-240 BPM clock\n");
 }

@@ -323,7 +323,10 @@ void mc_start(McEngine *e) {
 void mc_stop(McEngine *e) {
     mc_midi_send(e,0xfc,0,0,1);
     uint8_t receiving=e->midi.receiving;e->midi.receiving=0;
-    for(unsigned p=0;p<4;p++) mc_midi_all_off(e,p);
+    for(unsigned p=0;p<3;p++) mc_midi_all_off(e,p);
+    mc_midi_send(e,0xb0u+e->project.midi_channel[3],123,0,3);
+    e->midi.sustain[3]=0;
+    for(unsigned i=0;i<16;i++) e->midi.held[3][i]=e->midi.deferred[3][i]=0;
     e->midi.receiving=receiving;
     e->playing=0; e->queued=255;
     e->metro_left=0;
