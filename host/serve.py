@@ -6,8 +6,8 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser();parser.add_argument('--port',type=int,default=8091);args=parser.parse_args()
-lib=ROOT/'build/libmcfm.so';lib.parent.mkdir(exist_ok=True)
-sources=['src/engine.c','src/factory.c','src/project.c','src/store.c','src/ui.c','host/bridge.c']
+lib=ROOT/'build/libmc1.so';lib.parent.mkdir(exist_ok=True)
+sources=['src/effects.c','src/demo.c','src/engine.c','src/factory.c','src/project.c','src/store.c','src/ui.c','host/bridge.c']
 subprocess.run([os.environ.get('CC','cc'),'-O2','-std=c11','-Wall','-Wextra','-Werror','-shared','-fPIC','-Isrc',*sources,'-o',str(lib)],cwd=ROOT,check=True)
 dsp=C.CDLL(str(lib));dsp.host_init()
 dsp.host_audio.restype=C.POINTER(C.c_int16);dsp.host_screen.restype=C.POINTER(C.c_uint16)
@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/screen.png': return self.send(png(),'image/png')
             if self.path=='/audio': return self.send(C.string_at(dsp.host_audio(),4410*4),'application/octet-stream')
             if self.path=='/project':
-                blob=C.create_string_buffer(2132);n=dsp.host_export(blob)
+                blob=C.create_string_buffer(2140);n=dsp.host_export(blob)
                 return self.send(blob.raw[:n],'application/octet-stream')
         self.send(b'Not found',status=404)
     def do_POST(self):
@@ -55,6 +55,6 @@ class Handler(BaseHTTPRequestHandler):
                 except (ValueError,KeyError,TypeError): return self.send(b'Invalid action',status=400)
             else: return self.send(b'Not found',status=404)
         self.send(b'OK')
-print(f'MCFM-1 native host panel: http://127.0.0.1:{args.port} (no hardware access)',flush=True)
+print(f'MC-1 native host panel: http://127.0.0.1:{args.port} (no hardware access)',flush=True)
 try: ThreadingHTTPServer(('127.0.0.1',args.port),Handler).serve_forever()
 except KeyboardInterrupt: pass

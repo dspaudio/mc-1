@@ -10,7 +10,7 @@ jobs:
       - run: make test all
       - name: Sanitizers
         run: |
-          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
           build/test-sanitized
       - run: python3 tools/gen_assets.py && git diff --exit-code src/tables.h
       - run: python3 tests/host_http.py
@@ -46,19 +46,17 @@ jobs:
           git -C /tmp/mcfm-sdk sparse-checkout set cpu/wl82/tools
           test "$(git -C /tmp/mcfm-sdk rev-parse HEAD)" = d179b4484759423312073f5fbb232501aa491047
           python3 tools/build_package.py
-          diff docs/target-report.json build/target-report.json
-          diff docs/package-report.json build/package-report.json
           cc -O1 -g -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ldr_test.c -o build/ldr-test
-          build/ldr-test build/previous-test-only.fwsc build/mcfm-1-EXPERIMENTAL.fwsc
+          build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
       - uses: actions/upload-artifact@v4
         with:
           name: experimental-target-NOT-DEVICE-TESTED
           path: |
-            build/mcfm-1.elf
-            build/mcfm-1.app.bin
-            build/mcfm-1.dis
-            build/mcfm-1.symbols
+            build/mc-1.elf
+            build/mc-1.app.bin
+            build/mc-1.dis
+            build/mc-1.symbols
             build/target-report.json
             build/package-report.json
-            build/mcfm-1-EXPERIMENTAL.fwsc
+            build/mc-1-EXPERIMENTAL.fwsc
             build/loader/

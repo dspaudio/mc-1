@@ -5,7 +5,7 @@ import array, hashlib, json, math, subprocess, sys, wave
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 subprocess.run(['make','all'],cwd=root,check=True)
-exe=root/'build/mcfm-host'
+exe=root/'build/mc1-host'
 subprocess.run([str(exe),'render',str(root/'build/demo.wav'),'16'],check=True)
 files=[root/'build/demo.wav']
 for i in range(12):

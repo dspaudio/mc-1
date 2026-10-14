@@ -6,7 +6,7 @@ static const char *const labels[16]={"BD","SN","CH","OH","CP","LT","B2","RS","S2
 static int limit(int v,int lo,int hi) { return v<lo?lo:v>hi?hi:v; }
 static unsigned wrap(int v,unsigned n) { while(v<0) v+=(int)n; return (unsigned)v%n; }
 void mc_ui_init(McUi *u) {
-    u->page=u->sound=u->editing=u->save_pending=u->save_request=0; u->octave=0; u->message=0;
+    u->page=u->sound=u->editing=u->save_pending=u->save_request=u->load_request=0;u->demo_choice=1; u->octave=0; u->message=0;
     u->preset[0]=6;u->preset[1]=2;u->preset[2]=3;
 }
 void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
@@ -20,9 +20,9 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_SEQ: u->page=0;u->editing^=1; break;
     case UI_EDIT: u->editing^=1;break;
     case UI_ENV: u->page=u->page==1?0:1; break;
-    case UI_GLO: u->page=u->page==2?0:2; break;
+    case UI_GLO: u->page=u->page==2?4:u->page==4?0:2; break;
     case UI_LFO: e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_ACCENT; break;
-    case UI_FX: e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_SLIDE; break;
+    case UI_FX: if(u->editing) e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_SLIDE; else u->page=u->page==3?0:3; break;
     case UI_OCTDN: u->octave=(int8_t)limit(u->octave-1,-3,3); break;
     case UI_OCTUP: u->octave=(int8_t)limit(u->octave+1,-3,3); break;
     case UI_SAVE:
@@ -46,7 +46,15 @@ void mc_ui_encoder(McEngine *e,McUi *u,unsigned enc,int delta) {
     }
     if(enc==2) { mc_queue(e,wrap((e->queued<4?e->queued:e->pattern)+delta,4)); return; }
     unsigned k=enc-3;
-    if(u->page==2) {
+    if(u->page==4) {
+        if(k==0) u->demo_choice=(uint8_t)wrap(u->demo_choice+delta,2);
+        if(k==3&&delta>0) {
+            if(e->playing) u->message="STOP BEFORE LOAD";
+            else { u->load_request=(uint8_t)(u->demo_choice+1);u->message="LOADING"; }
+        }
+    } else if(u->page==3) {
+        e->project.fx[k]=(uint8_t)limit(e->project.fx[k]+delta,0,127);
+    } else if(u->page==2) {
         if(k==0) e->project.bpm=(uint16_t)limit(e->project.bpm+delta,40,240);
         if(k==1) e->project.swing=(uint8_t)limit(e->project.swing+delta,0,45);
         if(k==2) mc_queue(e,wrap((e->queued<4?e->queued:e->pattern)+delta,4));
@@ -151,12 +159,28 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     if(y>=240||height>8||y+height>240) return;
     Canvas c={y,height,pixels}; rect(&c,0,(int)y,240,(int)height,BG);
     unsigned p=e->selected;
-    text(&c,3,4,p==3?"808":"MCFM-1",ORANGE,1);
+    text(&c,3,4,p==3?"808":"MC-1",ORANGE,1);
     text(&c,63,4,p==3?mc_drum_names[u->sound]:e->project.patch[p].engine?"303":"LA",WHITE,1);
     number(&c,163,4,e->pattern+1,WHITE);text(&c,169,4,"/4",DIM,1);
     text(&c,191,4,e->playing?"+":"-",WHITE,1);number(&c,211,4,e->project.bpm,WHITE);
     if(e->queued<4) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }
-    if(u->page==2) {
+    if(u->page==4) {
+        text(&c,14,40,"DEMO LIBRARY",WHITE,2);
+        text(&c,14,77,u->demo_choice?"NEON SPIRAL":"NIGHT CIRCUIT",ORANGE,2);
+        text(&c,14,108,"STOP THEN TURN LOAD",WHITE,1);
+        text(&c,14,126,"REPLACES CURRENT PROJECT",DIM,1);
+        text(&c,14,146,"PLAY STARTS THE DEMO",WHITE,1);
+        knob_scaled(&c,26,"SONG",u->demo_choice+1,2,0x3317);
+        knob_scaled(&c,205,"LOAD",u->load_request?1:0,1,HIT);
+    } else if(u->page==3) {
+        text(&c,14,42,"MASTER EFFECTS",WHITE,2);
+        text(&c,14,78,"DELAY / REVERB",ORANGE,1);
+        text(&c,14,98,"SOFT DRIVE / CHORUS",ORANGE,1);
+        text(&c,14,124,"ZERO IS DRY",DIM,1);
+        text(&c,14,146,"SAVE STORES FX SETTINGS",DIM,1);
+        knob(&c,26,"DELAY",e->project.fx[0],0x3317);knob(&c,85,"REVERB",e->project.fx[1],0x3d48);
+        knob(&c,145,"DRIVE",e->project.fx[2],DIM);knob(&c,205,"CHORUS",e->project.fx[3],HIT);
+    } else if(u->page==2) {
         text(&c,14,42,"GROOVE CONTROL",WHITE,2);
         text(&c,14,75,"FOUR PATTERNS / FOUR PARTS",DIM,1);
         text(&c,14,99,"PRESETS: QUEUE PATTERN",WHITE,1);

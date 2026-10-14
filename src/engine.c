@@ -78,7 +78,7 @@ static void trigger(McEngine *e) {
     }
     e->events++;
 }
-void mc_start(McEngine *e) { e->playing=1; e->step=0; e->clock=0; trigger(e); }
+void mc_start(McEngine *e) { e->playing=1; if(e->project.demo) { e->demo_frame=0;e->pattern=0;e->queued=255;e->events=0;mc_demo_tick(e); } e->playing=1; e->step=0; e->clock=0; trigger(e); }
 void mc_stop(McEngine *e) {
     e->playing=0; e->queued=255;
     for(unsigned i=0;i<MC_VOICES;i++) e->voice[i].stage=2;
@@ -204,6 +204,7 @@ static int32_t percussion(McEngine *e,McDrum *d) {
 }
 void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
     for(unsigned f=0;f<frames;f++) {
+        if(e->playing&&e->project.demo) { mc_demo_tick(e);e->demo_frame++; }
         if(e->playing) {
             unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
             e->clock+=e->project.bpm*400u;
@@ -223,7 +224,8 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
             l+=v*(127-e->project.pan[p])/127; r+=v*e->project.pan[p]/127;
         }
         /* Conservative fixed headroom, then a bounded safety clamp; no wrapping. */
-        l=mul(l/3,e->master); r=mul(r/3,e->master);
+        l/=3;r/=3;mc_effects(e,&l,&r);
+        l=mul(l,e->master); r=mul(r,e->master);
         if(l>32767||l< -32767||r>32767||r< -32767) e->clips++;
         int32_t al=l<0?-l:l, ar=r<0?-r:r;
         if((uint32_t)al>e->peak) e->peak=(uint32_t)al;

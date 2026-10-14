@@ -1,4 +1,4 @@
-# Building MCFM-1
+# Building MC-1
 
 ## Host
 
@@ -13,7 +13,7 @@ For sanitizer checks, use a separate output binary (do not clean during another 
 ```sh
 cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
   -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc \
-  src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c \
+  src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c \
   -o build/test-sanitized
 build/test-sanitized
 ```
@@ -39,7 +39,7 @@ The tested acquisition URL is the official vendor distribution:
 SHA-256: `a1545cddbc451a06bac43eb5cd96d831470c42a97c5c0b1f98879a20fc7647bd`.
 Download/extract outside this repository; do not commit the toolchain. CI verifies this hash.
 
-Outputs are `build/mcfm-1.elf`, `build/mcfm-1.app.bin`, disassembly/symbols and
+Outputs are `build/mc-1.elf`, `build/mc-1.app.bin`, disassembly/symbols and
 `build/target-report.json`. The script checks the entry stub, XIP placement, image size,
 RAM sections, pool headroom and absence of calls from flash-off RAM code. Link failures
 are errors, not waived warnings. Each compiler command has a 60-second timeout.
@@ -62,7 +62,7 @@ The CI workflow shows the exact sparse checkout and toolchain acquisition.
 export AC79_SDK=/path/to/fw-AC79_AIoT_SDK
 python3 tools/build_package.py
 cc -O2 -Wall -Wextra -Werror -Wno-unused-function tests/ldr_test.c -o build/ldr-test
-build/ldr-test build/previous-test-only.fwsc build/mcfm-1-EXPERIMENTAL.fwsc
+build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
 ```
 
 This rebuilds the app and a separate, entirely RAM-resident upstream loader, verifies

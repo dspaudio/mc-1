@@ -128,6 +128,15 @@ static void persistence(void) {
     uint8_t blob[MC_RECORD_BYTES];McProject p,q;uint32_t seq;
     mc_factory(&p);assert(mc_encode(&p,123,blob,sizeof blob)==sizeof blob);
     assert(mc_decode(&q,&seq,blob,sizeof blob)==0&&seq==123&&!memcmp(&p,&q,sizeof p));
+    /* Legacy v1 payload imports with dry FX and no demo automation. */
+    uint8_t legacy[2132];memcpy(legacy,blob,84);memcpy(legacy+84,blob+92,2048);
+    legacy[4]=1;legacy[6]=64;legacy[7]=8;
+    uint32_t crc=mc_crc(legacy+20,2112);for(unsigned j=0;j<4;j++)legacy[12+j]=(uint8_t)(crc>>(j*8));
+    crc=mc_crc(legacy,16);for(unsigned j=0;j<4;j++)legacy[16+j]=(uint8_t)(crc>>(j*8));
+    assert(mc_decode(&q,&seq,legacy,sizeof legacy)==0&&q.fx[0]==0&&q.demo==0);
+    p.fx[0]=51;p.fx[1]=62;p.fx[2]=13;p.fx[3]=37;p.demo=1;
+    assert(mc_encode(&p,123,blob,sizeof blob)>0&&mc_decode(&q,&seq,blob,sizeof blob)==0&&!memcmp(&p,&q,sizeof p));
+    mc_factory(&p);assert(mc_encode(&p,123,blob,sizeof blob)>0);
     for(unsigned n=0;n<sizeof blob;n++) assert(mc_decode(&q,&seq,blob,n)<0);
     for(unsigned i=0;i<sizeof blob;i++) {
         blob[i]^=1;assert(mc_decode(&q,&seq,blob,sizeof blob)<0);blob[i]^=1;
@@ -154,7 +163,7 @@ static void persistence(void) {
     assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));
     unreadable=MC_STORE_B;assert(mc_store_load(&io,&q,&seq)==0);
     assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));unreadable=0;
-    puts("PASS: portable project format, truncation/corruption, validation, rollover and 6228 power cuts");
+    puts("PASS: portable project format, truncation/corruption, validation, rollover and 6236 power cuts");
 }
 static void panel(void) {
     McUi u;mc_init(&e);mc_ui_init(&u);e.selected=3;
@@ -178,14 +187,40 @@ static void panel(void) {
     mc_ui_encoder(&e,&u,6,3);assert(e.project.step[e.pattern][0][step].flags<4);
     mc_ui_key(&e,&u,4,1);assert(e.project.step[e.pattern][0][step].note[0]==57);
     uint16_t pixels[240*8+2];pixels[0]=123;pixels[240*8+1]=456;
-    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<3;page++) for(unsigned row=0;row<240;row+=8) {
+    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<5;page++) for(unsigned row=0;row<240;row+=8) {
         e.selected=(uint8_t)part;u.page=(uint8_t)page;mc_ui_strip(&e,&u,row,8,pixels+1);
         assert(pixels[0]==123&&pixels[240*8+1]==456);
     }
     puts("PASS: drum-grid controls, save confirmation and all screen strip bounds");
 }
+static void effects_demo(void) {
+    for(unsigned fx=0;fx<4;fx++) {
+        mc_init(&e);e.project.fx[fx]=127;uint64_t tail=0,changed=0;int32_t endpeak=0;
+        for(unsigned i=0;i<MC_RATE*5;i++) {
+            int32_t dry=i<64?12000:0,l=dry,r=dry;
+            mc_effects(&e,&l,&r);assert(l>-60000&&l<60000&&r>-60000&&r<60000);
+            if(l!=dry||r!=dry)changed++;
+            if(i>=64)tail+=(uint64_t)((int64_t)l*l+(int64_t)r*r);
+            if(i>MC_RATE*4) { int32_t peak=abs(l)+abs(r);if(peak>endpeak)endpeak=peak; }
+        }
+        assert(changed>0);if(fx!=2)assert(tail>0);assert(endpeak<32);
+    }
+    mc_demo_load(&a,1);assert(a.project.demo&&a.project.fx[0]&&mc_project_valid(&a.project));b=a;
+    mc_start(&a);mc_start(&b);assert(a.pattern==0&&a.mute==6);
+    mc_render(&a,x,4096);for(unsigned i=0;i<4096;i+=64)mc_render(&b,y+i*2,64);
+    assert(!memcmp(x,y,sizeof x));
+    render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
+    McUi u;mc_ui_init(&u);mc_init(&e);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
+    for(unsigned k=0;k<4;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.fx[k]==50); }
+    mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
+    mc_start(&e);mc_ui_encoder(&e,&u,6,1);assert(!u.load_request);
+    mc_stop(&e);mc_ui_encoder(&e,&u,6,1);assert(u.load_request==2);
+    mc_demo_load(&e,u.load_request-1);assert(e.project.demo&&e.project.bpm==140);
+    puts("PASS: four effect impulse/decay tests, native demo end, block identity and FX/demo UI");
+}
 static void stress(void) {
     clock_t begin=clock();mc_init(&e);e.project.bpm=240;e.project.swing=45;
+    for(unsigned fx=0;fx<4;fx++)e.project.fx[fx]=127;
     for(unsigned p=0;p<3;p++) { mc_preset(&e,p,0);e.project.patch[p].resonance=127;e.project.patch[p].cutoff=127; }
     for(unsigned i=0;i<8;i++) mc_note(&e,i%3,84+i*3,127,MC_ACCENT,0);
     for(unsigned i=0;i<16;i++) mc_drum(&e,i,127);
@@ -194,5 +229,5 @@ static void stress(void) {
 }
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    engines();knob_audio();sequence();persistence();panel();stress();puts("ALL TESTS PASSED");return 0;
+    engines();knob_audio();sequence();persistence();panel();effects_demo();stress();puts("ALL TESTS PASSED");return 0;
 }

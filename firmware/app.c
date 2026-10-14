@@ -16,6 +16,8 @@
 #include "fm1_flash.h"
 #include "libc.c"
 #include "lcd.c"
+#include "../src/effects.c"
+#include "../src/demo.c"
 #include "../src/engine.c"
 #include "../src/factory.c"
 #include "../src/project.c"
@@ -118,6 +120,14 @@ void fm1_cstart(void) {
         } else both_since=0;
         int volume=fm1_adc_read(FM1_ADC_MASTER);
         if(volume>=0) engine.master=(uint16_t)((unsigned)volume*(unsigned)volume/32);
+        if(ui.load_request) {
+            unsigned demo=ui.load_request-1;ui.load_request=0;
+            if(!engine.playing) {
+                fm1_audio_stop();mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY";
+                fm1_irq_off();for(unsigned i=0;i<FRAMES*4;i++) dma[i]=0;
+                fm1_guard_unlock_top();fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);fm1_guard_lock_top();fm1_irq_on();
+            }
+        }
         if(ui.save_request) {
             ui.save_request=0;
             if(!engine.playing&&flash_ok) {

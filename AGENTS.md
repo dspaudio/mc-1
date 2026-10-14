@@ -1,4 +1,4 @@
-# MCFM-1 development
+# MC-1 development
 
 Read README.md, docs/ARCHITECTURE.md and docs/VALIDATION.md before firmware changes.
 Keep the shared C engine and UI authoritative: the host preview must use them.

@@ -34,7 +34,7 @@ Flash save stops audio DMA, writes only when transport is stopped, then zeros/re
 
 The inherited startup/HAL does **not** configure or prove a 240 MHz CPU clock. It inherits
 bootloader clock state; TIMER4 is explicitly sourced from the 24 MHz crystal. Reported stock
-240 MHz is not a measured MCFM-1 clock. Inspect actual clock registers and ISR metrics on-device
+240 MHz is not a measured MC-1 clock. Inspect actual clock registers and ISR metrics on-device
 before claiming stable polyphony or latency. No CPU-frequency assumption enters host tests.
 
 ## Memory and flash boundaries
@@ -55,16 +55,17 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 2,920 bytes, including a 2,112-byte project. This is not total device
+Host `sizeof(McEngine)` is 56,212 bytes, including a 2,120-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Six original attack tables occupy 6,144 bytes of XIP, not a sample-memory allocation.
 
-Measured pi32v2 static footprint: **34,484-byte app**, **14,336-byte globals**, **2,784-byte RAM code**, **zero pool**. See [target report](target-report.json) for the build and hash.
+The [target report](target-report.json) records the compiled revision; FX-version memory
+figures are being regenerated. Host engine state is 56,212 B, including fixed effect buffers.
 
 ## Persistence and safety
 
-Four 16-step patterns fit one portable 2,132-byte project record. Serialization is explicit
+Four 16-step patterns fit one portable 2,140-byte project record. Serialization is explicit
 little endian; it does not dump compiler structs. The header includes magic, version, length,
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
@@ -81,8 +82,27 @@ failure modes still need device validation. Save-readback errors are reported on
 ## Current limitations
 
 Default panel mapping only; no imported calibration. No USB/TRS MIDI stack, firmware updater,
-song chain, per-hit velocity, sample import, effect sends, undo or on-panel chord editing.
+general song chain/editor, per-hit velocity, sample import, per-part effect sends, undo or on-panel chord editing.
 Melodic steps can store three notes; live/step recording currently writes one. Per-drum LEVEL is
 a kit-level control, while each drum step shares velocity. Pattern sounds are project-wide.
 Muting is immediate and may click. Tone quality, note transitions and noise floor need listening
 review on the actual codec. The host browser requires one active audio client per server instance.
+
+## Master effects and built-in demo
+
+`effects.c` implements four original integer effects: soft saturation, stereo
+triangle-modulated interpolated chorus, cross-feedback tempo delay (sixteenth note,
+maximum 8,191 samples), and four damped feedback combs for compact reverb. The
+permanent delay/comb/chorus buffers use 53,248 bytes; counters/damping add 36 bytes.
+All amounts are 0–127, feedback is bounded below unity, and the mix retains the
+existing final clamp and clip counter. Bypassed effects still advance/clear their
+state so switching them back on does not revive a frozen tail. No heap allocation.
+
+`demo.c` stores original note patterns and a 32-bar performance. The same sequencer,
+mutes, cutoff/resonance controls and effects execute on both targets. Automated
+filters update every 64 samples; manual filter edits may be overwritten while demo
+mode is enabled. Demo loading resets state only after the device stops audio DMA.
+Version 2 extends the portable body by eight bytes for effects/demo settings;
+legacy version 1 projects migrate to dry effects/no automation. A/B sectors and
+app flash bounds are unchanged. The larger state and four effects require new
+real-device timing/stack checks; host speed is not a pi32v2 benchmark.

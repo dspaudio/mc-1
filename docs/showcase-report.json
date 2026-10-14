@@ -35,11 +35,11 @@
     },
     {
       "file": "neon-spiral.wav",
-      "frames": 2463300,
-      "raw_peak": 2838,
-      "audition_gain": 8.1642,
+      "frames": 2595600,
+      "raw_peak": 3481,
+      "audition_gain": 6.656133,
       "normalized_peak": 23170,
-      "sha256": "c9da48e0ba44ac5d499cefc53ba6a2d5c73e3a664e5edbc2d958a6272d842a17"
+      "sha256": "b0e181fdd9e39fe57239f132a814066a133086c3c87589d2371fea98dd879b58"
     }
   ]
 }

@@ -18,8 +18,8 @@ try:
             if process.poll() is not None: raise RuntimeError(process.communicate())
             time.sleep(.05)
     else: raise RuntimeError('Host startup timeout')
-    assert b'MCFM-1' in html
-    original=request('/project');assert len(original)==2132
+    assert b'MC-1' in html
+    original=request('/project');assert len(original)==2140
     assert request('/screen.png').startswith(b'\x89PNG\r\n\x1a\n')
     request('/action',json.dumps({'kind':0,'a':10}).encode())
     pcm=request('/audio');assert len(pcm)==17640 and any(pcm)

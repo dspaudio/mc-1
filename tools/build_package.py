@@ -40,10 +40,10 @@ body=head(pkg.crc16(raw),len(raw),0x1c0a800,0)+blocks
 ota=head(pkg.crc16(body),32,len(body),0x41)+body
 (out/'ota.bin').write_bytes(ota)
 pkg.SDK=sdk
-app=Path('build/mcfm-1.app.bin').read_bytes()
+app=Path('build/mc-1.app.bin').read_bytes()
 # Retain upstream FM-1_900 identity for the existing M-UPGRADE protocol.
 image=pkg.ufw(pkg.flash_image(app,pkg.KEY),ota,'FM-1_900')
-Path('build/mcfm-1-EXPERIMENTAL.fwsc').write_bytes(image)
+Path('build/mc-1-EXPERIMENTAL.fwsc').write_bytes(image)
 # A different valid old app forces every changed sector through the loader test.
 old=bytes([app[0]^1])+app[1:]
 Path('build/previous-test-only.fwsc').write_bytes(pkg.ufw(pkg.flash_image(old,pkg.KEY),ota,'FM-1_900'))

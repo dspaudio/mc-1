@@ -1,12 +1,12 @@
-# MCFM-1
+# MC-1
 
 **An original 1990s-style groovebox for the M-VAVE FM-1.**
 
 Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine, plus a **16-lane synthesized drum part**. Four patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
 
-The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MCFM-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
+The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1:** the native host engine, sequencer, display and storage tests work. The pi32v2 target build and Linux/macOS host checks pass; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.2:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
@@ -28,17 +28,34 @@ The command-line harness also works without a browser:
 
 ```sh
 make
-build/mcfm-host render build/demo.wav 16
-build/mcfm-host preset 3 build/glass-bell.wav
-build/mcfm-host screen build/drums.ppm 3
-build/mcfm-host                 # interactive command help
+build/mc1-host render build/demo.wav 16
+build/mc1-host preset 3 build/glass-bell.wav
+build/mc1-host screen build/drums.ppm 3
+build/mc1-host                 # interactive command help
 ```
 
 [Listen to NIGHT CIRCUIT](docs/audio/night-circuit.wav): an original host-rendered four-pattern demo at 118 BPM. It is not a recording of an FM-1 or Roland device.
 
+## Built-in demo and effects
+
+While stopped, press **GLO twice**, select **NEON SPIRAL** with knob 1, turn
+**LOAD** (knob 4) clockwise, then press **PLAY**. Loading replaces the current
+project in RAM; save/export your work first. No flash write happens until SAVE
+is explicitly confirmed. NIGHT CIRCUIT reloads the original dry pattern bank.
+NEON SPIRAL plays 32 bars with automatic mutes, pattern changes and cutoff/resonance
+sweeps, then stops with effect tails. Loading it again restores the original mix.
+
+Press **HOME**, then **FX** for **DELAY / REVERB / DRIVE / CHORUS**. Each knob is
+0–127; zero is dry. Effects amounts and demo mode are included in project version 2;
+version 1 files import with dry effects. This is a fixed built-in arrangement,
+not a general song editor. Four effects can be selected together; device deadline
+stability is not established until an authorized FM-1 measurement.
+
+[Download community MP3: MC-1 — NEON SPIRAL with FX (320 kbps)](docs/audio/mc-1-neon-spiral-fx.mp3)
+
 ## Listening demos
 
-- [NEON SPIRAL — 56-second original psy-trance study](docs/audio/neon-spiral.wav)
+- [NEON SPIRAL — 59-second original psy-trance study](docs/audio/neon-spiral.wav)
 - [LA lead, pad and bell](docs/audio/la-showcase.wav)
 - [303 cutoff and slide](docs/audio/303-showcase.wav)
 - [808 synthesized drums](docs/audio/808-showcase.wav)
@@ -51,9 +68,9 @@ LA arpeggio, drum dropout and return, with cutoff and resonance sweeps.
 It does not recreate or claim a listening match to the original demo.
 At 27.4–34.3 seconds the isolated acid line sweeps cutoff and resonance; at 34.3
 seconds drums/bass return, and at 41.1 seconds the LA arpeggio joins.
-The host performs mutes/pattern changes/knobs through the shared C core; automatic
-song arrangement is not a firmware feature. All five listening files use only
-peak gain to −3.01 dBFS, without external instruments or effects. They are not
+The built-in C demo performs its own mutes, pattern changes and filter automation on
+both host and firmware, stops after 32 bars and lets effects decay. All five listening files use only
+peak gain to −3.01 dBFS, without external instruments or external effects. They are not
 device recordings or relative-loudness comparisons. Rebuild with
 `python3 tools/showcase.py`; [metrics and hashes](docs/showcase-report.json).
 
@@ -68,10 +85,12 @@ device recordings or relative-loudness comparisons. Rebuild with
 | Sequencer | Four 16-step patterns, three-note melodic steps, 16 drum lanes, 40–240 BPM, swing, gate, accent and slide |
 | Performance | Part mute, queued bar-boundary pattern changes, live keyboard, quantized recording and step entry |
 | Screen | Shared C RGB565 renderer; 240×240 display with a 240×8 strip buffer on device |
-| Persistence | Versioned 2,132-byte record, CRC and A/B commit-last storage; explicit save only |
+| Persistence | Versioned 2,140-byte record, CRC and A/B commit-last storage; explicit save only |
+| Effects | Native fixed-point tempo delay, damped-comb reverb, soft distortion and stereo chorus; four master amounts |
+| Built-in demo | NEON SPIRAL: original 32-bar psy-trance performance with filter automation and all four effects |
 | Hardware source | Inherited GPL FM-1 startup/HAL, I2S DMA, keypad/encoders, LCD, master ADC, watchdog and guarded flash |
 
-**Resource limits are deliberate:** eight shared melodic voices, with oldest-voice stealing, and six shared drum voices for 16 sounds. Every part can use either melodic engine; each 303 part is monophonic. These are allocator limits, **not verified real-device polyphony**. No sample streaming, SD support, flash expansion, USB audio/MIDI, external MIDI sync, effects, song arranger or original-patch compatibility is promised in this version.
+**Resource limits are deliberate:** eight shared melodic voices, with oldest-voice stealing, and six shared drum voices for 16 sounds. Every part can use either melodic engine; each 303 part is monophonic. These are allocator limits, **not verified real-device polyphony**. No sample streaming, SD support, flash expansion, USB audio/MIDI, external MIDI sync, general song arranger or original-patch compatibility is promised in this version.
 
 ## FM-1 panel mapping
 
@@ -85,14 +104,14 @@ device recordings or relative-loudness comparisons. Rebuild with
 | SEQ or EDIT | Toggle step-entry mode; melodic knobs become STEP / VEL / GATE / A-S |
 | HOME | Return to performance controls |
 | ENV | Attack / decay / sustain / release for melodic parts |
-| GLO | Tempo / swing / pattern / selected part level |
-| LFO / FX | Toggle accent / slide on the selected melodic step |
+| GLO | First press: tempo / swing / pattern / part level. Second press: DEMO LIBRARY |
+| LFO / FX | Accent / effects page; FX toggles slide while step editing |
 | OCT− / OCT+ | Keyboard octave; hold both five seconds while stopped to enter UBOOT |
 | SAVE twice, stopped | Explicitly save project to the A/B project sectors |
 
 On the **drum screen**, the knobs always address **SOUND / STEP / HIT / LEVEL** except on GLO. HIT clockwise sets the selected hit, counterclockwise removes it. LEVEL changes that sound's kit level. Playing keys select/audition the 16 sounds; in step-entry or recording mode they toggle hits. Melodic step entry writes one note; factory chords remain playable but chord entry is not yet exposed by the panel. Record is quantized to the current step, with fixed default velocity and gate.
 
-**Storage warning:** the first confirmed device save uses `0x97000` and `0x98000`, which are the previous firmware's project slot 0 sectors. Back up that project before using MCFM-1 save. Boot never formats flash, there is no autosave, and the flash driver is restricted to those two sectors. Existing calibration/global settings, samples and bootloader regions are not written. The stock/default panel mapping is used; calibration import is not implemented.
+**Storage warning:** the first confirmed device save uses `0x97000` and `0x98000`, which are the previous firmware's project slot 0 sectors. Back up that project before using MC-1 save. Boot never formats flash, there is no autosave, and the flash driver is restricted to those two sectors. Existing calibration/global settings, samples and bootloader regions are not written. The stock/default panel mapping is used; calibration import is not implemented.
 
 ## Build and verification
 

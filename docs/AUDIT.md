@@ -28,7 +28,7 @@ This is source inspection and executable host/target-build evidence, not hardwar
   any unreadable bank before erase: inability to read is not proof a bank is empty.
 - The new record payload precedes its commit header. Full readback must match
   every encoded byte; CRC/semantic decoding is also checked. Tests retain the old
-  bank through all 6,228 modeled interrupted erase/program byte positions.
+  bank through all 6,236 modeled interrupted erase/program byte positions.
 - First save replaces the previous firmware's project slot 0. All other app
   regions are outside the write allowlist. No calibration import is implemented.
 - The installer writes only `0x4000..0x92FFF`, plus valid update-record cleanup
@@ -54,8 +54,8 @@ This is source inspection and executable host/target-build evidence, not hardwar
   screen strip bounds are tested. These checks establish state/PCM behavior, not
   correct physical encoder direction, key wiring, analog noise or subjective quality.
 - New listening examples use the shared native core. NEON SPIRAL is an original
-  broad psy-trance study with host-driven performance automation. It is not an
-  MC-505 song transcription, device recording, or built-in song-arranger feature.
+  broad psy-trance study with native built-in performance automation. It is not an
+  MC-505 song transcription, device recording, or general-purpose song editor.
 
 ## Still requires an authorized physical device trial
 
@@ -63,3 +63,7 @@ USB updater/version acceptance, loader handoff, installation, cold/warm boot,
 UBOOT recovery, LCD/keys/encoder/ADC mapping, codec listening, actual NOR saves,
 battery behavior, CPU clock, stack high-water, interrupt timing and long stability.
 No hardware was flashed or accessed during this work.
+
+The 0.2 revision adds four native effects, a built-in demo library, version 1 migration
+and version 2 persistent effect/demo settings. New effect decay, demo completion and
+maximum-effects stress tests pass on host; physical timing remains unverified.

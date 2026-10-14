@@ -58,11 +58,11 @@ int main(int argc,char **argv) {
         unsigned p=(unsigned)atoi(argv[2]); if(p>=MC_PRESETS) return 1;
         mc_preset(&engine,0,p);mc_note(&engine,0,p>=6&&p<=9?45:60,110,0,MC_RATE*2);return wav(argv[3],4,0);
     }
-    puts("MCFM-1 host console. Shared firmware DSP, sequencer and panel. No device I/O.");
+    puts("MC-1 host console. Shared firmware DSP, sequencer and panel. No device I/O.");
     puts("Commands: play, stop, part 0..3, pattern 0..3, preset 0..11, knob 0..6 delta, button 0..13,");
     puts("key 0..26 down(1/0), render path seconds, screen path.ppm, save path.mcf, load path.mcf, quit");
     char line[512],cmd[32],path[384];int a,b;
-    while(fputs("mcfm> ",stdout),fflush(stdout),fgets(line,sizeof line,stdin)) {
+    while(fputs("mc1> ",stdout),fflush(stdout),fgets(line,sizeof line,stdin)) {
         if(sscanf(line,"%31s",cmd)!=1) continue;
         if(!strcmp(cmd,"quit")) break;
         if(!strcmp(cmd,"play")) mc_start(&engine);
@@ -78,6 +78,7 @@ int main(int argc,char **argv) {
         else if(sscanf(line,"save %383s",path)==1) { if(save(path)) puts("Save failed"); }
         else if(sscanf(line,"load %383s",path)==1) { if(load(path)) puts("Load rejected"); }
         else puts("Unknown or invalid command");
+        if(ui.load_request&&!engine.playing) { unsigned demo=ui.load_request-1;mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY"; }
     }
     return 0;
 }
