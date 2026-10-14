@@ -56,7 +56,7 @@ static void cut_at(unsigned cutoff) {
     assert(!memcmp(&loaded,&original,sizeof loaded));guards();
 }
 int main(void) {
-    assert(MC_RECORD_BYTES==34850&&MC_STORE_BYTES==36864);
+    assert(MC_RECORD_BYTES==35114&&MC_STORE_BYTES==36864);
     assert(MC_STORE_A==0x99000&&MC_STORE_B==0xa2000&&MC_STORE_END==0xab000);
     mc_factory(&original);changed=original;changed.bpm=142;
     changed.step[63][2][15].note[0]=99;changed.step[63][2][15].velocity=101;changed.step[63][2][15].gate=75;

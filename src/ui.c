@@ -29,17 +29,19 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     input_reset(u);
     if(button!=UI_SAVE) { u->save_pending=0; u->message=0; }
     switch(button) {
-    case UI_PLAY: if(e->playing) mc_stop(e); else mc_start(e); break;
+    case UI_PLAY: if(e->playing) mc_stop(e); else { mc_start(e);if(e->project.song_mode&&!e->project.song_length)u->message="EMPTY SONG: SET LENGTH"; } break;
     case UI_REC: e->recording^=1; break;
     case UI_ARP: if(u->page==5)mc_mute(e,e->selected);else { u->page=u->page==6?0:6;u->editing=0; } break;
     case UI_SEL: mc_arp_clear(e,e->selected);e->selected=(uint8_t)((e->selected+1)%4); break;
     case UI_HOME: u->page=0;u->editing=0; break;
-    case UI_SEQ: u->page=0;u->editing^=1; break;
-    case UI_EDIT: if(u->page==7)mc_automation_clear(e,e->pattern);else u->editing^=1;break;
+    case UI_SEQ: mc_song_mode(e,!e->project.song_mode);u->page=e->project.song_mode?8:0;u->editing=0;break;
+    case UI_EDIT: if(u->page==8)u->song_editing^=1;else if(u->page==7)mc_automation_clear(e,e->pattern);else if(u->page!=9)u->editing^=1;break;
     case UI_ENV: if(u->page==3)u->fx_page=(uint8_t)((u->fx_page+1)%3);else u->page=u->page==1?0:1; break;
-    case UI_GLO: u->page=u->page==5?2:u->page==2?4:u->page==4?7:5; break;
+    case UI_GLO: u->page=u->page==5?2:u->page==2?4:u->page==4?7:u->page==7?9:5;u->editing=0;break;
     case UI_LFO:
-        if(u->page==6) { if(e->selected<3) { e->project.arp[e->selected].latch^=1;mc_arp_clear(e,e->selected); } }
+        if(u->page==8)e->project.song_loop^=1;
+        else if(u->page==9)mc_clock_source(e,e->project.clock_source<2?e->project.clock_source+1:0);
+        else if(u->page==6) { if(e->selected<3) { e->project.arp[e->selected].latch^=1;mc_arp_clear(e,e->selected); } }
         else { e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_ACCENT; }
         break;
     case UI_FX:
@@ -75,7 +77,17 @@ static void encoder_apply(McEngine *e,McUi *u,unsigned enc,int delta) {
     }
     if(enc==1) { mc_queue(e,wrap((e->queued<MC_PATTERNS?e->queued:e->pattern)+delta,MC_PATTERNS)); return; }
     unsigned k=enc-3;
-    if(u->page==6) {
+    if(u->page==8) {
+        McSongEntry *entry=&e->project.song[u->song_cursor];
+        if(k==0)u->song_cursor=(uint8_t)wrap(u->song_cursor+delta,MC_SONG_ENTRIES);
+        else if(!u->song_editing)u->message="EDIT TO CHANGE SONG";
+        else if(k==1)mc_song_set(e,u->song_cursor,wrap(entry->pattern+delta,MC_PATTERNS),entry->repeats);
+        else if(k==2)mc_song_set(e,u->song_cursor,entry->pattern,1+wrap((int)entry->repeats-1+delta,16));
+        else mc_song_length(e,(unsigned)limit(e->project.song_length+delta,0,MC_SONG_ENTRIES));
+    } else if(u->page==9) {
+        mc_midi_all_off(e,k);
+        e->project.midi_channel[k]=(uint8_t)wrap(e->project.midi_channel[k]+delta,16);
+    } else if(u->page==6) {
         if(p==3)return;
         McArp *arp=&e->project.arp[p];
         if(k==0) { unsigned mode=wrap((arp->enabled?(int)arp->mode+1:0)+delta,7);mc_arp_clear(e,p);arp->enabled=mode!=0;if(mode)arp->mode=(uint8_t)(mode-1); }
@@ -138,6 +150,8 @@ static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
     unsigned k=enc-3;
     if(u->page==6)return e->selected==3?0:k==0?7:k<3?3:100;
     if(u->page==7)return 0;
+    if(u->page==8)return k==0?128:!u->song_editing?0:k==1?64:k==2?16:129;
+    if(u->page==9)return 16;
     if(u->page==3)return u->fx_page==0?128:u->fx_page==1?(k==3?3:4):k<2?128:0;
     if(u->page==5)return 128;
     if(u->page==4)return 2;
@@ -149,12 +163,13 @@ static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
 }
 void mc_ui_encoder_at(McEngine *e,McUi *u,unsigned enc,int delta,uint32_t now_ms) {
     if(!delta||enc>6)return;
-    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)u->editing<<5)|((uint32_t)u->fx_master<<6)|((uint32_t)u->fx_page<<22);
+    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)(u->page==8?u->song_editing:u->editing)<<6)|((uint32_t)u->fx_master<<7)|((uint32_t)u->fx_page<<23);
     if(enc>=3) {
-        if(e->selected==3)context|=(uint32_t)u->sound<<7;
-        else context|=(uint32_t)e->project.patch[e->selected].engine<<11;
-        if(u->editing||e->selected==3)context|=((uint32_t)e->edit_step<<12)|((uint32_t)e->pattern<<16);
+        if(e->selected==3)context|=(uint32_t)u->sound<<8;
+        else context|=(uint32_t)e->project.patch[e->selected].engine<<12;
+        if(u->editing||e->selected==3)context|=((uint32_t)e->edit_step<<13)|((uint32_t)e->pattern<<17);
     }
+    if(u->page==8&&enc>3)context|=(uint32_t)u->song_cursor<<25;
     int direction=delta>0?1:-1;
     unsigned range=encoder_range(e,u,enc),factor=1;
     if(u->encoder_active&&u->encoder_last==enc&&u->encoder_context==context&&
@@ -268,14 +283,60 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     if(y>=240||height>8||y+height>240) return;
     Canvas c={y,height,pixels}; rect(&c,0,(int)y,240,(int)height,BG);
     unsigned p=e->selected;
-    text(&c,3,4,p==3?"DRUMS":"MC-1",ORANGE,1);
+    text(&c,3,4,e->project.song_mode?"SONG":p==3?"DRUMS":"MC-1",ORANGE,1);
     text(&c,63,4,p==3?mc_drum_names[u->sound]:e->project.patch[p].engine?"303":e->project.patch[p].pcm>=MC_PCM_ATTACKS?"PCM":"LA",WHITE,1);
     number(&c,151,4,e->pattern+1,WHITE);text(&c,163,4,"/",DIM,1);number(&c,169,4,MC_PATTERNS,DIM);
     text(&c,191,4,e->playing?"+":"-",e->playing?GREEN:WHITE,1);number(&c,211,4,e->project.bpm,WHITE);
     if(e->queued<MC_PATTERNS) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }
     if(p==3) text(&c,3,14,mc_kit_names[e->project.drum_kit],WHITE,1);
+    else if(u->page==1)text(&c,63,14,"ADSR",ORANGE,1);
     if(u->preset_popup) { preset_popup(&c,e,u);return; }
-    if(u->page==5) {
+    if(u->page==8) {
+        const McSongEntry *entry=&e->project.song[u->song_cursor];
+        unsigned length=e->project.song_length,pos=e->song_finished&&length?length-1:e->song_position;
+        unsigned repeat=e->song_finished&&length?e->project.song[pos].repeats:e->song_repeat+1;
+        text(&c,14,30,u->song_editing?"SONG EDIT":"SONG ORDER",WHITE,2);
+        text(&c,14,49,e->song_finished?"DONE":e->playing?"PLAY":"STOP",e->playing?GREEN:DIM,1);
+        text(&c,48,49,"POS",DIM,1);number(&c,72,49,length?pos+1:0,WHITE);
+        text(&c,90,49,"/",DIM,1);number(&c,96,49,length,WHITE);
+        text(&c,126,49,"REP",DIM,1);number(&c,150,49,length?repeat:0,WHITE);
+        text(&c,162,49,"/",DIM,1);number(&c,168,49,length?e->project.song[pos].repeats:0,WHITE);
+        text(&c,20,62,"POS",DIM,1);text(&c,76,62,"PATTERN",DIM,1);text(&c,150,62,"REPEAT",DIM,1);
+        unsigned start=u->song_cursor<2?0:u->song_cursor>125?123:u->song_cursor-2;
+        for(unsigned row=0;row<5;row++) {
+            unsigned index=start+row;int yy=73+(int)row*16;
+            uint16_t color=index<length?WHITE:DIM;
+            if(index==u->song_cursor) { rect(&c,14,yy-2,210,13,u->song_editing?ORANGE:GRID);color=u->song_editing?BG:ORANGE; }
+            if(e->playing&&index==pos)rect(&c,5,yy,4,7,GREEN);
+            number(&c,20,yy,index+1,color);number(&c,76,yy,e->project.song[index].pattern+1,color);
+            number(&c,150,yy,e->project.song[index].repeats,color);
+        }
+        text(&c,14,155,"NOW",DIM,1);number(&c,38,155,e->pattern+1,WHITE);
+        text(&c,80,155,"NEXT",DIM,1);
+        if(!length)text(&c,110,155,"EMPTY SONG",ORANGE,1);
+        else if(e->song_finished)text(&c,110,155,"END",DIM,1);
+        else if(e->song_repeat+1<e->project.song[pos].repeats)number(&c,110,155,e->project.song[pos].pattern+1,ORANGE);
+        else if(pos+1<length||e->project.song_loop)number(&c,110,155,e->project.song[(pos+1)%length].pattern+1,ORANGE);
+        else text(&c,110,155,"END",DIM,1);
+        text(&c,14,173,e->project.song_loop?"LFO:LOOP ON":"LFO:LOOP OFF",e->project.song_loop?GREEN:WHITE,1);
+        text(&c,110,173,u->song_editing?"EDIT:LOCK":"EDIT:CHANGE",WHITE,1);
+        knob_scaled(&c,26,"POS",u->song_cursor+1,128,0x3317);
+        knob_scaled(&c,85,"PATT",entry->pattern+1,64,0x3d48);
+        knob_scaled(&c,145,"REPT",entry->repeats,16,DIM);
+        knob_scaled(&c,205,"LEN",length,128,HIT);
+    } else if(u->page==9) {
+        static const char *const clocks[4]={"INTERNAL","USB","TRS","BLE UNAVAILABLE"};
+        static const char *const channels[4]={"PART1","PART2","PART3","DRUMS"};
+        text(&c,14,30,"GLOBAL MIDI",WHITE,2);
+        text(&c,14,62,"CLOCK",DIM,1);text(&c,56,62,clocks[e->project.clock_source],ORANGE,1);
+        text(&c,14,84,"TRANSPORT",DIM,1);text(&c,80,84,e->playing?"PLAY":"STOP",e->playing?GREEN:WHITE,1);
+        text(&c,14,106,"RX USB",DIM,1);number(&c,62,106,e->midi.received[0]%100000,WHITE);
+        text(&c,116,106,"RX TRS",DIM,1);number(&c,164,106,e->midi.received[1]%100000,WHITE);
+        text(&c,14,130,"BLE UNAVAILABLE",DIM,1);
+        text(&c,14,151,"KNOBS: TRACK CHANNELS",WHITE,1);
+        text(&c,14,173,"LFO: INTERNAL / USB / TRS",WHITE,1);
+        for(unsigned k=0;k<4;k++)knob_scaled(&c,k?25+(int)k*60:26,channels[k],e->project.midi_channel[k]+1,16,k==0?0x3317:k==1?0x3d48:k==2?DIM:HIT);
+    } else if(u->page==5) {
         static const char *const names[4]={"PART1","PART2","PART3","DRUMS"};
         text(&c,14,30,"GLOBAL MIXER",WHITE,2);
         for(unsigned part=0;part<4;part++) {

@@ -265,6 +265,10 @@ static int usb_cdc_now(void) { return usb_cdc_on; }   /* (the menu: what this st
 static int usb_cdc_now(void) { return 0; }
 #endif
 static const uint8_t STR0[4] = {4, 3, 0x09, 0x04};
+#ifdef MC_USB_APP
+static const uint8_t STR1[] = {18, 3, 'd',0,'s',0,'p',0,'a',0,'u',0,'d',0,'i',0,'o',0};
+static const uint8_t STR2[] = {10, 3, 'M',0,'C',0,'-',0,'1',0};
+#else
 static const uint8_t STR1[] = {42, 3, 'H', 0, 0xFC, 0, 'g', 0, 'e', 0, 'l', 0, 't', 0, 'o', 0, 'n', 0, ' ', 0, 'I', 0,
                                'n', 0, 's', 0, 't', 0, 'r', 0, 'u', 0, 'm', 0, 'e', 0, 'n', 0, 't', 0, 's', 0};
 #ifdef FELUCCA_LOADER
@@ -272,6 +276,7 @@ static const uint8_t STR2[] = {30, 3, 'F', 0, 'e', 0, 'l', 0, 'u', 0, 'c', 0, 'c
                                'd', 0, 'a', 0, 't', 0, 'e', 0};
 #else
 static const uint8_t STR2[] = {16, 3, 'F', 0, 'e', 0, 'l', 0, 'u', 0, 'c', 0, 'c', 0, 'a', 0};
+#endif
 #endif
 
 static int get_desc(uint32_t wvalue, const uint8_t **d, uint16_t *l)
@@ -674,6 +679,9 @@ stall:
 /* SysEx assembly: only short commands matter here */
 static void sysex_byte(uint8_t b)
 {
+#ifdef MC_USB_APP
+    (void)b; /* Application MIDI cannot request updater or bootloader entry. */
+#else
     static const uint8_t UBOOT_KEY[6] = {0xF0, 0x22, 0x24, 0x35, 0x7D, 0xF7};
     if (b >= 0xF8u)
         return;                                        /* realtime may occur anywhere in SysEx */
@@ -723,6 +731,7 @@ static void sysex_byte(uint8_t b)
 #endif
         usb.sx_on = 0;
     }
+#endif
 }
 
 /* one USB-MIDI event packet: SysEx bytes to sysex_byte, channel voice messages and the clock /
@@ -730,6 +739,9 @@ static void sysex_byte(uint8_t b)
  * byte with bit 7) is ignored (after Felucca 1.0) */
 static void midi_in_event(uint32_t pkt)
 {
+#ifdef MC_USB_APP
+    pkt &= ~0xF0u; /* USB cable numbers cannot impersonate the TRS source. */
+#endif
     uint32_t cin = pkt & 15u, st = (pkt >> 8) & 0xFFu;
     if (cin >= 4u && cin <= 7u) {                      /* SysEx */
         uint32_t k, nb = cin == 4u || cin == 7u ? 3u : cin == 6u ? 2u : 1u;
@@ -1254,6 +1266,11 @@ static void usb_poll(void)                              /* TIMER5 ISR, 2 kHz */
 static void usb_start(void)                             /* boot, or main-loop retry while usb.up == 0 */
 {
     usb.timeouts = 0;
+#ifdef MC_USB_APP
+    usb.config = 0; /* Retry stays invisible to timer consumers until up is published. */
+    uac.go = 0;
+    uac.feed = 0;
+#endif
     fm1_usb_reset();                                    /* reset whatever the ROM left */
     fm1_delay_ms(25);
     fm1_usb_attach(ep0buf);

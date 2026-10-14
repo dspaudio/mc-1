@@ -4,7 +4,8 @@
 #define MCFM_H
 #include <stdint.h>
 #include "presets.h"
-#define MC_VERSION "0.2.0"
+#include "midi.h"
+#define MC_VERSION "0.3.0"
 #define MC_RATE 44100
 #define MC_MASTER_MAX (6u*32768u)
 #define MC_MASTER_DEFAULT (6u*28000u)
@@ -22,7 +23,8 @@
 #define MC_KITS 8
 #define MC_AUTOMATION 384
 #define MC_ARP_KEYS 32
-#define MC_PROJECT_BYTES 34830
+#define MC_SONG_ENTRIES 128
+#define MC_PROJECT_BYTES 35094
 #define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
 enum { MC_LA, MC_ACID };
 enum { MC_ACCENT=1, MC_SLIDE=2, MC_TIE=4 };
@@ -42,6 +44,7 @@ typedef struct {
     uint8_t engine, wave, pcm, pcm_mix, cutoff, resonance, attack, decay;
     uint8_t sustain, release, glide, level;
 } McPatch;
+typedef struct { uint8_t pattern, repeats; } McSongEntry;
 typedef struct { uint8_t note[3], velocity, gate, flags; uint16_t drums; } McStep;
 typedef struct {
     uint16_t bpm;
@@ -57,11 +60,13 @@ typedef struct {
     uint8_t metronome;
     uint16_t automation_count;
     McAutomation automation[MC_AUTOMATION];
+    McSongEntry song[MC_SONG_ENTRIES];
+    uint8_t song_length, song_loop, song_mode, midi_channel[4], clock_source;
 } McProject;
 typedef struct {
     uint32_t phase, phase2, increment, target, pcm_pos, gate_left, age, sample_step;
     int32_t envelope, attack_step, decay_step, release_step, filter[4];
-    uint8_t active, part, note, velocity, stage, accent, sample_level;
+    uint8_t active, part, note, velocity, stage, accent, sample_level, midi_out;
     McPatch patch;
 } McVoice;
 typedef struct { uint32_t phase, age; int32_t env, noise_lp; uint8_t velocity, sound, kit; } McDrum;
@@ -74,7 +79,7 @@ typedef struct {
     uint8_t type[4], filter_amount[2];
     uint16_t filter_coef[2];
 } McEffects;
-typedef struct {
+typedef struct McEngine {
     McProject project;
     McVoice voice[MC_VOICES];
     McDrum drum[MC_DRUM_VOICES];
@@ -91,6 +96,8 @@ typedef struct {
     uint32_t metro_phase;
     uint16_t metro_left;
     uint8_t metro_accent;
+    uint8_t song_position, song_repeat, song_finished;
+    McMidiState midi;
 } McEngine;
 extern const McPatch mc_presets[MC_PRESETS];
 extern const char *const mc_preset_names[MC_PRESETS];
@@ -105,6 +112,12 @@ void mc_effects_process_typed(McEffects *f,unsigned bpm,const uint8_t amount[4],
 void mc_factory(McProject *p);
 void mc_start(McEngine *e);
 void mc_stop(McEngine *e);
+void mc_continue(McEngine *e);
+int mc_song_set(McEngine *e,unsigned index,unsigned pattern,unsigned repeats);
+int mc_song_length(McEngine *e,unsigned length);
+void mc_song_mode(McEngine *e,unsigned mode);
+void mc_clock_source(McEngine *e,unsigned source);
+void mc_clock_tick(McEngine *e);
 void mc_queue(McEngine *e, unsigned pattern);
 void mc_mute(McEngine *e, unsigned part);
 void mc_note(McEngine *e, unsigned part, unsigned note, unsigned velocity, unsigned flags, uint32_t gate);

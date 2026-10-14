@@ -63,6 +63,22 @@ and normal screen use the same eight-row RGB565 renderer.
 
 ## Timing
 
+Song mode references the same 64 patterns through 128 `{pattern, repeats}` entries.
+It advances only at bar boundaries, stops at the end or loops, and keeps runtime
+position separate from the UI edit cursor. Empty songs cannot start. Version 6
+appends the song entries and channel/clock settings to the version 5 body; older
+portable records import with an empty song and internal clock.
+
+`midi.c` owns independent byte-parser state per transport, four part channels,
+sustain/pitch state and a bounded outgoing message FIFO. External input calls the
+shared synth and recording paths. Internal sequencing, ARP, note gates and parameter
+changes produce MIDI output; incoming commands are not blindly echoed. External
+Clock advances the sequencer at 24 PPQN and estimates tempo for gate/effect timing.
+Firmware TIMER5 publishes USB/TRS input packets and services USB endpoints; the
+audio ISR consumes messages, renders PCM and publishes output. USB Audio taps
+the final 16-bit stereo block before the separate hardware DMA scaling.
+See [connection details and unsupported BLE runtime](MIDI.md).
+
 44,100 Hz stereo; target DMA halves contain 128 frames, giving **2,902 microseconds** per half.
 Audio IRQ priority 3; input scanning timer priority 4 at 10 kHz. The ISR records worst render
 microseconds and deadline misses in `max_audio_us` / `deadline_misses` for debugger inspection.
@@ -93,18 +109,18 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 303,212 bytes, including a 35,214-byte project. This is not total device
+Host `sizeof(McEngine)` is 304,704 bytes, including a 35,478-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 471,876-byte app, 42,032-byte globals,
-2,784-byte RAM code and 303,212-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 482,220-byte app, 46,656-byte globals,
+2,784-byte RAM code and 304,704-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety
 
-Sixty-four 16-step patterns fit one portable 34,850-byte version 5 project record. Serialization is explicit
+Sixty-four 16-step patterns and 128 song entries fit one portable 35,114-byte version 6 project record. Serialization is explicit
 little endian; it does not dump compiler structs. The header includes magic, version, length,
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
@@ -124,8 +140,8 @@ failure modes still need device validation. Save-readback errors are reported on
 
 ## Current limitations
 
-Default panel mapping only; no imported calibration. No USB/TRS MIDI stack, firmware updater,
-general song chain/editor, per-hit velocity, sample import, effect sends, undo or on-panel chord editing.
+Default panel mapping only; no imported calibration. No onboard BLE MIDI runtime, TRS output,
+in-app firmware updater, sample import, effect sends, undo or on-panel chord editing.
 Melodic steps can store three notes; live/step recording currently writes one. Per-drum LEVEL is
 a kit-level control, while each drum step shares velocity. Pattern sounds are project-wide.
 Muting is immediate and may click. Tone quality, note transitions and noise floor need listening
@@ -160,7 +176,7 @@ part/note owner so selecting another part does not leave held notes behind.
 
 A central parameter setter applies sound, level, per-drum level, FX type/amount and
 filter edits. During PLAY + REC it stores one final value per pattern/part/step/
-parameter address. The project shares 384 four-byte events; same-address writes
+parameter address. The project shares 384 five-byte serialized events; same-address writes
 replace existing values, while full capacity rejects new events with a visible
 status. Events replay before note triggers. Tempo, swing, ARP setup and step edits
 are not automation parameters. Pattern clear compacts remaining events. Preset

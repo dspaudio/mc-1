@@ -13,7 +13,7 @@ For sanitizer checks, use a separate output binary (do not clean during another 
 ```sh
 cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
   -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc \
-  src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c \
+  src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c \
   -o build/test-sanitized
 build/test-sanitized
 ```

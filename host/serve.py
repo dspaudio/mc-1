@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 ROOT=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser();parser.add_argument('--port',type=int,default=8091);args=parser.parse_args()
 lib=ROOT/'build/libmc1.so';lib.parent.mkdir(exist_ok=True)
-sources=['src/effects.c','src/demo.c','src/engine.c','src/factory.c','src/project.c','src/store.c','src/ui.c','host/bridge.c']
+sources=['src/effects.c','src/demo.c','src/engine.c','src/midi.c','src/factory.c','src/project.c','src/store.c','src/ui.c','host/bridge.c']
 subprocess.run([os.environ.get('CC','cc'),'-O2','-std=c11','-Wall','-Wextra','-Werror','-shared','-fPIC','-Isrc',*sources,'-o',str(lib)],cwd=ROOT,check=True)
 dsp=C.CDLL(str(lib));dsp.host_init()
 dsp.host_audio.restype=C.POINTER(C.c_int16);dsp.host_screen.restype=C.POINTER(C.c_uint16)

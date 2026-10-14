@@ -9,6 +9,9 @@ uint32_t mc_crc(const void *data,unsigned n) {
     return ~c;
 }
 int mc_project_valid(const McProject *p) {
+    if(p->song_length>MC_SONG_ENTRIES||p->song_loop>1||p->song_mode>1||p->clock_source>3) return 0;
+    for(unsigned i=0;i<4;i++) if(p->midi_channel[i]>15) return 0;
+    for(unsigned i=0;i<MC_SONG_ENTRIES;i++) if(p->song[i].pattern>=MC_PATTERNS||!p->song[i].repeats||p->song[i].repeats>16) return 0;
     if(p->bpm<40||p->bpm>240||p->swing>45||p->drum_kit>=MC_KITS||p->demo>1||p->padding[0]||p->padding[1]||p->padding[2]) return 0;
     for(unsigned i=0;i<4;i++) if(p->fx[i]>127) return 0;
     for(unsigned t=0;t<4;t++) for(unsigned i=0;i<4;i++) if(p->track_fx[t][i]>127) return 0;
@@ -78,6 +81,10 @@ static void pack(const McProject *p,uint8_t *out) {
         *out++=(uint8_t)a->address;*out++=(uint8_t)(a->address>>8);
         *out++=a->step;*out++=a->parameter;*out++=a->value;
     }
+    for(unsigned i=0;i<MC_SONG_ENTRIES;i++) { *out++=p->song[i].pattern;*out++=p->song[i].repeats; }
+    *out++=p->song_length;*out++=p->song_loop;*out++=p->song_mode;
+    for(unsigned i=0;i<4;i++) *out++=p->midi_channel[i];
+    *out++=p->clock_source;
 }
 static void unpack(McProject *p,const uint8_t *in,unsigned version) {
     for(unsigned i=0;i<sizeof *p;i++) ((uint8_t *)p)[i]=0;
@@ -112,10 +119,16 @@ static void unpack(McProject *p,const uint8_t *in,unsigned version) {
             a->step=*in++;a->parameter=*in++;a->value=*in++;
         }
     }
+    if(version>=6) {
+        for(unsigned i=0;i<MC_SONG_ENTRIES;i++) { p->song[i].pattern=*in++;p->song[i].repeats=*in++; }
+        p->song_length=*in++;p->song_loop=*in++;p->song_mode=*in++;
+        for(unsigned i=0;i<4;i++) p->midi_channel[i]=*in++;
+        p->clock_source=*in++;
+    }
 }
 int mc_encode(const McProject *p,uint32_t sequence,uint8_t *out,unsigned n) {
     if(n<MC_RECORD_BYTES||!mc_project_valid(p)) return -1;
-    put32(out,0x4d46434du); out[4]=5; out[5]=0;
+    put32(out,0x4d46434du); out[4]=6; out[5]=0;
     out[6]=MC_PROJECT_BYTES&255; out[7]=MC_PROJECT_BYTES>>8;
     put32(out+8,sequence); pack(p,out+20);
     put32(out+12,mc_crc(out+20,MC_PROJECT_BYTES)); put32(out+16,mc_crc(out,16));
@@ -126,7 +139,7 @@ static unsigned address_at(const uint8_t *in,unsigned version) {
 }
 int mc_record_valid(const uint8_t *in,unsigned n,uint32_t *sequence) {
     if(n<20) return -1;
-    unsigned version=in[4],body=version==1?2112:version==2?2120:version==3?2136:version==4?3726:version==5?MC_PROJECT_BYTES:0;
+    unsigned version=in[4],body=version==1?2112:version==2?2120:version==3?2136:version==4?3726:version==5?34830:version==6?MC_PROJECT_BYTES:0;
     if(!body||n<body+20||(n!=body+20&&n!=MC_RECORD_BYTES&&n!=3746&&n!=2156&&n!=2140)||get32(in)!=0x4d46434du||in[5]||
        (in[6]|(unsigned)in[7]<<8)!=body||get32(in+16)!=mc_crc(in,16)||
        get32(in+12)!=mc_crc(in+20,body)) return -1;
@@ -172,6 +185,13 @@ int mc_record_valid(const uint8_t *in,unsigned n,uint32_t *sequence) {
                 if(address_at(previous,version)==address&&previous[width-3]==step&&previous[width-2]==param) return -1;
             }
         }
+    }
+    if(version>=6) {
+        for(unsigned i=0;i<MC_SONG_ENTRIES;i++,at+=2) if(at[0]>=MC_PATTERNS||!at[1]||at[1]>16) return -1;
+        if(at[0]>MC_SONG_ENTRIES||at[1]>1||at[2]>1) return -1;
+        at+=3;
+        for(unsigned i=0;i<4;i++) if(*at++>15) return -1;
+        if(*at++>3) return -1;
     }
     if((unsigned)(at-in)!=body+20) return -1;
     if(sequence) *sequence=get32(in+8);

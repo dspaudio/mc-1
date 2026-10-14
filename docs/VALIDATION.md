@@ -1,6 +1,42 @@
 # MC-1 validation record
 
-## 0.2.0
+## 0.3.0
+
+Song mode stores 128 pattern/repeat entries in a 35,114-byte version 6 record.
+Tests exercise empty songs, every entry, pattern 64, 1–16 repeats, bar-boundary
+advance, end stop, restart/continue, looping, edits, malformed records and v5
+imports. Song editing/save also runs through the actual native HTTP service.
+The two existing 36 KiB flash banks are unchanged; storage fault injection covers
+463 erase/program/header interruption points with the expanded record.
+
+MIDI tests exercise separate source parsers, running status and interleaved
+realtime bytes, notes/velocity, program and controller changes, sustain, pitch
+bend, recording, generated ARP output, note-off ownership, queue overflow recovery
+and transport at 60/120/240 BPM. Web AudioWorklet tests compare PCM, MIDI packets
+and saved projects with native C, including disconnect and bounded queues.
+
+Actual USB driver tests inspect composite MIDI/UAC descriptors, 44.1 kHz PCM
+packetization, saturation, stream pause/re-prime and FIFO boundaries. UART tests
+exercise running status and realtime parsing; routing tests verify USB/TRS source
+identity, reset handling and output backpressure. These are host tests of the
+driver code, not USB enumeration or electrical TRS tests.
+
+Native LCD renders cover empty/editing/playing/completed songs, position 128,
+16 repeats, MIDI clock/channel controls and melodic ADSR. Browser automation was
+not used. Existing 129 audio-render reports are byte-identical to 0.2.0.
+
+Onboard BLE MIDI is not implemented: the current runtime does not initialize
+the official SDK Bluetooth controller, stack, RTOS or RF. See [MIDI.md](MIDI.md)
+for source evidence and the distinction from OS-provided Web MIDI ports.
+No device was flashed. FM-1 USB, MIDI, RF, CPU deadlines and listening still
+require hardware validation.
+
+The final pi32v2 app uses 482,220 bytes of its 581,564-byte slot, leaving 99,344.
+Static RAM sections total 354,144 bytes: globals 46,656, engine pool 304,704 and
+RAM code 2,784. The pool retains 39,360 bytes within its reserved region. These
+linker measurements do not establish CPU deadlines or stack high-water marks.
+
+## 0.2.0 historical validation
 
 The project now contains 64 patterns × 4 parts × 16 steps. The version 5 portable
 record is 34,850 bytes; its in-memory project is 35,214 bytes. Tests cover all 64

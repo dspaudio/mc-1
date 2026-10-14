@@ -11,6 +11,9 @@ The following files were copied from the **public** dspaudio/orbit repository at
 - `firmware/crt0.S`, `firmware/app.ld`, `firmware/lcd.c`, `firmware/libc.c`
 - `firmware/loader/*`, `firmware/update/*`, `tools/fm1pkg_make.py`, `tools/lz4blk.py`,
   `tests/ldr_test.c`; loader wrapping in `tools/build_package.py` is adapted from upstream `tools/build.py`.
+- `firmware/connection/midi_uart.c` and `tests/connections.c` adapt the upstream
+  TRS MIDI parser and USB Audio/UART tests. `firmware/hal/fm1_uart.h` supplies
+  the inherited UART register mapping. MC-1 adds application routing and USB identity.
 
 Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments.
 The lineage is ORBIT → SLOOP → Felucca; ORBIT identifies SLOOP origin commit

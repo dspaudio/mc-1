@@ -71,3 +71,7 @@ Target WCAG AA text contrast, visible keyboard focus, logical heading order, des
 | --- | --- |
 | Browser visual and keyboard verification not executed | Explicit user restriction. Static HTML/CSS, asset integrity, contrast calculations, and local HTTP fetches are checked; a later authorized browser pass can assess final viewport composition. |
 | Single dark theme | Matches the supplied instrument identity; system controls remain native. |
+
+## 0.3.0 screen provenance
+
+The Song and MIDI gallery uses fresh 240 × 240 RGB565 frames from `mc_ui_strip`, captured with the native shared C engine. Song shows position 128, pattern 64 and 16 repeats while playing; MIDI shows four channel controls, clock source and transport state. Orange marks selection and green marks playback or loop on. Capture source and inspected states are recorded in `.omo/evidence/ui-030/` in the development workspace. BLE is explicitly unavailable; no device connection or hardware timing is implied. Existing responsive grid and image styles are reused. Browser verification remains excluded by the user's restriction.

@@ -23,26 +23,56 @@
 #include "../src/project.c"
 #include "../src/store.c"
 #include "../src/ui.c"
+#include "../src/midi.c"
+#define HALF_FRAMES 128u
+#define FELUCCA_CDC 0
+#define FELUCCA_OTA 0
+#define FELUCCA_UAC 1
+#define FELUCCA_UAC_48K 0
+#define MC_USB_APP 1
+#define RING_PUBLISH() __asm__ volatile("csync" ::: "memory")
+#include "update/usb.c"
+#include "connection/midi_uart.c"
+#include "connection/routing.c"
 #define FRAMES 128u
 static McEngine engine __attribute__((section(".pool")));
 static McUi ui;
 static int32_t dma[FRAMES*4] __attribute__((aligned(4)));
 static int16_t block[FRAMES*2];
+static int32_t usb_block[FRAMES*2];
+static volatile uint8_t in_audio;
 static uint16_t strip[240*8];
 static volatile uint32_t milliseconds, max_audio_us, deadline_misses;
 static uint8_t flash_ok;
 extern void isr_alnk0(void),isr_timer5(void);
 void fm1_timer5_irq(void) {
-    static uint32_t last,acc;
+    static uint32_t last,acc,sub,owed;
     fm1_timer5_ack();fm1_input_tick();
     uint32_t now=fm1_ticks();acc+=now-last;last=now;
     while(acc>=24000u) { acc-=24000u;milliseconds++; }
+    unsigned usb_due=sub%5u==0;
+    if(usb_due)owed|=1u;
+    if(sub%5u==2u)owed|=2u;
+    if(++sub==10u)sub=0;
+    /* TIMER5 can preempt audio: only the EP4 consumer runs while rendering.
+     * Descriptor/reset and MIDI producers wait until the render is finished. */
+    if(in_audio) { if(usb_due)uac_service();return; }
+    if(owed&1u)usb_poll();
+    if(owed&2u)uart_midi_poll();
+    owed=0;
 }
 void fm1_alnk0_irq(void) {
     uint8_t p=fm1_audio_pending();fm1_audio_ack_aux(p);
     if(p&FM1_AUDIO_HALF) {
         uint32_t start=fm1_ticks(),half=fm1_audio_free_half();
+        in_audio=1;RING_PUBLISH();
+        connection_midi_input(&engine);
+        uac_render_start();
         mc_render(&engine,block,FRAMES);
+        for(unsigned i=0;i<FRAMES*2;i++)usb_block[i]=block[i];
+        uac_tap(usb_block,FRAMES);
+        connection_midi_output(&engine);
+        RING_PUBLISH();in_audio=0;
         /* Retain inherited 24-bit format and -6 dB hardware output ceiling. */
         for(unsigned i=0;i<FRAMES*2;i++) dma[half*FRAMES*2+i]=(int32_t)block[i]*128;
         fm1_audio_ack_half();
@@ -64,6 +94,9 @@ static int read_flash(uint32_t off,void *out,unsigned n) {
 static int erase_flash(uint32_t off) { uint32_t took;fm1_wdt_feed();return fl_erase4k(off,&took); }
 static int program_flash(uint32_t off,const void *data,unsigned n) { return fl_write(off,data,n); }
 static const McStorage storage={read_flash,erase_flash,program_flash};
+static void audio_pause(void) {
+    fm1_audio_stop();uac.go=0;RING_PUBLISH();uac.feed=0;
+}
 static void draw(void) {
     for(unsigned y=0;y<240;y+=8) {
         lcd_sync();mc_ui_strip(&engine,&ui,y,8,strip);
@@ -86,6 +119,7 @@ void fm1_cstart(void) {
     fm1_mailbox_clear();
     fm1_guard_enable(FM1_GUARD_STACK|FM1_GUARD_WRITE|FM1_GUARD_BUS|FM1_GUARD_PC);
     mc_init(&engine);mc_ui_init(&ui);lcd_init();fm1_input_init();fm1_adc_init();
+    uart_midi_init();usb_start();
     flash_ok=FL_FAR(fl_jedec_ram)()==0x856014u;
     /* Initialise all vectors before allowing any foreground flash read to restore IRQs. */
     fm1_timer5_start(isr_timer5,4);fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);
@@ -96,7 +130,7 @@ void fm1_cstart(void) {
     static const uint8_t buttons[14]={2,3,4,5,6,7,8,9,10,11,12,13,0,1};
     static const uint8_t encoders[7]={0,1,6,2,3,4,5};
     for(;;) {
-        fm1_wdt_feed();uint32_t now=milliseconds;mc_ui_tick(&ui,now);
+        fm1_wdt_feed();uint32_t now=milliseconds;mc_ui_tick(&ui,now);usb_retry(now);
         uint32_t pressed=fm1_input_edges(0),current=fm1_in.notes;
         for(unsigned i=0;i<14;i++) if(pressed&(1u<<buttons[i])) {
             fm1_irq_off();mc_ui_button(&engine,&ui,i);fm1_irq_on();
@@ -126,7 +160,7 @@ void fm1_cstart(void) {
         if(ui.load_request) {
             unsigned demo=ui.load_request-1;ui.load_request=0;
             if(!engine.playing) {
-                fm1_audio_stop();mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY";
+                audio_pause();mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY";
                 fm1_irq_off();for(unsigned i=0;i<FRAMES*4;i++) dma[i]=0;
                 fm1_guard_unlock_top();fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);fm1_guard_lock_top();fm1_irq_on();
             }
@@ -134,7 +168,7 @@ void fm1_cstart(void) {
         if(ui.save_request) {
             ui.save_request=0;
             if(!engine.playing&&flash_ok) {
-                fm1_audio_stop();
+                audio_pause();
                 ui.message=mc_store_save(&storage,&engine.project)==0?"SAVED":"SAVE FAILED";
                 fm1_irq_off();
                 for(unsigned i=0;i<FRAMES*4;i++) dma[i]=0;

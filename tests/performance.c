@@ -90,7 +90,7 @@ static void persistence(void) {
     assert(MC_RECORD_BYTES<=36*1024);
     e.project.preset[0]=MC_PRESET_VECTOR_LEAD;e.project.patch[0].cutoff=43;
     e.project.arp[0]=(McArp){1,MC_ARP_UPDOWN,1,3,83,1};
-    assert(mc_encode(&e.project,42,record,sizeof record)==MC_RECORD_BYTES&&record[4]==5);
+    assert(mc_encode(&e.project,42,record,sizeof record)==MC_RECORD_BYTES&&record[4]==6);
     assert(!mc_decode(&p,&sequence,record,sizeof record)&&sequence==42&&!memcmp(&p,&e.project,sizeof p));
     McProject before=p;record[20+72+MC_PATTERNS*4*16*8+16+3+4]=0;
     uint32_t crc=mc_crc(record+20,MC_PROJECT_BYTES);for(unsigned i=0;i<4;i++) record[12+i]=(uint8_t)(crc>>(8*i));

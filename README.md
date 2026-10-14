@@ -6,13 +6,30 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange selections, bright-green playback indicators and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.2.0:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.3.0:** the native host engine, sequencer, display and storage tests work. Target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, USB enumeration, physical MIDI, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
 [Explore MC-1](https://dspaudio.github.io/mc-1/) · [Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
 
-## New in 0.2.0
+## New in 0.3.0
+
+- Separate PATTERN and SONG screens. Arrange up to 128 song entries, each selecting one of 64 patterns and 1–16 repeats, with optional whole-song looping.
+- Song order, repeats, loop and MIDI channel/clock settings are saved with the project.
+- USB MIDI input/output and TRS MIDI input connect external notes, controllers and transport to the shared engine. The web emulator provides Web MIDI input/output port selection.
+- Stereo USB Audio output sends the final master mix to a computer at 44.1 kHz, 16-bit, alongside USB MIDI. It follows the master volume; computer-to-device audio and USB host mode are not implemented.
+- FM-1 BLE radio support is **not implemented**. The official SDK requires Bluetooth controller/host, RTOS and RF integration absent from this bare-metal firmware. An OS-connected BLE MIDI port may be usable through the web emulator's ordinary Web MIDI selector; that does not enable the FM-1 radio.
+
+See [MIDI messages, connections and BLE integration limits](docs/MIDI.md).
+
+To arrange a song, press **SEQ**, then **EDIT**. The four knobs select **POS / PATT /
+REPT / LEN**. Set LEN above zero, choose a pattern and repeat count for each entry,
+then press PLAY. **LFO** toggles whole-song looping; without looping, playback stops
+after the last entry. **SEQ** returns to pattern mode and stops transport. Song
+arrangement does not duplicate pattern notes: editing a pattern updates every song
+entry that references it. Melodic **HOME → ENV** still exposes ATK / DEC / SUS / REL.
+
+## Added in 0.2.0
 
 - Every project supports **64 patterns × 4 parts × 16 steps**. ALGORITHM selects 1–64 and queues changes at the next bar during playback; fast turns accelerate pattern browsing.
 - Patterns 5–64 start empty. Both built-in demos keep their original four-pattern arrangements, sounds and relative mix.
@@ -167,15 +184,16 @@ device recordings or relative-loudness comparisons. Rebuild with
 | 303-inspired sound | Per-part mono saw/square, resonant four-stage filter, accent and continuous pitch slide |
 | Drums | Eight original kits with 16 lanes each: kicks, snares, hats, clap, toms, rim, crash, ride, shaker, cowbell and claves |
 | Factory bank | 64 original synthesis and 64 recorded-PCM presets spanning bass, leads, sequences, pads, keys, organ, brass, strings, mallets, voice-like tones, hits and textures |
-| Sequencer | Four 16-step patterns, three-note melodic steps, 16 drum lanes, 40–240 BPM, swing, gate, accent and slide |
+| Sequencer | 64 sixteen-step patterns, three-note melodic steps, 16 drum lanes, 40–240 BPM, swing, gate, accent and slide |
+| Song | 128 ordered pattern/repeat entries, bar-boundary progression, end stop or loop |
 | Performance | Part mute, queued pattern changes, six-mode ARP with generated-note recording, step entry and 384-event knob automation |
 | Screen | Shared C RGB565 renderer; 240×240 display with a 240×8 strip buffer on device |
-| Persistence | Version 4, 3,746-byte record, CRC and A/B commit-last storage; version 1–3 import; explicit save only |
+| Persistence | Version 6 project record, CRC and A/B commit-last storage in two 36 KiB banks; explicit save only |
 | Effects | Four delay/reverb/drive types, three modulation types and HPF/LPF; independent track and master amounts |
 | Built-in demo | NEON SPIRAL: original 32-bar psy-trance performance with filter automation and all four effects |
 | Hardware source | Inherited GPL FM-1 startup/HAL, I2S DMA, keypad/encoders, LCD, master ADC, watchdog and guarded flash |
 
-**Resource limits are deliberate:** eight shared melodic voices, with oldest-voice stealing, and six shared drum voices for 16 sounds. Every part can use either melodic engine; each 303 part is monophonic. These are allocator limits, **not verified real-device polyphony**. No sample streaming, SD support, flash expansion, USB audio/MIDI, external MIDI sync, general song arranger or original-patch compatibility is promised in this version.
+**Resource limits are deliberate:** eight shared melodic voices, with oldest-voice stealing, and six shared drum voices for 16 sounds. Every part can use either melodic engine; each 303 part is monophonic. These are allocator limits, **not verified real-device polyphony**. No sample streaming, SD support, flash expansion, onboard BLE MIDI, TRS MIDI output or original-patch compatibility is implemented in this version.
 
 ## FM-1 panel mapping
 
@@ -186,10 +204,11 @@ device recordings or relative-loudness comparisons. Rebuild with
 | PRESETS | Browse melodic presets (both engines), or select one of eight kits on drums |
 | PLAY / REC | Start or stop / toggle quantized recording |
 | ARP | Open/close arpeggiator; in GLOBAL MIXER, mute selected part |
-| SEQ or EDIT | Toggle step entry; on KNOB AUTOMATION, EDIT clears current-pattern events |
+| SEQ | Switch PATTERN / SONG screens |
+| EDIT | Toggle step entry or song editing; on KNOB AUTOMATION, clear current-pattern events |
 | HOME | Return to performance controls |
 | ENV | Melodic envelope; on FX, cycle AMOUNTS / TYPES / FILTERS |
-| GLO | Cycle GLOBAL MIXER → GROOVE → DEMO LIBRARY → KNOB AUTOMATION |
+| GLO | Cycle GLOBAL MIXER → GROOVE → DEMO LIBRARY → KNOB AUTOMATION → MIDI |
 | LFO / FX | Accent (LATCH on ARP page) / effects; FX alternates track and master, or toggles slide in step entry |
 | OCT− / OCT+ | Keyboard octave; hold both five seconds while stopped to enter UBOOT |
 | SAVE twice, stopped | Explicitly save project to the A/B project banks |

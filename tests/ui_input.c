@@ -70,6 +70,69 @@ static void metronome_ui(void) {
     mc_ui_button(&e,&u,UI_GLO);assert(u.page==2&&e.project.metronome);
     puts("PASS: GLO/GROOVE METRO default-off, directional0/1 clamp, rapid turns, visible greenON, all-part global setting, no automation, mixer level retained");
 }
+static void song_midi_ui(void) {
+    init();mc_ui_button(&e,&u,UI_SEQ);assert(u.page==8&&e.project.song_mode&&!u.editing);
+    mc_ui_button(&e,&u,UI_PLAY);assert(!e.playing&&u.message);
+    mc_ui_encoder(&e,&u,4,1);assert(!e.project.song[0].pattern&&u.message);
+    mc_ui_button(&e,&u,UI_EDIT);assert(u.song_editing&&!u.editing);
+    mc_ui_encoder(&e,&u,3,-1);assert(u.song_cursor==127);
+    mc_ui_encoder(&e,&u,4,-1);assert(e.project.song[127].pattern==63);
+    mc_ui_encoder(&e,&u,5,-1);assert(e.project.song[127].repeats==16);
+    mc_ui_encoder(&e,&u,6,128);assert(e.project.song_length==128);
+    draw(first);mc_ui_encoder(&e,&u,4,1);assert(e.project.song[127].pattern==0);
+    draw(second);assert(memcmp(first,second,sizeof first));
+    mc_ui_encoder(&e,&u,5,1);assert(e.project.song[127].repeats==1);
+    mc_ui_encoder(&e,&u,3,1);assert(!u.song_cursor);
+    timed(5,1,100);timed(5,1,101);assert(e.project.song[0].repeats==3);
+    timed(4,1,102);timed(4,1,103);assert(e.project.song[0].pattern==4);
+    u.song_cursor=1;timed(4,1,104);assert(e.project.song[1].pattern==1);
+    timed(3,1,105);timed(3,1,106);assert(u.song_cursor==5);
+    mc_ui_button(&e,&u,UI_LFO);assert(e.project.song_loop);
+    mc_ui_button(&e,&u,UI_LFO);assert(!e.project.song_loop);
+    McStep before=e.project.step[e.pattern][0][e.edit_step];
+    mc_ui_key(&e,&u,0,1);mc_ui_key(&e,&u,0,0);
+    assert(!memcmp(&before,&e.project.step[e.pattern][0][e.edit_step],sizeof before));
+    mc_ui_button(&e,&u,UI_PLAY);assert(e.playing&&e.pattern==4);
+    mc_ui_button(&e,&u,UI_SEQ);assert(!e.project.song_mode&&!e.playing&&u.page==0);
+    mc_ui_button(&e,&u,UI_EDIT);assert(u.editing);
+    mc_ui_button(&e,&u,UI_ENV);assert(u.page==1);
+    for(unsigned k=0;k<4;k++) {
+        int value=mc_parameter_get(&e,0,6+k);mc_ui_encoder(&e,&u,3+k,-1);
+        assert(mc_parameter_get(&e,0,6+k)==(value?value-1:0));
+    }
+    for(unsigned n=0;n<5;n++)mc_ui_button(&e,&u,UI_GLO);
+    assert(u.page==9&&!u.editing);
+    for(unsigned part=0;part<4;part++) {
+        uint8_t channels[4];memcpy(channels,e.project.midi_channel,sizeof channels);
+        e.project.midi_channel[part]=15;timed(3+part,1,200+part*2);assert(e.project.midi_channel[part]==0);
+        timed(3+part,1,201+part*2);assert(e.project.midi_channel[part]==1);
+        mc_ui_encoder(&e,&u,3+part,-2);assert(e.project.midi_channel[part]==15);
+        for(unsigned j=0;j<4;j++)if(j!=part)assert(e.project.midi_channel[j]==channels[j]);
+    }
+    mc_ui_button(&e,&u,UI_EDIT);assert(!u.editing);
+    draw(first);mc_ui_button(&e,&u,UI_PLAY);assert(e.playing);draw(second);assert(memcmp(first,second,sizeof first));
+    mc_ui_button(&e,&u,UI_LFO);assert(e.project.clock_source==1&&!e.playing);
+    mc_ui_button(&e,&u,UI_LFO);assert(e.project.clock_source==2);
+    mc_ui_button(&e,&u,UI_LFO);assert(!e.project.clock_source);
+    e.project.clock_source=3;draw(first);mc_ui_button(&e,&u,UI_LFO);assert(!e.project.clock_source);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);
+    init();mc_ui_button(&e,&u,UI_SEQ);mc_ui_button(&e,&u,UI_EDIT);
+    mc_ui_encoder(&e,&u,6,128);mc_ui_encoder(&e,&u,4,-1);mc_ui_encoder(&e,&u,5,1);
+    mc_ui_encoder(&e,&u,3,-1);mc_ui_encoder(&e,&u,4,62);
+    mc_clock_source(&e,1);e.project.swing=0;mc_ui_button(&e,&u,UI_PLAY);
+    assert(e.pattern==63&&!e.song_position&&!e.song_repeat);
+    for(unsigned n=0;n<96;n++)mc_clock_tick(&e);
+    assert(!e.song_position&&e.song_repeat==1&&e.pattern==63);
+    for(unsigned n=0;n<96*127;n++)mc_clock_tick(&e);
+    assert(e.song_position==127&&e.pattern==62&&e.playing);draw(first);
+    for(unsigned n=0;n<96;n++)mc_clock_tick(&e);
+    assert(!e.playing&&e.song_finished);draw(second);assert(memcmp(first,second,sizeof first));
+    assert(second[49*240+14]==0x4208u);
+    mc_ui_button(&e,&u,UI_LFO);mc_ui_button(&e,&u,UI_PLAY);
+    for(unsigned n=0;n<96*129;n++)mc_clock_tick(&e);
+    assert(e.playing&&!e.song_position&&e.pattern==63&&!e.song_repeat);
+    puts("PASS: SONG mode/empty/lock/128 positions/64 patterns/16 repeats/length/loop, timed context, note edit isolation; MIDI channels/clock/BLE unavailable; ADSR retained");
+}
 static void render_frames(unsigned frames) {
     int16_t audio[256];
     while(frames) { unsigned n=frames>128?128:frames;mc_render(&e,audio,n);frames-=n; }
@@ -203,4 +266,4 @@ static void green_feedback(void) {
     e.project.step[0][3][0].velocity=100;e.mute=8;draw(first);assert(first[26*240+29]!=0x67e8u);
     puts("PASS: green cursor only on active unmuted melodic/drum hits; silent steps remain dark");
 }
-int main(void) { acceleration();small_ranges();metronome_ui();patterns64();popup();performance_ui();green_feedback();return 0; }
+int main(void) { acceleration();small_ranges();metronome_ui();song_midi_ui();patterns64();popup();performance_ui();green_feedback();return 0; }
