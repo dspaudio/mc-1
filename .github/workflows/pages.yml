@@ -1,0 +1,105 @@
+name: product-pages
+
+on:
+  workflow_run:
+    workflows: [build-and-test]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-pages
+  cancel-in-progress: false
+
+jobs:
+  package:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Assemble static product site
+        run: |
+          mkdir -p _site/audio _site/licenses
+          cp site/index.html site/styles.css _site/
+          cp -R site/assets _site/assets
+          cp docs/audio/mc-1-neon-spiral-fx.mp3 _site/audio/
+          cp LICENSES/CC0-VSCO.txt _site/licenses/
+          cp assets/recorded/manifest.json _site/recorded-samples.json
+          touch _site/.nojekyll
+      - name: Validate relative resources and fragments
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import unquote, urlsplit
+
+          class PageLinks(HTMLParser):
+              def __init__(self) -> None:
+                  super().__init__()
+                  self.ids: set[str] = set()
+                  self.links: list[str] = []
+
+              def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+                  for name, value in attrs:
+                      if value is None:
+                          continue
+                      if name == 'id':
+                          self.ids.add(value)
+                      if name in ('src', 'href'):
+                          self.links.append(value)
+
+          root = Path('_site').resolve()
+          pages: dict[Path, PageLinks] = {}
+          for path in root.rglob('*.html'):
+              page = PageLinks()
+              page.feed(path.read_text(encoding='utf-8'))
+              pages[path] = page
+          if not pages:
+              raise SystemExit('No HTML pages found')
+          checked = 0
+          for path, page in pages.items():
+              for link in page.links:
+                  url = urlsplit(link)
+                  if url.scheme or url.netloc:
+                      continue
+                  target = (path.parent / unquote(url.path)).resolve() if url.path else path
+                  if not target.is_relative_to(root):
+                      raise SystemExit(f'{path.name}: path outside site: {link}')
+                  if target.is_dir():
+                      target = target / 'index.html'
+                  if not target.is_file() or target.stat().st_size == 0:
+                      raise SystemExit(f'{path.name}: missing or empty resource: {link}')
+                  if url.fragment:
+                      destination = pages.get(target)
+                      if destination is None or unquote(url.fragment) not in destination.ids:
+                          raise SystemExit(f'{path.name}: missing fragment: {link}')
+                  checked += 1
+          print(f'PASS: {len(pages)} HTML pages, {checked} relative resources/fragments')
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -10,7 +10,7 @@ The compact dark panel, orange selections, bright-green playback indicators and 
 
 ![Actual shared C drum screen](docs/drums.png)
 
-[Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
+[Explore MC-1](https://dspaudio.github.io/mc-1/) · [Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
 
 ## New in 0.1.4
 
