@@ -33,7 +33,7 @@ void mc_factory(McProject *p)
     for(unsigned b=0;b<4;b++) for(unsigned s=0;s<16;s++) {
         McStep *bass=&p->step[b][0][s], *pad=&p->step[b][1][s];
         McStep *lead=&p->step[b][2][s], *drum=&p->step[b][3][s];
-        bass->note[0]=roots[b]+((s==6||s==14)?12:0);
+        bass->note[0]=(uint8_t)(roots[b]+((s==6||s==14)?12:0));
         bass->velocity=(s%4==0)?115:85; bass->gate=65;
         bass->flags=(s%4==0?MC_ACCENT:0)|(s==5||s==13?MC_SLIDE:0);
         if(s==3||s==11) bass->velocity=0;
@@ -42,7 +42,7 @@ void mc_factory(McProject *p)
             pad->velocity=76; pad->gate=100; /* long pad release bridges rests */
         }
         if(s%2==0||s==7||s==15) {
-            lead->note[0]=roots[b]+24+melody[s]; lead->velocity=80+(s%3)*10; lead->gate=55;
+            lead->note[0]=(uint8_t)(roots[b]+24+melody[s]); lead->velocity=(uint8_t)(80+(s%3)*10); lead->gate=55;
         }
         drum->drums=(s%4==0?1:0)|(s%8==4?2:0)|(s%2==0?4:0)|(s==14?8:0)|(s==12?16:0)|(b==3&&s==15?32:0);
         drum->velocity=s%4==0?112:85; drum->gate=50;

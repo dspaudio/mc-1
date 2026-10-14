@@ -208,7 +208,7 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
             e->clock+=e->project.bpm*400u;
             if(e->clock>=MC_RATE*60u*swing) {
                 e->clock-=MC_RATE*60u*swing;
-                e->step=(e->step+1)%16;
+                e->step=(uint8_t)((e->step+1)%16);
                 if(!e->step&&e->queued<4) { e->pattern=e->queued; e->queued=255; }
                 trigger(e);
             }

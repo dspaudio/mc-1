@@ -15,7 +15,7 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_PLAY: if(e->playing) mc_stop(e); else mc_start(e); break;
     case UI_REC: e->recording^=1; break;
     case UI_ARP: mc_mute(e,e->selected); break;
-    case UI_SEL: e->selected=(e->selected+1)%4; break;
+    case UI_SEL: e->selected=(uint8_t)((e->selected+1)%4); break;
     case UI_HOME: u->page=0;u->editing=0; break;
     case UI_SEQ: u->page=0;u->editing^=1; break;
     case UI_EDIT: u->editing^=1;break;
@@ -95,7 +95,7 @@ void mc_ui_key(McEngine *e,McUi *u,unsigned key,int down) {
         unsigned step=e->recording&&e->playing?e->step:e->edit_step;
         McStep *s=&e->project.step[e->pattern][p][step];
         s->note[0]=(uint8_t)note;s->note[1]=s->note[2]=0;s->velocity=100;s->gate=75;
-        if(!e->playing) e->edit_step=(e->edit_step+1)%16;
+        if(!e->playing) e->edit_step=(uint8_t)((e->edit_step+1)%16);
     }
 }
 /* Original 5x7 bitmap alphabet: no upstream icons or proprietary panel art. */
