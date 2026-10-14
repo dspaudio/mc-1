@@ -402,6 +402,7 @@ void mc_factory(McProject *p)
     for(unsigned d=0;d<MC_DRUMS;d++) p->drum_level[d]=100;
     p->bpm=118; p->swing=10;
     p->patch[0]=mc_presets[MC_PRESET_ACID_SAW]; p->patch[1]=mc_presets[MC_PRESET_SILK_PAD]; p->patch[2]=mc_presets[MC_PRESET_GLASS_BELL];
+    mc_project_defaults(p);
     for(unsigned t=0;t<4;t++) { p->level[t]=t==1?75:100; p->pan[t]=t==1?42:t==2?88:64; }
     for(unsigned b=0;b<4;b++) for(unsigned s=0;s<16;s++) {
         McStep *bass=&p->step[b][0][s], *pad=&p->step[b][1][s];

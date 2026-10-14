@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
 """Local interactive panel using the actual C firmware core; no third-party Python modules."""
-import argparse, ctypes as C, json, os, struct, subprocess, sys, threading, zlib
+import argparse, ctypes as C, json, os, struct, subprocess, sys, threading, time, zlib
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 ROOT=Path(__file__).resolve().parents[1]
@@ -11,6 +11,7 @@ sources=['src/effects.c','src/demo.c','src/engine.c','src/factory.c','src/projec
 subprocess.run([os.environ.get('CC','cc'),'-O2','-std=c11','-Wall','-Wextra','-Werror','-shared','-fPIC','-Isrc',*sources,'-o',str(lib)],cwd=ROOT,check=True)
 dsp=C.CDLL(str(lib));dsp.host_init()
 dsp.host_audio.restype=C.POINTER(C.c_int16);dsp.host_screen.restype=C.POINTER(C.c_uint16)
+dsp.host_tick.argtypes=[C.c_uint32]
 dsp.host_action.argtypes=[C.c_uint,C.c_int,C.c_int];dsp.host_import.argtypes=[C.c_void_p,C.c_uint]
 lock=threading.Lock()
 def png():
@@ -28,6 +29,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store');self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(data)
     def do_GET(self):
         with lock:
+            dsp.host_tick((time.monotonic_ns()//1000000)&0xffffffff)
             if self.path=='/': return self.send((ROOT/'host/index.html').read_bytes(),'text/html; charset=utf-8')
             if self.path=='/screen.png': return self.send(png(),'image/png')
             if self.path=='/audio': return self.send(C.string_at(dsp.host_audio(),4410*4),'application/octet-stream')
@@ -45,6 +47,7 @@ class Handler(BaseHTTPRequestHandler):
         if size<0 or size>4096: return self.send(b'Too large',status=413)
         data=self.rfile.read(size)
         with lock:
+            dsp.host_tick((time.monotonic_ns()//1000000)&0xffffffff)
             if self.path=='/project':
                 if dsp.host_import(data,len(data)): return self.send(b'Invalid project',status=400)
             elif self.path=='/action':

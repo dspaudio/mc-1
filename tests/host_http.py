@@ -19,8 +19,15 @@ try:
             time.sleep(.05)
     else: raise RuntimeError('Host startup timeout')
     assert b'MC-1' in html
-    original=request('/project');assert len(original)==2156
+    original=request('/project');assert len(original)==3746 and original[4]==4
     assert request('/screen.png').startswith(b'\x89PNG\r\n\x1a\n')
+    request('/action',json.dumps({'kind':4,'a':0}).encode())
+    request('/action',json.dumps({'kind':1,'a':2,'b':1}).encode())
+    popup=request('/screen.png');time.sleep(.55);closed=request('/screen.png')
+    assert popup!=closed, 'Stopped transport must expire the preset popup'
+    request('/action',json.dumps({'kind':4,'a':1}).encode())
+    assert request('/screen.png')==closed, 'Popup expiry restores the same underlying preset screen'
+    request('/project',original)
     request('/action',json.dumps({'kind':0,'a':10}).encode())
     pcm=request('/audio');assert len(pcm)==17640 and any(pcm)
     request('/action',json.dumps({'kind':3,'a':3}).encode())
@@ -31,7 +38,7 @@ try:
         try: request(path,data,origin)
         except urllib.error.HTTPError as e: assert e.code==code
         else: raise AssertionError('Invalid request accepted')
-    print('PASS: native HTTP panel, PNG, PCM, project export/import and invalid request rejection')
+    print('PASS: native HTTP panel, PNG, stopped popup expiry, PCM, project export/import and invalid request rejection')
 finally:
     process.terminate()
     try: process.communicate(timeout=5)

@@ -1,9 +1,9 @@
-# MC-1 0.1.3 validation record
+# MC-1 0.1.4 validation record
 
 Host tests pass on the development Mac: 128 distinct presets, eight kits with 128 distinct lane renders,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,
 UI and screen bounds, LA resonance/control regressions, version 1 migration and
-version 2 migration, version 3 kit/track FX round trips, and 6,252 interrupted storage operations. Unreadable
+version 2/3 migration, version 4 kit/track FX round trips, and 7,842 interrupted storage operations. Unreadable
 banks recover safely; saving with an unreadable bank is refused.
 
 Each of four effects is checked with an impulse for changed output, applicable
@@ -12,8 +12,29 @@ through completion with zero saturation; all effects at maximum are included in
 the 10-second multi-part stress test with all four track processors and master FX
 at maximum (peak 28,589, zero clips on host). A separate coherent-voice test at six
 tempos deliberately saturates cascaded delay/reverb and verifies the final clamp
-without signed overflow. ASan/UBSan passes. Host engine size: 269,384 B;
-project: 2,136 B; encoded record: 2,156 B.
+without signed overflow. ASan/UBSan passes. Host engine size: 271,708 B;
+project: 3,726 B; encoded record: 3,746 B.
+
+The 0.1.4 additions have separate core, UI-input, performance and typed-effects
+suites, all run optimized and in fresh ASan/UBSan builds. Input tests cover first
+turn, 59/60 ms acceleration boundaries, reversal, context changes, clock rollover,
+small-range exclusions, exact 499/500 ms popup expiry and all 128 list strip bounds.
+The native HTTP test proves the popup expires while transport is stopped. Pixel
+tests require green only for audible unmuted hits in both melodic overview and drum
+detail; zero-velocity and muted steps remain non-green. Actual C captures cover
+13 screens: ARP off/on/latch, FX amount/type/filter and master scope, preset origin
+stars, popup, automation full/cleared and playing home/drums. Visual review found
+no clipped labels or overlaps. Selection remains orange and playback green.
+
+Performance tests cover six ARP orders, live key release/latch, generated-note
+recording, automation overwrite/capacity/pattern clear and version 4 round trips.
+Live ARP and recorded playback PCM match exactly for all three rates at swing 0
+and 30. Type tests distinguish all 15 effects, verify delay impulse timing/stereo,
+filter frequency response, phaser notch, state clearing and 192 combinations over
+five cascaded processors. Legacy DSP impulse hashes at four tempos remain exact.
+UI tests cover FX subpages, scoped parameter edits, ARP controls, per-lane levels,
+automation recording and origin-name stars. Version 1–3 imports preserve patches;
+unknown old modified-patch origins display IMPORTED SOUND.
 
 NEON SPIRAL uses all four native effects. The MP3 is 320 kbps stereo 44.1 kHz,
 58.906 seconds including encoding padding; WAV is 58.857 seconds including tails.
@@ -42,7 +63,7 @@ save/load message priority and no overlap of the sixteenth drum row.
 Mixer checks cover independent
 part levels, clamps, audible output, mute indicators, the mixed-case
 `SELECT-ARP to mute` hint, project serialization and
-the mixer → groove → demo page cycle. The clean ASan/UBSan binary, host render,
+the mixer → groove → demo → automation page cycle. The clean ASan/UBSan binary, host render,
 native HTTP checks, all 129 audio renders, pi32v2 memory guards, package build and
 sanitized installer simulation passed. No hardware timing result is implied.
 Compiler installation paths differ between local Docker and CI; the checked-in
@@ -50,16 +71,16 @@ target report retains the CI compiler path.
 
 | Target region | Used | Bound | Remaining |
 |---|---:|---:|---:|
-| App load image | 461,096 B | 581,564 B | 120,468 B |
-| Data + BSS | 11,472 B | 98,304 B | 86,832 B |
+| App load image | 469,896 B | 581,564 B | 111,668 B |
+| Data + BSS | 14,672 B | 98,304 B | 83,632 B |
 | RAM code | 2,784 B | 24,576 B | 21,792 B |
-| Pool | 269,384 B | 344,064 B | 74,680 B |
+| Pool | 271,708 B | 344,064 B | 72,356 B |
 
-The app SHA-256 is `2d6180ed1a371f844049389dff337564f118b38e2459839a74d103ad791e3b11`.
+The app SHA-256 is `f85711197fdc6ceff0288e54198f09ba8e8087bd54aa870976f38ae163e660b0`.
 The experimental package is 610,019 B, SHA-256
-`9619ad842204a7d7505f98507cd80f602955c698af75f0c637ed66808b6a6f3f`.
+`976db107928f37ae2b10abb379ccb2c3020b90f115a8d3de58c527846d2be168`.
 The RAM loader is 8,140 B, BSS end `0x01C0F3A0`. Static app RAM above sums to
-283,640 B excluding stacks/reservations; no measured stack high-water is claimed.
+289,164 B excluding stacks/reservations; no measured stack high-water is claimed.
 
 Each kit passes all 16 non-silent, distinct-output, decay and hat-choke checks;
 changing the selected kit leaves existing drum voices unchanged. The 64-second
@@ -77,7 +98,7 @@ that lowering PCM mix audibly changes the rendered samples. All 112 mip tables s
 within ±16,000 and valid interpolation/loop bounds. Eighty integration cases exercise
 MIDI notes 12, 36, 60, 84 and 108 across all sources, block boundaries, held loops and
 release. Independent sanitizer coverage checks all 97 supported notes and fractional
-sample ends. New patches round-trip through project version 3; invalid source IDs and
+sample ends. New patches round-trip through project version 4; invalid source IDs and
 recorded sources assigned to Acid are rejected. Earlier saves load with their original
 patches; earlier firmware cannot load new recorded-source IDs.
 

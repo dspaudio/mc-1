@@ -36,6 +36,22 @@ static uint32_t random32(McEngine *e) {
 void mc_init(McEngine *e) {
     zero(e,sizeof *e); mc_factory(&e->project); e->random=0x4d43464d;
     e->queued=255; e->master=28000;
+    for(unsigned p=0;p<3;p++) e->arp[p].random=0x61727031u+p;
+}
+void mc_project_defaults(McProject *p) {
+    zero(p->arp,sizeof p->arp); zero(p->fx_type,sizeof p->fx_type);
+    zero(p->track_fx_type,sizeof p->track_fx_type); zero(p->filter,sizeof p->filter);
+    zero(p->track_filter,sizeof p->track_filter); zero(p->automation,sizeof p->automation);
+    p->automation_count=0; p->reserved=0;
+    for(unsigned t=0;t<3;t++) {
+        p->arp[t].rate=2; p->arp[t].octaves=1; p->arp[t].gate=75; p->preset[t]=255;
+        for(unsigned n=0;n<MC_PRESETS;n++) {
+            unsigned same=1;
+            for(unsigned i=0;i<sizeof(McPatch);i++)
+                if(((const uint8_t *)&p->patch[t])[i]!=((const uint8_t *)&mc_presets[n])[i]) same=0;
+            if(same) { p->preset[t]=(uint8_t)n; break; }
+        }
+    }
 }
 void mc_off(McEngine *e,unsigned part,unsigned note) {
     for(unsigned i=0;i<MC_VOICES;i++) {
@@ -91,9 +107,159 @@ static uint32_t step_samples(const McEngine *e) {
     unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
     return (MC_RATE*15u* swing)/(e->project.bpm*100u);
 }
+void mc_arp_clear(McEngine *e,unsigned part) {
+    if(part>=3) return;
+    McArpState *a=&e->arp[part];
+    for(unsigned i=0;i<3;i++) if(a->sounding[i]) mc_off(e,part,a->sounding[i]);
+    for(unsigned i=0;i<a->count;i++) mc_off(e,part,a->notes[i]);
+    uint32_t random=a->random;
+    zero(a,sizeof *a); a->random=random?random:0x61727031u+part;
+}
+void mc_key(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned on) {
+    if(part>=3||note<12||note>108||velocity>127) return;
+    McArpState *a=&e->arp[part];
+    const McArp *settings=&e->project.arp[part];
+    if(!settings->enabled) {
+        if(a->count) mc_arp_clear(e,part);
+        if(on) mc_note(e,part,note,velocity,0,0); else mc_off(e,part,note);
+        return;
+    }
+    if(on&&settings->latch) {
+        unsigned held=0;
+        for(unsigned i=0;i<a->count;i++) held+=a->held[i];
+        if(!held) mc_arp_clear(e,part);
+    }
+    unsigned i=0; while(i<a->count&&a->notes[i]!=note) i++;
+    if(on) {
+        if(i==MC_ARP_KEYS) return;
+        if(i==a->count) a->count++;
+        a->notes[i]=(uint8_t)note; a->velocity[i]=(uint8_t)velocity; a->held[i]=1;
+    } else if(i<a->count) {
+        a->held[i]=0;
+        if(!settings->latch) {
+            for(unsigned j=i+1;j<a->count;j++) {
+                a->notes[j-1]=a->notes[j];a->velocity[j-1]=a->velocity[j];a->held[j-1]=a->held[j];
+            }
+            a->count--;
+            if(!a->count) mc_arp_clear(e,part);
+        }
+    }
+}
+static void arp_trigger(McEngine *e,unsigned part,uint32_t interval) {
+    McArpState *a=&e->arp[part]; const McArp *s=&e->project.arp[part];
+    if(!s->enabled||!a->count) return;
+    uint8_t notes[MC_ARP_KEYS*3],velocities[MC_ARP_KEYS*3]; unsigned count=0;
+    for(unsigned octave=0;octave<s->octaves;octave++) for(unsigned i=0;i<a->count;i++) {
+        unsigned note=a->notes[i]+octave*12;
+        if(note<=108) { notes[count]=(uint8_t)note;velocities[count++]=a->velocity[i]; }
+    }
+    if(s->mode!=MC_ARP_ORDER) for(unsigned i=1;i<count;i++) {
+        unsigned j=i;uint8_t note=notes[i],velocity=velocities[i];
+        while(j&&notes[j-1]>note) { notes[j]=notes[j-1];velocities[j]=velocities[j-1];j--; }
+        notes[j]=note;velocities[j]=velocity;
+    }
+    unsigned index=a->position%count;
+    if(s->mode==MC_ARP_DOWN) index=count-1-index;
+    else if(s->mode==MC_ARP_UPDOWN&&count>1) {
+        unsigned pos=a->position%(count*2-2);index=pos<count?pos:count*2-2-pos;
+    } else if(s->mode==MC_ARP_RANDOM) {
+        uint32_t r=a->random;r^=r<<13;r^=r>>17;r^=r<<5;a->random=r;index=r%count;
+    }
+    for(unsigned i=0;i<3;i++) { if(a->sounding[i]) mc_off(e,part,a->sounding[i]);a->sounding[i]=0; }
+    unsigned voices=s->mode==MC_ARP_CHORD?(count<3?count:3):1;
+    unsigned velocity=velocities[s->mode==MC_ARP_CHORD?0:index];
+    uint32_t gate=interval*s->gate/100;
+    a->gate_remaining=(uint16_t)(s->gate*(4u>>s->rate));
+    if(e->playing) gate=a->gate_remaining>100?step_samples(e)+2:step_samples(e)*a->gate_remaining/100;
+    for(unsigned i=0;i<voices;i++) {
+        unsigned n=s->mode==MC_ARP_CHORD?i:index;
+        a->sounding[i]=notes[n];mc_note(e,part,notes[n],velocity,0,gate);
+    }
+    if(e->playing&&e->recording) {
+        unsigned divisor=4u>>s->rate,remaining=s->gate*divisor;
+        for(unsigned offset=0;offset<divisor;offset++) {
+            McStep *step=&e->project.step[e->pattern][part][e->step+offset];
+            zero(step,sizeof *step);
+            if(remaining) {
+                for(unsigned i=0;i<3;i++) step->note[i]=a->sounding[i];
+                step->velocity=(uint8_t)velocity;step->gate=(uint8_t)(remaining>100?100:remaining);
+                step->flags=offset?MC_TIE:0;remaining-=step->gate;
+            }
+        }
+    }
+    unsigned cycle=s->mode==MC_ARP_UPDOWN&&count>1?count*2-2:count;
+    a->position=(uint8_t)((a->position+1)%cycle);a->events++;
+}
+static uint8_t *parameter(McProject *p,unsigned part,unsigned param) {
+    if(part>4||param>=MC_PARAMETERS) return 0;
+    if(param>=MC_PARAM_DRUM_LEVEL) return part==3?&p->drum_level[param-MC_PARAM_DRUM_LEVEL]:0;
+    if(param<12) return part<3?((uint8_t *)&p->patch[part])+param:0;
+    if(param==MC_PARAM_LEVEL) return part<4?&p->level[part]:0;
+    if(param==MC_PARAM_PAN) return part<4?&p->pan[part]:0;
+    if(param<MC_PARAM_DELAY_TYPE) return part==4?&p->fx[param-MC_PARAM_DELAY]:&p->track_fx[part][param-MC_PARAM_DELAY];
+    if(param<MC_PARAM_HPF) return part==4?&p->fx_type[param-MC_PARAM_DELAY_TYPE]:&p->track_fx_type[part][param-MC_PARAM_DELAY_TYPE];
+    return part==4?&p->filter[param-MC_PARAM_HPF]:&p->track_filter[part][param-MC_PARAM_HPF];
+}
+int mc_parameter_get(const McEngine *e,unsigned part,unsigned param) {
+    const uint8_t *v=parameter((McProject *)&e->project,part,param);return v?*v:-1;
+}
+static int parameter_apply(McEngine *e,unsigned part,unsigned param,unsigned value) {
+    uint8_t *v=parameter(&e->project,part,param);
+    unsigned maximum=param==0?1:param==1?2:param==2?MC_PCM_SOURCES-1:
+        param>=MC_PARAM_DELAY_TYPE&&param<MC_PARAM_HPF?(param==MC_PARAM_MOD_TYPE?2:3):127;
+    if(!v||value>maximum) return -1;
+    if(part<3&&((param==0&&value==MC_ACID&&e->project.patch[part].pcm>=MC_PCM_ATTACKS)||
+       (param==2&&value>=MC_PCM_ATTACKS&&e->project.patch[part].engine==MC_ACID))) return -1;
+    *v=(uint8_t)value;
+    if(part<3&&param<12) for(unsigned i=0;i<MC_VOICES;i++) if(e->voice[i].part==part) {
+        McVoice *voice=&e->voice[i]; const McPatch *patch=&e->project.patch[part];
+        voice->patch.cutoff=patch->cutoff;voice->patch.resonance=patch->resonance;voice->patch.pcm_mix=patch->pcm_mix;
+        voice->decay_step=1+32767/(880+patch->decay*patch->decay*6);
+    }
+    return 0;
+}
+int mc_parameter_set(McEngine *e,unsigned part,unsigned param,unsigned value) {
+    if(parameter_apply(e,part,param,value)) return -1;
+    if(!e->playing||!e->recording) return 0;
+    unsigned address=e->pattern*5+part,index=0;
+    for(;index<e->project.automation_count;index++) {
+        McAutomation *a=&e->project.automation[index];
+        if(a->address==address&&a->step==e->step&&a->parameter==param) break;
+    }
+    if(index==MC_AUTOMATION) { e->automation_full=1;return 1; }
+    if(index==e->project.automation_count) e->project.automation_count++;
+    McAutomation *a=&e->project.automation[index];
+    a->address=(uint8_t)address;a->step=e->step;a->parameter=(uint8_t)param;a->value=(uint8_t)value;
+    return 0;
+}
+void mc_automation_clear(McEngine *e,unsigned pattern) {
+    unsigned count=0;
+    for(unsigned i=0;i<e->project.automation_count;i++)
+        if(pattern<4&&e->project.automation[i].address/5!=pattern)
+            e->project.automation[count++]=e->project.automation[i];
+    zero(e->project.automation+count,(MC_AUTOMATION-count)*sizeof(McAutomation));
+    e->project.automation_count=(uint16_t)count;e->automation_full=0;
+}
 static void trigger(McEngine *e) {
     uint32_t samples=step_samples(e);
+    for(unsigned i=0;i<e->project.automation_count;i++) {
+        const McAutomation *a=&e->project.automation[i];
+        if(a->address/5==e->pattern&&a->step==e->step) parameter_apply(e,a->address%5,a->parameter,a->value);
+    }
     for(unsigned p=0;p<4;p++) {
+        if(p<3&&e->project.arp[p].enabled&&e->arp[p].count) {
+            unsigned divisor=4u>>e->project.arp[p].rate;
+            if(e->step%divisor==0) arp_trigger(e,p,MC_RATE*15u*divisor/e->project.bpm);
+            else {
+                McArpState *a=&e->arp[p];
+                a->gate_remaining=(uint16_t)(a->gate_remaining>100?a->gate_remaining-100:0);
+                uint32_t gate=a->gate_remaining>100?samples+2:samples*a->gate_remaining/100;
+                if(gate) for(unsigned i=0;i<MC_VOICES;i++)
+                    if(e->voice[i].active&&e->voice[i].stage!=2&&e->voice[i].part==p)
+                        for(unsigned n=0;n<3;n++) if(e->voice[i].note==a->sounding[n]) e->voice[i].gate_left=gate;
+            }
+            continue;
+        }
         const McStep *s=&e->project.step[e->pattern][p][e->step];
         if(p==3) {
             for(unsigned d=0;d<MC_DRUMS;d++) if(s->drums&(1u<<d)) mc_drum(e,d,s->velocity);
@@ -102,15 +268,28 @@ static void trigger(McEngine *e) {
             unsigned next=(e->step+1)%16;
             unsigned nextpat=(next==0&&e->queued<4)?e->queued:e->pattern;
             const McStep *n=&e->project.step[nextpat][p][next];
-            uint32_t gate=(n->velocity&&(n->flags&MC_SLIDE))?samples+2:samples*s->gate/100;
-            for(unsigned c=0;c<3;c++) if(s->note[c]) mc_note(e,p,s->note[c],s->velocity,s->flags,gate);
+            uint32_t gate=(n->velocity&&(n->flags&(MC_SLIDE|MC_TIE)))?samples+2:samples*s->gate/100;
+            for(unsigned c=0;c<3;c++) if(s->note[c]) {
+                unsigned tied=0;
+                if(s->flags&MC_TIE) for(unsigned v=0;v<MC_VOICES;v++)
+                    if(e->voice[v].active&&e->voice[v].stage!=2&&e->voice[v].part==p&&e->voice[v].note==s->note[c]) {
+                        e->voice[v].gate_left=gate;tied=1;
+                    }
+                if(!tied) mc_note(e,p,s->note[c],s->velocity,s->flags,gate);
+            }
         }
     }
     e->events++;
 }
-void mc_start(McEngine *e) { e->playing=1; if(e->project.demo) { e->demo_frame=0;e->pattern=0;e->queued=255;e->events=0;mc_demo_tick(e); } e->playing=1; e->step=0; e->clock=0; trigger(e); }
+void mc_start(McEngine *e) {
+    e->playing=1;
+    if(e->project.demo) { e->demo_frame=0;e->pattern=0;e->queued=255;e->events=0;mc_demo_tick(e); }
+    for(unsigned p=0;p<3;p++) { e->arp[p].position=0;e->arp[p].clock=0; }
+    e->playing=1;e->step=0;e->clock=0;trigger(e);
+}
 void mc_stop(McEngine *e) {
     e->playing=0; e->queued=255;
+    for(unsigned p=0;p<3;p++) mc_arp_clear(e,p);
     for(unsigned i=0;i<MC_VOICES;i++) e->voice[i].stage=2;
 }
 void mc_queue(McEngine *e,unsigned p) {
@@ -129,9 +308,15 @@ void mc_preset(McEngine *e,unsigned part,unsigned preset) {
     if(part>=3||preset>=MC_PRESETS) return;
     for(unsigned i=0;i<MC_VOICES;i++) if(e->voice[i].part==part) e->voice[i].stage=2;
     e->project.patch[part]=mc_presets[preset];
+    e->project.preset[part]=(uint8_t)preset;
 }
 void mc_control(McEngine *e,unsigned p,unsigned knob,int delta) {
     if(p>=3||knob>=4) return;
+    unsigned param=knob==0?4:knob==1?5:knob==2?7:3;
+    if(e->project.demo&&e->playing) for(unsigned i=0;i<e->project.automation_count;i++) {
+        const McAutomation *a=&e->project.automation[i];
+        if(a->address==e->pattern*5+p&&a->parameter==param) return;
+    }
     McPatch *s=&e->project.patch[p];
     uint8_t *v=knob==0?&s->cutoff:knob==1?&s->resonance:knob==2?&s->decay:&s->pcm_mix;
     *v=(uint8_t)clamp(*v+delta,0,127);
@@ -251,6 +436,13 @@ static int32_t percussion(McEngine *e,McDrum *d) {
 }
 void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
     for(unsigned f=0;f<frames;f++) {
+        for(unsigned p=0;p<3;p++) if(!e->playing&&e->project.arp[p].enabled&&e->arp[p].count) {
+            McArpState *a=&e->arp[p];
+            if(!a->clock) arp_trigger(e,p,MC_RATE*60u/(e->project.bpm*(1u<<e->project.arp[p].rate)));
+            a->clock+=e->project.bpm*(1u<<e->project.arp[p].rate);
+            if(a->clock>=MC_RATE*60u) a->clock-=MC_RATE*60u;
+            if(a->clock<e->project.bpm*(1u<<e->project.arp[p].rate)) a->clock=0;
+        }
         if(e->playing&&e->project.demo) { mc_demo_tick(e);e->demo_frame++; }
         if(e->playing) {
             unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
@@ -269,9 +461,9 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
             int32_t v=part[p]*e->project.level[p]/127;
             int32_t pl=v*(127-e->project.pan[p])/127,pr=v*e->project.pan[p]/127;
             const uint8_t *fx=e->project.track_fx[p];
-            unsigned active=fx[0]|fx[1]|fx[2]|fx[3];
+            unsigned active=fx[0]|fx[1]|fx[2]|fx[3]|e->project.track_filter[p][0]|e->project.track_filter[p][1];
             if(active) {
-                mc_effects_process(&e->track_effects[p],e->project.bpm,fx,&pl,&pr);
+                mc_effects_process_typed(&e->track_effects[p],e->project.bpm,fx,e->project.track_fx_type[p],e->project.track_filter[p],&pl,&pr);
                 e->track_fx_active|=(uint8_t)(1u<<p);
             } else if(e->track_fx_active&(1u<<p)) {
                 zero(&e->track_effects[p],sizeof e->track_effects[p]);

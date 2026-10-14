@@ -17,7 +17,10 @@ The lineage is ORBIT → SLOOP → Felucca; ORBIT identifies SLOOP origin commit
 `d691ba7b2d922f1a1f41a3622cffe29ce41c5506` and subsequent upstream integrations.
 Upstream source: https://github.com/dspaudio/orbit/tree/07e3fed30e8e6757dbe3c6810276599987e4970e
 
-Only hardware, startup, LCD-transfer, freestanding libc and update-loader infrastructure is reused.
+Hardware, startup, LCD-transfer, freestanding libc and update-loader infrastructure are reused.
+The encoder acceleration thresholds are inspired by the GPL ORBIT `ui_input.c` at
+the same commit: ranges above 40 use 3× within 60 ms, or 6× above 150. MC-1 adds
+first-input, direction/context reset and shared host/device timing behavior.
 MC-1 does not include ORBIT engines, tape workflow, sequencer, sample banks, patch assets,
 restricted Felucca icons, panel photos, Hügelton Sample Pack, proprietary Roland ROMs,
 PicoFaceJV ROMs, Munt code, Open303 code or DaisySP code.

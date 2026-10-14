@@ -200,8 +200,8 @@ static void phrase_grid(void) {
     assert(memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
     u.message="SAVED";screen(&e,&u,previous);e.pattern=3;screen(&e,&u,current);
     assert(!memcmp(previous+171*240,current+171*240,12*240*sizeof(uint16_t)));
-    u.message=0;e.selected=3;u.sound=15;e.project.step[3][3][0].drums=32768;
-    screen(&e,&u,previous);assert(previous[162*240+32]==0xdefb);
+    u.message=0;e.selected=3;u.sound=15;e.project.step[3][3][0].drums=32768;e.project.step[3][3][0].velocity=100;
+    screen(&e,&u,previous);assert(previous[162*240+32]==0x67e8);
     mc_queue(&e,0);screen(&e,&u,current);
     assert(!memcmp(previous+159*240,current+159*240,8*240*sizeof(uint16_t)));
     assert(memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
@@ -232,7 +232,7 @@ static void mixer(void) {
     assert(mc_encode(&e.project,1,blob,sizeof blob)>0&&!mc_decode(&project,&sequence,blob,sizeof blob));
     assert(!memcmp(project.level,e.project.level,sizeof levels));
     mc_ui_button(&e,&u,UI_GLO);assert(u.page==2);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
-    mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==7);mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
     for(unsigned part=0;part<4;part++) {
         mc_init(&a);b=a;mc_ui_init(&u);mc_ui_button(&a,&u,UI_GLO);mc_ui_encoder(&a,&u,part+3,-127);
         if(part<3) { mc_note(&a,part,60,100,0,0);mc_note(&b,part,60,100,0,0); }
@@ -367,7 +367,7 @@ static void kits_and_tracks(void) {
     for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++) { e.selected=(uint8_t)p;mc_ui_encoder(&e,&u,fx+3,(int)(p*16+fx+1)); }
     mc_ui_button(&e,&u,UI_FX);assert(u.fx_master);mc_ui_encoder(&e,&u,3,37);assert(e.project.fx[0]==37);
     mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_FX);assert(!u.fx_master);
-    e.project.drum_kit=7;assert(mc_encode(&e.project,9,record,sizeof record)>0&&record[4]==3);
+    e.project.drum_kit=7;assert(mc_encode(&e.project,9,record,sizeof record)>0&&record[4]==4);
     assert(!mc_decode(&q,&seq,record,sizeof record)&&!memcmp(&q,&e.project,sizeof q));
     record[23]=8;record_crc(record,MC_PROJECT_BYTES);McProject before=q;assert(mc_decode(&q,&seq,record,sizeof record)<0&&!memcmp(&q,&before,sizeof q));
     record[23]=0;record[2140]=128;record_crc(record,MC_PROJECT_BYTES);assert(mc_decode(&q,&seq,record,sizeof record)<0);
@@ -376,7 +376,7 @@ static void kits_and_tracks(void) {
     for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++)assert(!q.track_fx[p][fx]);
     record[23]=1;record_crc(record,2120);assert(mc_decode(&q,&seq,record,2140)<0);
     puts("PASS: 128 audible unique kit lanes, all-kit choke/decay, stable active voices, ALGORITHM patterns/PRESETS sounds");
-    puts("PASS: 16 isolated track FX paths, mute tails, dry buffer reset, track/master UI, v2 migration and v3 validation");
+    puts("PASS: 16 isolated track FX paths, mute tails, dry buffer reset, track/master UI, v2 migration and v4 validation");
 }
 static void sorted_bank(void) {
     const char *categories[]={"Bass","Acid","Lead","Sequence","Keys","Organ","Brass/Reed","Strings","Pad","Pluck","Mallet/Bell","Voice","Hit/Percussion","Texture"};
@@ -393,7 +393,8 @@ static void sorted_bank(void) {
     }
     uint8_t record[MC_RECORD_BYTES];for(unsigned demo=0;demo<2;demo++) {
         mc_demo_load(&e,demo);assert(mc_encode(&e.project,1,record,sizeof record)>0);
-        assert(mc_crc(record,sizeof record)==demo_012_crc[demo]);
+        record[4]=3;record[6]=88;record[7]=8;record_crc(record,2136);
+        assert(mc_crc(record,2156)==demo_012_crc[demo]);
     }
     McUi u;for(unsigned part=0;part<3;part++) {
         mc_init(&e);e.selected=(uint8_t)part;mc_preset(&e,part,127);mc_ui_init(&u);

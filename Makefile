@@ -11,8 +11,17 @@ build/mc1-host: $(CORE) $(HEADERS) tools/host.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tools/host.c -o $@
 build/test: $(CORE) $(HEADERS) tests/test.c tests/presets_012.h | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/test.c -o $@
-test: build/test
+build/test-ui-input: $(CORE) $(HEADERS) tests/ui_input.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/ui_input.c -o $@
+build/test-performance: $(CORE) $(HEADERS) tests/performance.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/performance.c -o $@
+build/test-effects-modes: src/effects.c $(HEADERS) tests/effects_modes.c | build
+	$(CC) $(CFLAGS) -Isrc src/effects.c tests/effects_modes.c -lm -o $@
+test: build/test build/test-ui-input build/test-performance build/test-effects-modes
 	./build/test
+	./build/test-ui-input
+	./build/test-performance
+	./build/test-effects-modes
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16
 assets:

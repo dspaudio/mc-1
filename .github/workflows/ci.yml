@@ -12,6 +12,12 @@ jobs:
         run: |
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
           build/test-sanitized
+          for suite in ui_input performance; do
+            cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/$suite.c -o build/test-$suite-sanitized
+            build/test-$suite-sanitized
+          done
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c tests/effects_modes.c -lm -o build/test-effects-modes-sanitized
+          build/test-effects-modes-sanitized
       - run: python3 tools/gen_assets.py && python3 tools/gen_recorded_pcm.py && python3 tools/gen_presets.py && git diff --exit-code src/recorded_pcm.h src/tables.h src/presets.h src/factory.c host/index.html README.md docs/PRESETS.md
       - run: python3 tests/host_http.py
       - run: python3 tools/verify_audio.py

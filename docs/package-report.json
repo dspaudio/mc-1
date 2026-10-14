@@ -1,8 +1,8 @@
 {
   "status": "Package format and host loader simulation only; NOT device installed or tested",
   "package_bytes": 610019,
-  "sha256": "9619ad842204a7d7505f98507cd80f602955c698af75f0c637ed66808b6a6f3f",
-  "app_sha256": "2d6180ed1a371f844049389dff337564f118b38e2459839a74d103ad791e3b11",
+  "sha256": "976db107928f37ae2b10abb379ccb2c3020b90f115a8d3de58c527846d2be168",
+  "app_sha256": "f85711197fdc6ceff0288e54198f09ba8e8087bd54aa870976f38ae163e660b0",
   "loader_bytes": 8140,
   "loader_load": "0x01c0a800",
   "loader_bss_end": "01c0f3a0",

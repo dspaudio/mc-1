@@ -96,21 +96,21 @@ void fm1_cstart(void) {
     static const uint8_t buttons[14]={2,3,4,5,6,7,8,9,10,11,12,13,0,1};
     static const uint8_t encoders[7]={0,1,6,2,3,4,5};
     for(;;) {
-        fm1_wdt_feed();uint32_t now=milliseconds;
+        fm1_wdt_feed();uint32_t now=milliseconds;mc_ui_tick(&ui,now);
         uint32_t pressed=fm1_input_edges(0),current=fm1_in.notes;
         for(unsigned i=0;i<14;i++) if(pressed&(1u<<buttons[i])) {
             fm1_irq_off();mc_ui_button(&engine,&ui,i);fm1_irq_on();
         }
         for(unsigned i=0;i<7;i++) {
             int step=fm1_enc_take(encoders[i]);
-            if(step) { fm1_irq_off();mc_ui_encoder(&engine,&ui,i,step);fm1_irq_on(); }
+            if(step) { fm1_irq_off();mc_ui_encoder_at(&engine,&ui,i,step,now);fm1_irq_on(); }
         }
         for(unsigned i=0;i<27;i++) if((current^notes)&(1u<<i)) {
-            fm1_irq_off();
+            fm1_irq_off();ui.preset_popup=ui.encoder_active=0;
             if(current&(1u<<i)) {
                 held_part[i]=engine.selected;held_note[i]=(uint8_t)limit(53+(int)i+ui.octave*12,12,108);
                 mc_ui_key(&engine,&ui,i,1);
-            } else if(held_part[i]<3) mc_off(&engine,held_part[i],held_note[i]);
+            } else if(held_part[i]<3) mc_key(&engine,held_part[i],held_note[i],100,0);
             fm1_irq_on();
         }
         notes=current;

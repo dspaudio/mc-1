@@ -27,11 +27,14 @@ ramps; modulation, effects and fine editor pages can be extended later.
 The 128 melodic presets are grouped into 14 contiguous categories. Generated symbolic
 IDs keep factory patterns, demos and showcases tied to the intended named sounds when
 the bank order changes. The UI shows category and number, and resolves an exact patch
-match before browsing from a loaded project. Custom patches use the last browser position.
+match for legacy project imports. Version 4 preserves the originating preset ID;
+edited patches show its name plus `*` and browse relative to that origin. Unknown
+legacy origins show IMPORTED SOUND.
 Projects serialize patch parameters, not preset indexes, so reordered banks do not
 change saved sounds. New recorded PCM IDs retain format version 3 but are outside
 older firmware validators: old projects load in this release, while a project using
-new recorded patches cannot be loaded by earlier releases.
+new recorded patches cannot be loaded by earlier releases. Version 4 additionally
+saves ARP, effect types, filters and automation; earlier firmware rejects its version.
 
 Six shared drum voice structs synthesize 16 lane sounds in each of eight original kits
 from noise, sine/pulse oscillators, pitch sweeps and decays. Immutable kit recipes change
@@ -44,6 +47,19 @@ All audio uses fixed-point integer arithmetic and lookup tables. No heap allocat
 filesystem streaming or floating-point runtime is required. Output has conservative gain
 headroom plus a final safety clamp. Controls change current filter values; no claim of
 fully smoothed, click-free automation or analog accuracy is made.
+
+## Timed panel input
+
+The deterministic raw `mc_ui_encoder` API applies exact deltas for scripted use.
+Physical and interactive clients call `mc_ui_encoder_at` with a monotonic millisecond
+clock. Consecutive same-direction turns of the same encoder/context within 60 ms
+use 3× for ranges above 40 or 6× for ranges above 150. The first turn, reversal,
+context change and other control input reset acceleration. Small enumerations never
+accelerate. `mc_ui_tick` expires the seven-row PRESETS/kit overlay at 500 ms from
+the last nonzero valid PRESETS input, independently of audio transport. Unsigned
+subtraction handles clock rollover. Firmware ticks every foreground iteration; the
+HTTP host passes its monotonic clock before actions and screen requests. The popup
+and normal screen use the same eight-row RGB565 renderer.
 
 ## Timing
 
@@ -77,18 +93,18 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 269,384 bytes, including a 2,136-byte project. This is not total device
+Host `sizeof(McEngine)` is 271,708 bytes, including a 3,726-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 461,096-byte app, 11,472-byte globals,
-2,784-byte RAM code and 269,384-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 469,896-byte app, 14,672-byte globals,
+2,784-byte RAM code and 271,708-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety
 
-Four 16-step patterns fit one portable 2,156-byte project record. Serialization is explicit
+Four 16-step patterns fit one portable 3,746-byte version 4 project record. Serialization is explicit
 little endian; it does not dump compiler structs. The header includes magic, version, length,
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
@@ -113,19 +129,39 @@ review on the actual codec. The host browser requires one active audio client pe
 
 ## Master effects and built-in demo
 
-`effects.c` implements four original integer effects per track and on the master: soft saturation, stereo
-triangle-modulated interpolated chorus, cross-feedback tempo delay (sixteenth note,
-maximum 8,191 samples), and four damped feedback combs for compact reverb. The
-delay/comb/chorus buffers use 53,248 bytes per processor; counters/damping add 32 bytes.
-Four independent track processors precede the shared master processor. The FX page
-edits the selected track; another FX press switches to master controls. Each track
-processes after its level/pan and before summing. Muting removes its dry and wet output.
-Dry track processors are skipped; returning all four amounts to zero clears that
-track's buffers once, preventing stale tails on re-enable. Master bypass continues
-to advance its buffers, preserving legacy demo output.
-All amounts are 0–127, feedback is bounded below unity, and the mix retains the
-existing final clamp and clip counter. Final master scaling uses a wide product so
-cascaded track/master gain cannot wrap before the clamp. No heap allocation.
+`effects.c` implements four effect families per track and on the master: delay
+(DIGITAL, TAPE, PINGPONG, MULTITAP), reverb (ROOM, HALL, PLATE, SPRING), drive
+(SOFT, HARD, FOLD, FUZZ), and modulation (CHORUS, PHASER, FLANGER). Independent
+HPF and LPF follow each processor; zero bypasses each filter. These are bounded
+fixed-point designs, not circuit models. Type 0 and bypassed filters retain the
+original DSP exactly. The phaser uses all-pass stages; flanger uses a short
+modulated delay; state transitions clear the changed family's stored signal.
+The delay/comb/chorus buffers use 53,248 bytes per processor; total state is 53,356
+bytes including counters, typed-filter state and coefficients. Four independent
+track processors precede the shared master. Tracks process after level/pan and
+before summing. Muting removes dry and wet output. Dry processors are skipped;
+returning all amounts and filters to zero clears buffers once. Master bypass
+continues advancing its buffers, preserving legacy demo output. Amounts and filter
+controls are 0–127; feedback is bounded below unity. Final master scaling uses a
+wide product and safety clamp. No heap allocation.
+
+Each melodic part has an arpeggiator with 32 held-key slots, six modes, quarter/
+eighth/sixteenth-note rates, 1–3 octaves, gate and latch. Generated notes follow the
+sequencer's swing clock while running, or the engine clock when stopped. CHORD
+emits up to three notes; existing voice allocation and monophonic Acid still apply.
+PLAY + REC writes generated notes and continuation steps; a tie flag preserves
+long gates without repeated attacks. Part changes, stop, mode/latch changes and
+explicit clear release held/generated state. Physical key-up retains its original
+part/note owner so selecting another part does not leave held notes behind.
+
+A central parameter setter applies sound, level, per-drum level, FX type/amount and
+filter edits. During PLAY + REC it stores one final value per pattern/part/step/
+parameter address. The project shares 384 four-byte events; same-address writes
+replace existing values, while full capacity rejects new events with a visible
+status. Events replay before note triggers. Tempo, swing, ARP setup and step edits
+are not automation parameters. Pattern clear compacts remaining events. Preset
+origins, ARP settings, typed FX and events append to the legacy body in version 4;
+version 1–3 imports receive safe defaults without changing the old patch/audio.
 
 `demo.c` stores original note patterns and a 32-bar performance. The same sequencer,
 mutes, cutoff/resonance controls and effects execute on both targets. Automated
