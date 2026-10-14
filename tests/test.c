@@ -168,6 +168,75 @@ static void persistence(void) {
     assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));unreadable=0;
     puts("PASS: portable project format, truncation/corruption, validation, rollover and 6236 power cuts");
 }
+static void screen(const McEngine *engine,const McUi *ui,uint16_t *pixels) {
+    for(unsigned row=0;row<240;row+=8) mc_ui_strip(engine,ui,row,8,pixels+row*240);
+}
+static void phrase_grid(void) {
+    McUi u;mc_ui_init(&u);mc_demo_load(&e,1);mc_start(&e);
+    static uint16_t previous[240*240],current[240*240];screen(&e,&u,previous);
+    for(unsigned pattern=1;pattern<4;pattern++) {
+        for(unsigned frame=0;e.pattern!=pattern&&frame<MC_RATE*2;frame++) render_n(&e,1);
+        assert(e.pattern==pattern&&e.step==0);screen(&e,&u,current);
+        int changed=memcmp(previous+59*240,current+59*240,81*240*sizeof(uint16_t))!=0;
+        fprintf(stderr,"Demo pattern %u: acid note %u, melodic grid changed %d\n",pattern+1,e.project.step[pattern][1][0].note[0],changed);
+        assert(changed);memcpy(previous,current,sizeof previous);
+    }
+    mc_init(&e);mc_ui_init(&u);memset(e.project.step,0,sizeof e.project.step);
+    e.project.step[0][0][0]=(McStep){.note={48,60,72},.velocity=100};
+    screen(&e,&u,current);
+    assert(current[61*240+32]==0x0841&&current[69*240+32]==0x0841&&current[76*240+32]==0x0841);
+    assert(current[62*240+32]==0xfb20);
+    e.project.step[0][0][0].note[0]=0;screen(&e,&u,current);
+    assert(current[62*240+32]==0xfb20);
+    mc_start(&e);screen(&e,&u,previous);mc_queue(&e,2);screen(&e,&u,current);
+    assert(e.pattern==0&&e.queued==2&&memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    memcpy(previous,current,sizeof previous);
+    for(unsigned frame=0;e.pattern!=2&&frame<MC_RATE*3;frame++) render_n(&e,1);
+    screen(&e,&u,current);assert(e.pattern==2&&e.queued==255);
+    assert(memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    u.message="SAVED";screen(&e,&u,previous);e.pattern=3;screen(&e,&u,current);
+    assert(!memcmp(previous+171*240,current+171*240,12*240*sizeof(uint16_t)));
+    u.message=0;e.selected=3;u.sound=15;e.project.step[3][3][0].drums=32768;
+    screen(&e,&u,previous);assert(previous[162*240+32]==0xdefb);
+    mc_queue(&e,0);screen(&e,&u,current);
+    assert(!memcmp(previous+159*240,current+159*240,8*240*sizeof(uint16_t)));
+    assert(memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    puts("PASS: demo pattern progression changes pitch grid; chord and non-leading notes rendered");
+    puts("PASS: home PATTERN/NEXT status follows queued bar transition; messages retain priority");
+}
+static void mixer(void) {
+    McUi u;mc_init(&e);mc_ui_init(&u);mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);
+    uint8_t levels[4];memcpy(levels,e.project.level,sizeof levels);
+    for(unsigned part=0;part<4;part++) {
+        mc_ui_encoder(&e,&u,part+3,-1000);assert(e.project.level[part]==0);
+        for(unsigned other=part+1;other<4;other++) assert(e.project.level[other]==levels[other]);
+        mc_ui_encoder(&e,&u,part+3,1000);assert(e.project.level[part]==127);
+    }
+    static uint16_t pixels[240*240];screen(&e,&u,pixels);assert(pixels[120*240+26]==0xfb20);
+    const char *hint="SELECT-ARP to mute";
+    for(unsigned letter=0;hint[letter];letter++) {
+        unsigned ink=0;
+        for(unsigned row=0;row<7;row++) for(unsigned col=0;col<5;col++)
+            if(pixels[(173+row)*240+66+letter*6+col]!=0x0841) ink++;
+        assert(hint[letter]==' '?ink==0:ink>0);
+    }
+    assert(pixels[173*240+139]==0x0841&&pixels[175*240+139]==0xdefb);
+    u.message="SAVED";screen(&e,&u,pixels);assert(pixels[175*240+139]==0x0841);u.message=0;
+    mc_ui_button(&e,&u,UI_ARP);screen(&e,&u,pixels);assert(pixels[120*240+26]==0x4208);
+    mc_ui_encoder(&e,&u,3,-127);screen(&e,&u,pixels);assert(pixels[120*240+26]==0x2104);
+    uint8_t blob[MC_RECORD_BYTES];McProject project;uint32_t sequence;
+    assert(mc_encode(&e.project,1,blob,sizeof blob)>0&&!mc_decode(&project,&sequence,blob,sizeof blob));
+    assert(!memcmp(project.level,e.project.level,sizeof levels));
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==2);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
+    for(unsigned part=0;part<4;part++) {
+        mc_init(&a);b=a;mc_ui_init(&u);mc_ui_button(&a,&u,UI_GLO);mc_ui_encoder(&a,&u,part+3,-127);
+        if(part<3) { mc_note(&a,part,60,100,0,0);mc_note(&b,part,60,100,0,0); }
+        else { mc_drum(&a,0,100);mc_drum(&b,0,100); }
+        mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!energy(x,8192)&&energy(y,8192)>10000);
+    }
+    puts("PASS: GLO mixer levels, independent knobs, clamp, mute pixels, persistence and page cycle");
+}
 static void panel(void) {
     McUi u;mc_init(&e);mc_ui_init(&u);e.selected=3;
     mc_ui_encoder(&e,&u,3,15);assert(u.sound==15);
@@ -178,7 +247,7 @@ static void panel(void) {
     mc_ui_button(&e,&u,UI_SAVE);assert(!u.save_request&&u.save_pending);
     mc_ui_button(&e,&u,UI_SAVE);assert(u.save_request);
     u.save_request=0;mc_start(&e);mc_ui_button(&e,&u,UI_SAVE);assert(!u.save_request);
-    mc_stop(&e);e.selected=0;mc_ui_button(&e,&u,UI_GLO);
+    mc_stop(&e);e.selected=0;mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);
     mc_ui_encoder(&e,&u,3,1000);assert(e.project.bpm==240);
     mc_ui_encoder(&e,&u,4,1000);assert(e.project.swing==45);
     mc_ui_encoder(&e,&u,5,1);assert(e.pattern==1);
@@ -190,7 +259,7 @@ static void panel(void) {
     mc_ui_encoder(&e,&u,6,3);assert(e.project.step[e.pattern][0][step].flags<4);
     mc_ui_key(&e,&u,4,1);assert(e.project.step[e.pattern][0][step].note[0]==57);
     uint16_t pixels[240*8+2];pixels[0]=123;pixels[240*8+1]=456;
-    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<5;page++) for(unsigned row=0;row<240;row+=8) {
+    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<6;page++) for(unsigned row=0;row<240;row+=8) {
         e.selected=(uint8_t)part;u.page=(uint8_t)page;mc_ui_strip(&e,&u,row,8,pixels+1);
         assert(pixels[0]==123&&pixels[240*8+1]==456);
     }
@@ -215,7 +284,7 @@ static void effects_demo(void) {
     render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
     McUi u;mc_ui_init(&u);mc_init(&e);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
     for(unsigned k=0;k<4;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.fx[k]==50); }
-    mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
+    mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
     mc_start(&e);mc_ui_encoder(&e,&u,6,1);assert(!u.load_request);
     mc_stop(&e);mc_ui_encoder(&e,&u,6,1);assert(u.load_request==2);
     mc_demo_load(&e,u.load_request-1);assert(e.project.demo&&e.project.bpm==140);
@@ -232,5 +301,5 @@ static void stress(void) {
 }
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    engines();knob_audio();sequence();persistence();panel();effects_demo();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();stress();puts("ALL TESTS PASSED");return 0;
 }

@@ -1,4 +1,4 @@
-# MC-1 0.1.0 validation record
+# MC-1 0.1.1 validation record
 
 Host tests pass on the development Mac: 48 distinct presets, 16 drum models,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,
@@ -26,23 +26,35 @@ For the 48 presets and twelve PCM attacks at
 [CI 38514033913](https://github.com/dspaudio/mc-1/actions/runs/38514033913)
 passed host checks, target memory guards and package generation, then failed on
 stale checked-in target-report bytes/hash; its installer test was not reached.
-The reports below now match that run's downloaded artifacts. A local Docker
-pi32v2 rebuild reproduced the app and package bytes on 2026-10-14, and the
-sanitized host installer simulation passed. Host tests, clean ASan/UBSan binary,
-render, native HTTP checks, generated assets and all 49 audio renders also passed.
+The report repair was verified by a local Docker pi32v2 rebuild reproducing that
+run's app and package bytes on 2026-10-14, then by
+[CI 38523690699](https://github.com/dspaudio/mc-1/actions/runs/38523690699)
+at `57e6b55`, which passed both jobs.
+
+The current reports below include the subsequent home-grid pitch marks and GLO
+global mixer. Local host tests prove all four demo patterns advance and change
+the rendered melodic grid, including chords. The home PATTERN/NEXT status is
+checked across queued bar transitions on both melodic and drum pages, with
+save/load message priority and no overlap of the sixteenth drum row.
+Mixer checks cover independent
+part levels, clamps, audible output, mute indicators, the mixed-case
+`SELECT-ARP to mute` hint, project serialization and
+the mixer → groove → demo page cycle. The clean ASan/UBSan binary, host render,
+native HTTP checks, all 49 audio renders, pi32v2 memory guards, package build and
+sanitized installer simulation passed. No hardware timing result is implied.
 Compiler installation paths differ between local Docker and CI; the checked-in
 target report retains the CI compiler path.
 
 | Target region | Used | Bound | Remaining |
 |---|---:|---:|---:|
-| App load image | 44,756 B | 581,564 B | 536,808 B |
+| App load image | 45,720 B | 581,564 B | 535,844 B |
 | Data + BSS | 67,648 B | 98,304 B | 30,656 B |
 | RAM code | 2,784 B | 24,576 B | 21,792 B |
 | Pool | 0 B | 344,064 B | 344,064 B |
 
-The app SHA-256 is `6fc8e05e555a8e33a2a22f7d496e6ebea7ecdaf63e0110204d9d1142aff94c35`.
+The app SHA-256 is `9aee4f4fa622244b654a8e4a7b0a134cf152e9264c60a0438f2155d8ad126cd1`.
 The experimental package is 610,019 B, SHA-256
-`3c88417678e694d70535501087e59993d717d5e9853f3024cfca60e482331017`.
+`43014d5b000764fea88f034602a1f707a9483b5d184187afcb81f9432c9917ab`.
 The RAM loader is 8,140 B, BSS end `0x01C0F3A0`. Static app RAM above sums to
 70,432 B excluding stacks/reservations; no measured stack high-water is claimed.
 

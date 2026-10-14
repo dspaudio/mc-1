@@ -20,7 +20,7 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_SEQ: u->page=0;u->editing^=1; break;
     case UI_EDIT: u->editing^=1;break;
     case UI_ENV: u->page=u->page==1?0:1; break;
-    case UI_GLO: u->page=u->page==2?4:u->page==4?0:2; break;
+    case UI_GLO: u->page=u->page==5?2:u->page==2?4:5; break;
     case UI_LFO: e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_ACCENT; break;
     case UI_FX: if(u->editing) e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_SLIDE; else u->page=u->page==3?0:3; break;
     case UI_OCTDN: u->octave=(int8_t)limit(u->octave-1,-3,3); break;
@@ -46,7 +46,9 @@ void mc_ui_encoder(McEngine *e,McUi *u,unsigned enc,int delta) {
     }
     if(enc==2) { mc_queue(e,wrap((e->queued<4?e->queued:e->pattern)+delta,4)); return; }
     unsigned k=enc-3;
-    if(u->page==4) {
+    if(u->page==5) {
+        e->project.level[k]=(uint8_t)limit(e->project.level[k]+delta,0,127);
+    } else if(u->page==4) {
         if(k==0) u->demo_choice=(uint8_t)wrap(u->demo_choice+delta,2);
         if(k==3&&delta>0) {
             if(e->playing) u->message="STOP BEFORE LOAD";
@@ -118,7 +120,14 @@ static const uint8_t font[][7]={
 {14,17,17,17,21,18,13},{30,17,17,30,20,18,17},{15,16,16,14,1,1,30},{31,4,4,4,4,4,4},
 {17,17,17,17,17,17,14},{17,17,17,17,17,10,4},{17,17,17,21,21,27,17},{17,17,10,4,10,17,17},
 {17,17,10,4,4,4,4},{31,1,2,4,8,16,31},
-{0,0,0,31,0,0,0},{1,2,2,4,8,8,16},{0,4,4,0,4,4,0},{0,4,4,31,4,4,0}
+{0,0,0,31,0,0,0},{1,2,2,4,8,8,16},{0,4,4,0,4,4,0},{0,4,4,31,4,4,0},
+{0,0,14,1,15,17,15},{16,16,22,25,17,17,30},{0,0,14,16,16,17,14},{1,1,13,19,17,17,15},
+{0,0,14,17,31,16,14},{6,9,8,28,8,8,8},{0,0,15,17,15,1,14},{16,16,22,25,17,17,17},
+{4,0,12,4,4,4,14},{2,0,6,2,2,18,12},{16,16,18,20,24,20,18},{12,4,4,4,4,4,14},
+{0,0,26,21,21,21,21},{0,0,22,25,17,17,17},{0,0,14,17,17,17,14},{0,0,30,17,30,16,16},
+{0,0,15,17,15,1,1},{0,0,22,25,16,16,16},{0,0,15,16,14,1,30},{8,8,28,8,8,9,6},
+{0,0,17,17,17,19,13},{0,0,17,17,17,10,4},{0,0,17,17,21,21,10},{0,0,17,10,4,10,17},
+{0,0,17,17,15,1,14},{0,0,31,2,4,8,31}
 };
 #define BG 0x0841u
 #define DIM 0x4208u
@@ -133,7 +142,7 @@ static void rect(Canvas *c,int x,int y,int w,int h,uint16_t color) {
 }
 static void text(Canvas *c,int x,int y,const char *s,uint16_t color,int scale) {
     while(*s) {
-        unsigned ch=(unsigned char)*s++; int index=ch>='0'&&ch<='9'?(int)ch-'0':ch>='A'&&ch<='Z'?(int)ch-'A'+10:ch=='-'?36:ch=='/'?37:ch==':'?38:ch=='+'?39:-1;
+        unsigned ch=(unsigned char)*s++; int index=ch>='0'&&ch<='9'?(int)ch-'0':ch>='A'&&ch<='Z'?(int)ch-'A'+10:ch>='a'&&ch<='z'?(int)ch-'a'+40:ch=='-'?36:ch=='/'?37:ch==':'?38:ch=='+'?39:-1;
         if(index>=0) for(int row=0;row<7;row++) for(int col=0;col<5;col++)
             if(font[index][row]&(1<<(4-col))) rect(c,x+col*scale,y+row*scale,scale,scale,color);
         x+=6*scale;
@@ -164,7 +173,22 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     number(&c,163,4,e->pattern+1,WHITE);text(&c,169,4,"/4",DIM,1);
     text(&c,191,4,e->playing?"+":"-",WHITE,1);number(&c,211,4,e->project.bpm,WHITE);
     if(e->queued<4) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }
-    if(u->page==4) {
+    if(u->page==5) {
+        static const char *const names[4]={"PART1","PART2","PART3","DRUMS"};
+        text(&c,14,30,"GLOBAL MIXER",WHITE,2);
+        for(unsigned part=0;part<4;part++) {
+            int x=part?25+(int)part*60:26;
+            uint16_t color=e->mute&(1u<<part)?DIM:ORANGE;
+            text(&c,x-17,61,names[part],part==p?ORANGE:WHITE,1);
+            rect(&c,x-8,79,18,64,GRID);
+            int level=(int)e->project.level[part]*64/127;
+            rect(&c,x-8,143-level,18,level,color);
+            if(e->mute&(1u<<part)) text(&c,x-11,153,"MUTE",DIM,1);
+            else text(&c,x-5,153,"ON",WHITE,1);
+            knob(&c,x,names[part],e->project.level[part],color);
+        }
+        if(!u->message) text(&c,66,173,"SELECT-ARP to mute",WHITE,1);
+    } else if(u->page==4) {
         text(&c,14,40,"DEMO LIBRARY",WHITE,2);
         text(&c,14,77,u->demo_choice?"NEON SPIRAL":"NIGHT CIRCUIT",ORANGE,2);
         text(&c,14,108,"STOP THEN TURN LOAD",WHITE,1);
@@ -190,7 +214,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         knob(&c,145,"PATT",e->pattern+1,DIM);knob(&c,205,"LEVEL",e->project.level[p],HIT);
     } else if(p==3) {
         for(unsigned row=0;row<16;row++) {
-            int yy=24+(int)row*10;
+            int yy=24+(int)row*9;
             if(row==u->sound) rect(&c,0,yy,23,8,ORANGE);
             text(&c,2,yy+1,labels[row],row==u->sound?BG:DIM,1);
             for(unsigned s=0;s<16;s++) {
@@ -215,13 +239,25 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         text(&c,8,30,match<MC_PRESETS?mc_preset_names[match]:"CUSTOM SOUND",WHITE,2);
         for(unsigned t=0;t<4;t++) {
             int yy=59+(int)t*27;
+            unsigned low=108,high=12;
+            if(t<3) for(unsigned pattern=0;pattern<4;pattern++) for(unsigned step=0;step<16;step++) {
+                const McStep *st=&e->project.step[pattern][t][step];
+                if(st->velocity) for(unsigned note=0;note<3;note++) if(st->note[note]) {
+                    if(st->note[note]<low) low=st->note[note];
+                    if(st->note[note]>high) high=st->note[note];
+                }
+            }
             number(&c,4,yy+5,t+1,t==p?ORANGE:DIM);
             if((e->mute>>t)&1) text(&c,12,yy+5,"M",HIT,1);
             for(unsigned s=0;s<16;s++) {
                 const McStep *st=&e->project.step[e->pattern][t][s];
-                uint16_t color=(t==3?st->drums!=0:st->velocity&&st->note[0])?(t==p?ORANGE:HIT):GRID;
+                uint16_t color=(t==3?st->drums!=0:st->velocity&&(st->note[0]||st->note[1]||st->note[2]))?(t==p?ORANGE:HIT):GRID;
                 if(e->playing&&s==e->step) color=WHITE;
                 rect(&c,29+(int)s*13,yy,11,19,color);
+                if(t<3&&st->velocity) for(unsigned note=0;note<3;note++) if(st->note[note]) {
+                    int pitch=high>low?(int)((st->note[note]-low)*15/(high-low)):7;
+                    rect(&c,31+(int)s*13,yy+17-pitch,7,1,BG);
+                }
                 if(t==p&&s==e->edit_step) rect(&c,29+(int)s*13,yy+20,11,2,WHITE);
             }
         }
@@ -231,6 +267,10 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
             const McStep *st=&e->project.step[e->pattern][p][e->edit_step];
             knob(&c,26,"STEP",e->edit_step+1,0x3317);knob(&c,85,"VEL",st->velocity,0x3d48);knob(&c,145,"GATE",st->gate,DIM);knob(&c,205,"A/S",st->flags,HIT);
         } else { knob(&c,26,"CUT",s->cutoff,0x3317);knob(&c,85,"RES",s->resonance,0x3d48);knob(&c,145,"DEC",s->decay,DIM);knob(&c,205,s->engine?"GLIDE":"PCM",s->engine?s->glide:s->pcm_mix,HIT); }
+    }
+    if(!u->message&&u->page<2) {
+        text(&c,4,173,"PATTERN",DIM,1);number(&c,52,173,e->pattern+1,WHITE);text(&c,58,173,"/4",DIM,1);
+        if(e->queued<4) { text(&c,94,173,"NEXT",DIM,1);number(&c,124,173,e->queued+1,ORANGE); }
     }
     if(u->message) { rect(&c,0,171,240,12,BG);text(&c,4,173,u->message,ORANGE,1); }
     else if(e->recording) text(&c,3,14,"REC",ORANGE,1);

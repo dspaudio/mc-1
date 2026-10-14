@@ -6,7 +6,7 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1.0:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.1.1:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
@@ -38,7 +38,7 @@ build/mc1-host                 # interactive command help
 
 ## Built-in demo and effects
 
-While stopped, press **GLO twice**, select **NEON SPIRAL** with knob 1, turn
+While stopped, press **GLO three times**, select **NEON SPIRAL** with knob 1, turn
 **LOAD** (knob 4) clockwise, then press **PLAY**. Loading replaces the current
 project in RAM; save/export your work first. No flash write happens until SAVE
 is explicitly confirmed. NIGHT CIRCUIT reloads the original dry pattern bank.
@@ -104,7 +104,7 @@ device recordings or relative-loudness comparisons. Rebuild with
 | SEQ or EDIT | Toggle step-entry mode; melodic knobs become STEP / VEL / GATE / A-S |
 | HOME | Return to performance controls |
 | ENV | Attack / decay / sustain / release for melodic parts |
-| GLO | First press: tempo / swing / pattern / part level. Second press: DEMO LIBRARY |
+| GLO | Cycle GLOBAL MIXER → tempo / swing / pattern / part level → DEMO LIBRARY |
 | LFO / FX | Accent / effects page; FX toggles slide while step editing |
 | OCT− / OCT+ | Keyboard octave; hold both five seconds while stopped to enter UBOOT |
 | SAVE twice, stopped | Explicitly save project to the A/B project sectors |
@@ -112,6 +112,18 @@ device recordings or relative-loudness comparisons. Rebuild with
 On the **drum screen**, the knobs always address **SOUND / STEP / HIT / LEVEL** except on GLO. HIT clockwise sets the selected hit, counterclockwise removes it. LEVEL changes that sound's kit level. Playing keys select/audition the 16 sounds; in step-entry or recording mode they toggle hits. Melodic step entry writes one note; factory chords remain playable but chord entry is not yet exposed by the panel. Record is quantized to the current step, with fixed default velocity and gate.
 
 **Storage warning:** the first confirmed device save uses `0x97000` and `0x98000`, which are the previous firmware's project slot 0 sectors. Back up that project before using MC-1 save. Boot never formats flash, there is no autosave, and the flash driver is restricted to those two sectors. Existing calibration/global settings, samples and bootloader regions are not written. The stock/default panel mapping is used; calibration import is not implemented.
+
+The home grid includes pitch marks for up to three notes per melodic step. Higher
+marks mean higher notes, using a shared range across each part's four patterns, so
+phrase changes remain visible even when their rhythms match. The drum row shows hits.
+Above the home-screen knobs, **PATTERN** shows the playing pattern and **NEXT**
+shows a queued pattern until the next bar begins. Save/load messages take priority.
+
+Press **GLO once** for **GLOBAL MIXER**. The four knobs control **PART1 / PART2 /
+PART3 / DRUMS** levels (0–127), regardless of the selected part. Bars show saved
+level settings; muted parts are dimmed and labeled **MUTE**. Select a part and use
+**ARP** to mute it. GLO cycles through mixer, groove controls and demo library;
+HOME returns to performance. Levels are included when saving a project.
 
 ## Build and verification
 
