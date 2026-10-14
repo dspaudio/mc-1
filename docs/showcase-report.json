@@ -40,6 +40,14 @@
       "audition_gain": 6.656133,
       "normalized_peak": 23170,
       "sha256": "b0e181fdd9e39fe57239f132a814066a133086c3c87589d2371fea98dd879b58"
+    },
+    {
+      "file": "kit-showcase.wav",
+      "frames": 2822400,
+      "raw_peak": 4072,
+      "audition_gain": 5.690079,
+      "normalized_peak": 23170,
+      "sha256": "a6339177ad72cf0b88b2c131b99406740b34c8c61d0fd315421bbe4c97c29925"
     }
   ]
 }

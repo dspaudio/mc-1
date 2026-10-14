@@ -23,4 +23,4 @@ for p in files:
         results.append({'file':p.name,'frames':len(samples)//2,'peak':peak,'rms':round(rms,2),'dc_mean':round(mean,3),'sha256_pcm':hashlib.sha256(raw).hexdigest()})
 report={'source':'actual shared C core, host-rendered; not real-device audio','renders':results}
 (root/'build/audio-report.json').write_text(json.dumps(report,indent=2)+'\n')
-print('PASS: 49 audio renders; non-silent, no saturation, bounded DC, release silence')
+print(f'PASS: {len(results)} audio renders; non-silent, no saturation, bounded DC, release silence')

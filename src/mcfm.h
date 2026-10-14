@@ -3,7 +3,7 @@
 #ifndef MCFM_H
 #define MCFM_H
 #include <stdint.h>
-#define MC_VERSION "0.1.1"
+#define MC_VERSION "0.1.2"
 #define MC_RATE 44100
 #define MC_VOICES 8
 #define MC_DRUMS 16
@@ -11,9 +11,10 @@
 #define MC_PATTERNS 4
 #define MC_STEPS 16
 #define MC_PARTS 4
-#define MC_PRESETS 48
-#define MC_PCM_ATTACKS 12
-#define MC_PROJECT_BYTES 2120
+#define MC_PRESETS 64
+#define MC_PCM_ATTACKS 24
+#define MC_KITS 8
+#define MC_PROJECT_BYTES 2136
 #define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
 enum { MC_LA, MC_ACID };
 enum { MC_ACCENT=1, MC_SLIDE=2 };
@@ -24,11 +25,12 @@ typedef struct {
 typedef struct { uint8_t note[3], velocity, gate, flags; uint16_t drums; } McStep;
 typedef struct {
     uint16_t bpm;
-    uint8_t swing, reserved;
+    uint8_t swing, drum_kit;
     McPatch patch[3];
     uint8_t level[4], pan[4], drum_level[MC_DRUMS];
     uint8_t fx[4], demo, padding[3]; /* delay, reverb, drive, chorus; demo automation */
     McStep step[MC_PATTERNS][MC_PARTS][MC_STEPS];
+    uint8_t track_fx[MC_PARTS][4];
 } McProject;
 typedef struct {
     uint32_t phase, phase2, increment, target, pcm_pos, gate_left, age;
@@ -36,7 +38,7 @@ typedef struct {
     uint8_t active, part, note, velocity, stage, accent;
     McPatch patch;
 } McVoice;
-typedef struct { uint32_t phase, age; int32_t env, noise_lp; uint8_t velocity, sound; } McDrum;
+typedef struct { uint32_t phase, age; int32_t env, noise_lp; uint8_t velocity, sound, kit; } McDrum;
 typedef struct {
     int16_t delay[2][8192], comb[4][2048], chorus[2][1024];
     int32_t damp[4];
@@ -53,13 +55,17 @@ typedef struct {
     uint16_t master;
     uint32_t demo_frame;
     McEffects effects;
+    McEffects track_effects[MC_PARTS];
+    uint8_t track_fx_active;
 } McEngine;
 extern const McPatch mc_presets[MC_PRESETS];
 extern const char *const mc_preset_names[MC_PRESETS];
+extern const char *const mc_kit_names[MC_KITS];
 void mc_init(McEngine *e);
 void mc_demo_load(McEngine *e,unsigned demo);
 void mc_demo_tick(McEngine *e);
 void mc_effects(McEngine *e,int32_t *l,int32_t *r);
+void mc_effects_process(McEffects *f,unsigned bpm,const uint8_t amount[4],int32_t *l,int32_t *r);
 void mc_factory(McProject *p);
 void mc_start(McEngine *e);
 void mc_stop(McEngine *e);

@@ -6,6 +6,28 @@
 static McEngine e;
 static void put16(FILE *f,unsigned n) { fputc((int)(n&255),f);fputc((int)((n>>8)&255),f); }
 static void put32(FILE *f,unsigned n) { put16(f,n);put16(f,n>>16); }
+static int kit_showcase(const char *path) {
+    const unsigned segment=MC_RATE*8,frames=segment*MC_KITS;int16_t audio[256*2];
+    FILE *f=fopen(path,"wb");if(!f)return 1;
+    fwrite("RIFF",1,4,f);put32(f,36+frames*4);fwrite("WAVEfmt ",1,8,f);put32(f,16);
+    put16(f,1);put16(f,2);put32(f,MC_RATE);put32(f,MC_RATE*4);put16(f,4);put16(f,16);
+    fwrite("data",1,4,f);put32(f,frames*4);
+    for(unsigned kit=0;kit<MC_KITS;kit++) {
+        mc_init(&e);e.project.drum_kit=(uint8_t)kit;e.mute=7;e.project.bpm=120;e.project.swing=0;
+        unsigned next=0;
+        for(unsigned at=0;at<segment;) {
+            if(at==next&&at<MC_RATE*4) { mc_drum(&e,at*4/MC_RATE,110);next+=MC_RATE/4; }
+            if(at==MC_RATE*4)mc_start(&e);
+            if(at==MC_RATE*7)mc_stop(&e);
+            unsigned boundary=at<MC_RATE*4?next:at<MC_RATE*7?MC_RATE*7:segment;
+            unsigned n=boundary-at;if(n>256)n=256;
+            mc_render(&e,audio,n);for(unsigned i=0;i<n*2;i++)put16(f,(uint16_t)audio[i]);at+=n;
+        }
+        printf("kit %u %s: peak=%u clips=%u\n",kit,mc_kit_names[kit],e.peak,e.clips);
+        if(e.clips) { fclose(f);return 1; }
+    }
+    int failed=ferror(f);if(fclose(f))failed=1;return failed;
+}
 static int render(const char *path,unsigned kind) {
     const unsigned seconds=16,frames=MC_RATE*seconds;int16_t audio[256*2];
     mc_init(&e);e.project.bpm=120;e.project.swing=12;
@@ -52,7 +74,8 @@ static int render(const char *path,unsigned kind) {
     return failed||e.clips!=0;
 }
 int main(int argc,char **argv) {
-    if(argc!=3) { fprintf(stderr,"usage: showcase la|303|808 OUTPUT.wav\n");return 1; }
+    if(argc!=3) { fprintf(stderr,"usage: showcase la|303|808|kits OUTPUT.wav\n");return 1; }
+    if(!strcmp(argv[1],"kits"))return kit_showcase(argv[2]);
     unsigned kind=!strcmp(argv[1],"la")?0:!strcmp(argv[1],"303")?1:!strcmp(argv[1],"808")?2:3;
     return kind>2?1:render(argv[2],kind);
 }

@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/screen.png': return self.send(png(),'image/png')
             if self.path=='/audio': return self.send(C.string_at(dsp.host_audio(),4410*4),'application/octet-stream')
             if self.path=='/project':
-                blob=C.create_string_buffer(2140);n=dsp.host_export(blob)
+                blob=C.create_string_buffer(4096);n=dsp.host_export(blob)
                 return self.send(blob.raw[:n],'application/octet-stream')
         self.send(b'Not found',status=404)
     def do_POST(self):

@@ -46,8 +46,34 @@ for kind in range(12):
         else: v=.6*math.sin(2*math.pi*1046*t)+.3*math.sin(2*math.pi*2911*t)*math.exp(-i/100)
         row.append(round(max(-1,min(1,v*env))*16000))
     rows.append(row)
+# Original additive transients: organ, keys, vowel-like tones, hits and sequences.
+# Each partial is (frequency Hz, amplitude); no sampled or vendor material is used.
+for partials, noise_mix, decay, rise, sweep in [
+    (((261.63,.5),(523.26,.3),(784.89,.2)), .08, 190, 0, 0),
+    (((261.63,.45),(523.26,.3),(1308.15,.2)), .05, 240, 0, 0),
+    (((261.63,.55),(788,.25),(1327,.15)), .12, 170, 0, -80),
+    (((523.26,.5),(1469,.25),(2616,.2)), .03, 220, 0, 120),
+    (((261.63,.15),(784.89,.5),(1308.15,.3)), .04, 300, 12, 0),
+    (((261.63,.2),(523.26,.3),(1831.41,.4)), .22, 270, 18, 0),
+    (((261.63,.25),(1046.52,.45),(2354.67,.25)), .08, 320, 24, -150),
+    (((261.63,.4),(523.26,.3),(784.89,.25)), .2, 95, 0, -900),
+    (((392,.6),(1031,.25),(2179,.1)), .15, 65, 0, -350),
+    (((523.26,.45),(1413,.35),(2261,.15)), .03, 150, 0, 0),
+    (((523.26,.5),(2093.04,.25),(3662.82,.2)), .1, 85, 0, 650),
+    (((261.63,.45),(1308.15,.3),(2877.93,.2)), .18, 50, 0, -600),
+]:
+    row=[]
+    for i in range(512):
+        t=i/22050
+        env=math.exp(-i/decay)*(1-i/512)
+        if rise: env*=1-math.exp(-i/rise)
+        v=sum(amplitude*math.sin(2*math.pi*(frequency*t+sweep*t*t))
+              for frequency,amplitude in partials)
+        v+=rng.uniform(-1,1)*noise_mix*math.exp(-i/24)
+        row.append(round(max(-1,min(1,v*env))*16000))
+    rows.append(row)
 array('mc_attack',rows)
 array('mc_frequency',[round(440*2**((n-69)/12)*2**32/44100) for n in range(109)],'uint32_t')
 array('mc_pcm_rate',[round(.5*2**((n-60)/12)*65536) for n in range(109)],'uint32_t')
 (root/'src/tables.h').write_text('\n'.join(out)+'\n')
-print('Generated 12 x 512 original PCM attacks (12288 bytes), oscillator LUTs and tuning.')
+print('Generated 24 x 512 original PCM attacks (24576 bytes), oscillator LUTs and tuning.')

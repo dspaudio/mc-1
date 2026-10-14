@@ -392,6 +392,134 @@
       "rms": 94.84,
       "dc_mean": -0.0,
       "sha256_pcm": "278752315004cec680d773afa43295c3900154516f53023a01402d0f5a1c2af5"
+    },
+    {
+      "file": "preset-48.wav",
+      "frames": 176400,
+      "peak": 622,
+      "rms": 216.26,
+      "dc_mean": 0.113,
+      "sha256_pcm": "e2bf8d33683f0b099bdb9e8d27a02e8ace53bf322b7f082726601734bec9ea3d"
+    },
+    {
+      "file": "preset-49.wav",
+      "frames": 176400,
+      "peak": 732,
+      "rms": 124.14,
+      "dc_mean": 0.101,
+      "sha256_pcm": "371b4e8e974a53e424476314e8621ede03b0a5af0ceff45640ee1277230eef85"
+    },
+    {
+      "file": "preset-50.wav",
+      "frames": 176400,
+      "peak": 873,
+      "rms": 127.4,
+      "dc_mean": 0.115,
+      "sha256_pcm": "4497210705a154173ef00c087acaf57d4b7af8f7f093c477939d51ea47d20852"
+    },
+    {
+      "file": "preset-51.wav",
+      "frames": 176400,
+      "peak": 751,
+      "rms": 103.91,
+      "dc_mean": 0.049,
+      "sha256_pcm": "22bd5e807497ecf2aa9d3d7ee03fdcad2d58dcfdfcc7a1a841a52cdcd6a70250"
+    },
+    {
+      "file": "preset-52.wav",
+      "frames": 176400,
+      "peak": 450,
+      "rms": 86.26,
+      "dc_mean": 0.013,
+      "sha256_pcm": "163c2e3f77bc4eb024ee9b4cd252e4e40b5ee772f5b1f710f92a560e186b0602"
+    },
+    {
+      "file": "preset-53.wav",
+      "frames": 176400,
+      "peak": 308,
+      "rms": 75.8,
+      "dc_mean": 0.087,
+      "sha256_pcm": "5b84aae7fa8e72274b9205c55d026e580724fdabaa7ec101ec75160abf86ef9d"
+    },
+    {
+      "file": "preset-54.wav",
+      "frames": 176400,
+      "peak": 646,
+      "rms": 100.84,
+      "dc_mean": 0.009,
+      "sha256_pcm": "f111129ff2da9cbd6e1b0886f3f424771a36d864a510d8ef00bfb8957f1c77eb"
+    },
+    {
+      "file": "preset-55.wav",
+      "frames": 176400,
+      "peak": 480,
+      "rms": 14.77,
+      "dc_mean": 0.07,
+      "sha256_pcm": "08eb384e70ab9007cfbe332e0d52b728741fae12cee9f60a1ab3a355273806cc"
+    },
+    {
+      "file": "preset-56.wav",
+      "frames": 176400,
+      "peak": 591,
+      "rms": 34.57,
+      "dc_mean": 0.084,
+      "sha256_pcm": "c3614509810c2c63ca0d084cc129dae236be6e481c92aa5a761439ef1edfa029"
+    },
+    {
+      "file": "preset-57.wav",
+      "frames": 176400,
+      "peak": 699,
+      "rms": 65.25,
+      "dc_mean": 0.046,
+      "sha256_pcm": "1792a0144d7420fd6a7a66ecb42410f3137b4c4c69662b6ed06b2d8d8b821848"
+    },
+    {
+      "file": "preset-58.wav",
+      "frames": 176400,
+      "peak": 302,
+      "rms": 18.86,
+      "dc_mean": 0.026,
+      "sha256_pcm": "65ae3d21972696702492eca6d46b41d3a370d8c4926605ff3cad99e8281c1c4a"
+    },
+    {
+      "file": "preset-59.wav",
+      "frames": 176400,
+      "peak": 306,
+      "rms": 19.77,
+      "dc_mean": 0.056,
+      "sha256_pcm": "21227d9867aba22b8e843589058465ae09990499cfca041af0dd0738c93449ce"
+    },
+    {
+      "file": "preset-60.wav",
+      "frames": 176400,
+      "peak": 456,
+      "rms": 42.67,
+      "dc_mean": 0.152,
+      "sha256_pcm": "fbf81ea9841bfff49978ee7642fe1a8ec3529d97a5211867b08ffe62e2592f06"
+    },
+    {
+      "file": "preset-61.wav",
+      "frames": 176400,
+      "peak": 518,
+      "rms": 41.46,
+      "dc_mean": 0.051,
+      "sha256_pcm": "3ddf1beb471392ce3a82ade8d82578e9a475826be41466e913cdc406e5e8e6bc"
+    },
+    {
+      "file": "preset-62.wav",
+      "frames": 176400,
+      "peak": 398,
+      "rms": 12.6,
+      "dc_mean": 0.135,
+      "sha256_pcm": "903ddab1eb1acefa4b3e90c589b488f4328d3bd2ec189915a2fcbaca5aecad60"
+    },
+    {
+      "file": "preset-63.wav",
+      "frames": 176400,
+      "peak": 522,
+      "rms": 99.0,
+      "dc_mean": 0.067,
+      "sha256_pcm": "f161943b01a3179807519327e0f3cc2fb1e0931aa16a129aa7c8c36bc1e3e5d3"
     }
   ]
 }

@@ -71,7 +71,7 @@ static void engines(void) {
     mc_init(&e);mc_preset(&e,0,0);
     for(unsigned i=0;i<30;i++) { mc_note(&e,0,40+i,100,0,0);mc_render(&e,x,1); }
     assert(e.steals==22);
-    puts("PASS: 48 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
+    puts("PASS: 64 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
 }
 static void knob_audio(void) {
     McUi ua,ub;
@@ -137,6 +137,8 @@ static void persistence(void) {
     uint32_t crc=mc_crc(legacy+20,2112);for(unsigned j=0;j<4;j++)legacy[12+j]=(uint8_t)(crc>>(j*8));
     crc=mc_crc(legacy,16);for(unsigned j=0;j<4;j++)legacy[16+j]=(uint8_t)(crc>>(j*8));
     assert(mc_decode(&q,&seq,legacy,sizeof legacy)==0&&q.fx[0]==0&&q.demo==0);
+    uint8_t padded[2140]={0};memcpy(padded,legacy,sizeof legacy);
+    assert(!mc_decode(&q,&seq,padded,sizeof padded)&&!q.drum_kit&&!q.track_fx[3][3]);
     p.fx[0]=51;p.fx[1]=62;p.fx[2]=13;p.fx[3]=37;p.demo=1;
     assert(mc_encode(&p,123,blob,sizeof blob)>0&&mc_decode(&q,&seq,blob,sizeof blob)==0&&!memcmp(&p,&q,sizeof p));
     mc_factory(&p);assert(mc_encode(&p,123,blob,sizeof blob)>0);
@@ -166,7 +168,7 @@ static void persistence(void) {
     assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));
     unreadable=MC_STORE_B;assert(mc_store_load(&io,&q,&seq)==0);
     assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));unreadable=0;
-    puts("PASS: portable project format, truncation/corruption, validation, rollover and 6236 power cuts");
+    printf("PASS: portable project format, truncation/corruption, validation, rollover and %u power cuts\n",4096+MC_RECORD_BYTES);
 }
 static void screen(const McEngine *engine,const McUi *ui,uint16_t *pixels) {
     for(unsigned row=0;row<240;row+=8) mc_ui_strip(engine,ui,row,8,pixels+row*240);
@@ -283,7 +285,7 @@ static void effects_demo(void) {
     assert(!memcmp(x,y,sizeof x));
     render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
     McUi u;mc_ui_init(&u);mc_init(&e);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
-    for(unsigned k=0;k<4;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.fx[k]==50); }
+    for(unsigned k=0;k<4;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.track_fx[0][k]==50&&e.project.fx[k]==0); }
     mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
     mc_start(&e);mc_ui_encoder(&e,&u,6,1);assert(!u.load_request);
     mc_stop(&e);mc_ui_encoder(&e,&u,6,1);assert(u.load_request==2);
@@ -292,14 +294,89 @@ static void effects_demo(void) {
 }
 static void stress(void) {
     clock_t begin=clock();mc_init(&e);e.project.bpm=240;e.project.swing=45;
-    for(unsigned fx=0;fx<4;fx++)e.project.fx[fx]=127;
+    for(unsigned fx=0;fx<4;fx++) { e.project.fx[fx]=127;for(unsigned p=0;p<4;p++)e.project.track_fx[p][fx]=127; }
     for(unsigned p=0;p<3;p++) { mc_preset(&e,p,0);e.project.patch[p].resonance=127;e.project.patch[p].cutoff=127; }
     for(unsigned i=0;i<8;i++) mc_note(&e,i%3,84+i*3,127,MC_ACCENT,0);
     for(unsigned i=0;i<16;i++) mc_drum(&e,i,127);
     mc_start(&e);render_n(&e,MC_RATE*10);
     printf("PASS: 10s stress; engine %zu B, project %zu B, %.3fs host CPU, peak %u, clips %u\n",sizeof e,sizeof e.project,(double)(clock()-begin)/CLOCKS_PER_SEC,e.peak,e.clips);
 }
+static void record_crc(uint8_t *record,unsigned body) {
+    uint32_t crc=mc_crc(record+20,body);
+    for(unsigned j=0;j<4;j++)record[12+j]=(uint8_t)(crc>>(j*8));
+    crc=mc_crc(record,16);for(unsigned j=0;j<4;j++)record[16+j]=(uint8_t)(crc>>(j*8));
+}
+static void cascaded_gain(void) {
+    for(unsigned bpm=40;bpm<=240;bpm+=40) {
+        mc_init(&e);e.master=32767;e.project.bpm=(uint16_t)bpm;
+        for(unsigned p=0;p<4;p++) {
+            e.project.level[p]=127;e.project.pan[p]=0;
+            e.project.track_fx[p][0]=e.project.track_fx[p][1]=127;
+            if(p<3) {
+                McPatch *patch=&e.project.patch[p];patch->engine=MC_LA;patch->wave=2;patch->pcm_mix=0;
+                patch->level=127;patch->attack=0;patch->sustain=127;patch->resonance=0;patch->cutoff=127;
+            }
+        }
+        e.project.fx[0]=e.project.fx[1]=127;
+        for(unsigned v=0;v<MC_VOICES;v++)mc_note(&e,v%3,12,127,MC_ACCENT,0);
+        for(unsigned d=0;d<MC_DRUMS;d++)mc_drum(&e,d,127);
+        render_n(&e,MC_RATE*2);assert(e.clips>0&&e.peak>32767);
+        for(unsigned i=0;i<8192;i++)assert(x[i]>=-32767);
+    }
+    puts("PASS: cascaded track/master maximum gain clamps without signed overflow at six tempos");
+}
+static void kits_and_tracks(void) {
+    uint32_t hashes[MC_KITS][MC_DRUMS];McUi u;uint8_t record[MC_RECORD_BYTES];McProject q;uint32_t seq;
+    for(unsigned kit=0;kit<MC_KITS;kit++) {
+        for(unsigned sound=0;sound<MC_DRUMS;sound++) {
+            mc_init(&e);e.project.drum_kit=(uint8_t)kit;mc_drum(&e,sound,120);
+            mc_render(&e,x,4096);assert(energy(x,8192)>10000&&!e.clips);hashes[kit][sound]=mc_crc(x,sizeof x);
+            render_n(&e,MC_RATE*4);for(unsigned i=0;i<MC_DRUM_VOICES;i++)assert(!e.drum[i].env);
+        }
+        mc_init(&e);e.project.drum_kit=(uint8_t)kit;mc_drum(&e,3,100);mc_drum(&e,2,100);
+        for(unsigned i=0;i<MC_DRUM_VOICES;i++)assert(!e.drum[i].env||e.drum[i].sound!=3);
+        assert(mc_encode(&e.project,7,record,sizeof record)>0&&record[23]==kit);
+        assert(!mc_decode(&q,&seq,record,sizeof record)&&q.drum_kit==kit);
+    }
+    for(unsigned s=0;s<MC_DRUMS;s++)for(unsigned k=0;k<MC_KITS;k++)for(unsigned j=k+1;j<MC_KITS;j++)assert(hashes[k][s]!=hashes[j][s]);
+    mc_init(&e);mc_ui_init(&u);e.selected=3;mc_ui_encoder(&e,&u,2,-1);assert(e.project.drum_kit==7&&e.pattern==0);
+    mc_ui_encoder(&e,&u,1,1);assert(e.pattern==1&&e.project.drum_kit==7);
+    mc_ui_encoder(&e,&u,2,1);assert(e.project.drum_kit==0);
+    for(unsigned p=0;p<3;p++) {
+        e.selected=(uint8_t)p;McPatch original=e.project.patch[p];mc_ui_encoder(&e,&u,1,1);
+        assert(!memcmp(&original,&e.project.patch[p],sizeof original));mc_ui_encoder(&e,&u,2,1);
+        assert(!memcmp(&e.project.patch[p],&mc_presets[u.preset[p]],sizeof original));
+    }
+    mc_init(&a);mc_drum(&a,0,120);b=a;b.project.drum_kit=7;mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x));
+    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++) {
+        mc_init(&a);b=a;a.project.track_fx[p][fx]=127;
+        if(p<3) { mc_note(&a,p,60,110,0,MC_RATE);mc_note(&b,p,60,110,0,MC_RATE); }
+        else { mc_drum(&a,0,120);mc_drum(&b,0,120); }
+        unsigned changed=0;for(unsigned n=0;n<12;n++) { mc_render(&a,x,4096);mc_render(&b,y,4096);changed|=memcmp(x,y,sizeof x)!=0; }
+        assert(changed&&!a.clips);a.mute=(uint8_t)(1u<<p);mc_render(&a,x,4096);assert(energy(x,8192)==0);
+        a.project.track_fx[p][fx]=0;mc_render(&a,x,1);assert(!(a.track_fx_active&(1u<<p)));
+        McEffects empty={0};assert(!memcmp(&empty,&a.track_effects[p],sizeof empty));
+        mc_init(&a);b=a;a.project.track_fx[(p+1)%4][fx]=127;
+        if(p<3) { mc_note(&a,p,60,110,0,MC_RATE);mc_note(&b,p,60,110,0,MC_RATE); }
+        else { mc_drum(&a,0,120);mc_drum(&b,0,120); }
+        mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x));
+    }
+    mc_init(&e);mc_ui_init(&u);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_master);
+    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++) { e.selected=(uint8_t)p;mc_ui_encoder(&e,&u,fx+3,(int)(p*16+fx+1)); }
+    mc_ui_button(&e,&u,UI_FX);assert(u.fx_master);mc_ui_encoder(&e,&u,3,37);assert(e.project.fx[0]==37);
+    mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_FX);assert(!u.fx_master);
+    e.project.drum_kit=7;assert(mc_encode(&e.project,9,record,sizeof record)>0&&record[4]==3);
+    assert(!mc_decode(&q,&seq,record,sizeof record)&&!memcmp(&q,&e.project,sizeof q));
+    record[23]=8;record_crc(record,MC_PROJECT_BYTES);McProject before=q;assert(mc_decode(&q,&seq,record,sizeof record)<0&&!memcmp(&q,&before,sizeof q));
+    record[23]=0;record[2140]=128;record_crc(record,MC_PROJECT_BYTES);assert(mc_decode(&q,&seq,record,sizeof record)<0);
+    record[4]=2;record[6]=72;record[7]=8;record_crc(record,2120);
+    assert(!mc_decode(&q,&seq,record,2140)&&q.fx[0]==37&&q.drum_kit==0);
+    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++)assert(!q.track_fx[p][fx]);
+    record[23]=1;record_crc(record,2120);assert(mc_decode(&q,&seq,record,2140)<0);
+    puts("PASS: 128 audible unique kit lanes, all-kit choke/decay, stable active voices, ALGORITHM patterns/PRESETS sounds");
+    puts("PASS: 16 isolated track FX paths, mute tails, dry buffer reset, track/master UI, v2 migration and v3 validation");
+}
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();stress();puts("ALL TESTS PASSED");return 0;
 }

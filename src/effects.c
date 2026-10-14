@@ -9,9 +9,8 @@ static int32_t fx_drive(int32_t x,unsigned amount) {
     int32_t wet=v*8192/(8192+a);
     return (x*(127-(int32_t)amount)+wet*(int32_t)amount)/127;
 }
-void mc_effects(McEngine *e,int32_t *l,int32_t *r) {
-    McEffects *f=&e->effects;
-    unsigned delay=e->project.fx[0],reverb=e->project.fx[1],drive=e->project.fx[2],chorus=e->project.fx[3];
+void mc_effects_process(McEffects *f,unsigned bpm,const uint8_t amount[4],int32_t *l,int32_t *r) {
+    unsigned delay=amount[0],reverb=amount[1],drive=amount[2],chorus=amount[3];
     int32_t left=fx_drive(*l,drive),right=fx_drive(*r,drive);
     /* Stereo triangle-modulated short delay, ~0.3 Hz. Linear interpolation. */
     {
@@ -29,7 +28,7 @@ void mc_effects(McEngine *e,int32_t *l,int32_t *r) {
     }
     {
         /* Tempo-linked sixteenth, capped at 185.7 ms at low BPM. Feedback < 0.45. */
-        unsigned length=MC_RATE*15u/e->project.bpm;if(length>8191)length=8191;
+        unsigned length=MC_RATE*15u/bpm;if(length>8191)length=8191;
         unsigned pos=(f->delay_pos+8192-length)&8191u;
         int32_t dl=f->delay[0][pos],dr=f->delay[1][pos];
         f->delay[0][f->delay_pos]=(int16_t)fx_limit(delay?left+dr*7/16:0);
@@ -51,4 +50,7 @@ void mc_effects(McEngine *e,int32_t *l,int32_t *r) {
         left+=wl*(int32_t)reverb/254;right+=wr*(int32_t)reverb/254;
     }
     *l=left;*r=right;
+}
+void mc_effects(McEngine *e,int32_t *l,int32_t *r) {
+    mc_effects_process(&e->effects,e->project.bpm,e->project.fx,l,r);
 }

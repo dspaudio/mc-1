@@ -24,7 +24,7 @@
 #include "../src/store.c"
 #include "../src/ui.c"
 #define FRAMES 128u
-static McEngine engine;
+static McEngine engine __attribute__((section(".pool")));
 static McUi ui;
 static int32_t dma[FRAMES*4] __attribute__((aligned(4)));
 static int16_t block[FRAMES*2];

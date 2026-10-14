@@ -8,15 +8,18 @@ startup, HAL, LCD-transfer and libc support is inherited. There is no hidden leg
 FM6, tape, radio, editor or ROM bank in the image.
 
 Eight melodic voice structs are shared by three parts. LA uses two detuned band-limited
-lookup oscillators, twelve short PCM attack choices with a crossfade to synthesized sustain,
+lookup oscillators, 24 short PCM attack choices with a crossfade to synthesized sustain,
 an envelope and two lowpass stages. Acid uses a monophonic voice per part, destination-step
 legato slide, accent and a bounded original four-stage feedback filter. This is a musical
 approximation, not a circuit model. Controls are 0–127 macros. Envelopes are quantized linear
 ramps; modulation, effects and fine editor pages can be extended later.
 
-Six shared drum voice structs synthesize 16 lane sounds from noise, sine/pulse oscillators,
-pitch sweeps and decays. Retrigger replaces the same sound; closed hat chokes open hat;
-otherwise the oldest drum voice is stolen. Drum-lane count is not simultaneous polyphony.
+Six shared drum voice structs synthesize 16 lane sounds in each of eight original kits
+from noise, sine/pulse oscillators, pitch sweeps and decays. Immutable kit recipes change
+tuning, envelopes, noise filtering/blends, attack clicks and clap pulse spacing. A voice
+keeps its triggered kit when the selected kit changes. Retrigger replaces the same sound;
+closed hat chokes open hat; otherwise the oldest drum voice is stolen.
+Drum-lane count is not simultaneous polyphony.
 
 All audio uses fixed-point integer arithmetic and lookup tables. No heap allocation,
 filesystem streaming or floating-point runtime is required. Output has conservative gain
@@ -55,17 +58,18 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 56,212 bytes, including a 2,120-byte project. This is not total device
+Host `sizeof(McEngine)` is 269,352 bytes, including a 2,136-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
-measurement. Twelve original attack tables occupy 12,288 bytes of XIP, not a sample-memory allocation.
+measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 45,720-byte app, 67,648-byte globals,
-2,784-byte RAM code and zero pool. Host engine state is 56,212 B, including fixed effect buffers.
+The [target report](target-report.json) records a 59,772-byte app, 11,472-byte globals,
+2,784-byte RAM code and 269,352-byte pool. The engine is placed in `.pool`; startup clears
+that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety
 
-Four 16-step patterns fit one portable 2,140-byte project record. Serialization is explicit
+Four 16-step patterns fit one portable 2,156-byte project record. Serialization is explicit
 little endian; it does not dump compiler structs. The header includes magic, version, length,
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
@@ -82,7 +86,7 @@ failure modes still need device validation. Save-readback errors are reported on
 ## Current limitations
 
 Default panel mapping only; no imported calibration. No USB/TRS MIDI stack, firmware updater,
-general song chain/editor, per-hit velocity, sample import, per-part effect sends, undo or on-panel chord editing.
+general song chain/editor, per-hit velocity, sample import, effect sends, undo or on-panel chord editing.
 Melodic steps can store three notes; live/step recording currently writes one. Per-drum LEVEL is
 a kit-level control, while each drum step shares velocity. Pattern sounds are project-wide.
 Muting is immediate and may click. Tone quality, note transitions and noise floor need listening
@@ -90,19 +94,30 @@ review on the actual codec. The host browser requires one active audio client pe
 
 ## Master effects and built-in demo
 
-`effects.c` implements four original integer effects: soft saturation, stereo
+`effects.c` implements four original integer effects per track and on the master: soft saturation, stereo
 triangle-modulated interpolated chorus, cross-feedback tempo delay (sixteenth note,
 maximum 8,191 samples), and four damped feedback combs for compact reverb. The
-permanent delay/comb/chorus buffers use 53,248 bytes; counters/damping add 36 bytes.
+delay/comb/chorus buffers use 53,248 bytes per processor; counters/damping add 32 bytes.
+Four independent track processors precede the shared master processor. The FX page
+edits the selected track; another FX press switches to master controls. Each track
+processes after its level/pan and before summing. Muting removes its dry and wet output.
+Dry track processors are skipped; returning all four amounts to zero clears that
+track's buffers once, preventing stale tails on re-enable. Master bypass continues
+to advance its buffers, preserving legacy demo output.
 All amounts are 0–127, feedback is bounded below unity, and the mix retains the
-existing final clamp and clip counter. Bypassed effects still advance/clear their
-state so switching them back on does not revive a frozen tail. No heap allocation.
+existing final clamp and clip counter. Final master scaling uses a wide product so
+cascaded track/master gain cannot wrap before the clamp. No heap allocation.
 
 `demo.c` stores original note patterns and a 32-bar performance. The same sequencer,
 mutes, cutoff/resonance controls and effects execute on both targets. Automated
 filters update every 64 samples; manual filter edits may be overwritten while demo
 mode is enabled. Demo loading resets state only after the device stops audio DMA.
-Version 2 extends the portable body by eight bytes for effects/demo settings;
-legacy version 1 projects migrate to dry effects/no automation. A/B sectors and
-app flash bounds are unchanged. The larger state and four effects require new
+Version 2 extended the portable body by eight bytes for effects/demo settings;
+legacy version 1 projects migrate to dry master effects/no automation. Version 3
+uses body byte 3 (formerly required zero) for the kit index and appends 16 track FX
+amounts after the existing 2,120-byte body. Version 1/2 records still require that
+reserved byte to be zero and import as BASE 808 with dry track FX. Their master
+settings are retained. Version 3 rejects kit indexes outside 0–7 and FX amounts
+outside 0–127. Old firmware rejects version 3 records rather than misreading them.
+A/B sectors and app flash bounds are unchanged. The larger state and five processors require new
 real-device timing/stack checks; host speed is not a pi32v2 benchmark.

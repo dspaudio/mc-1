@@ -28,6 +28,7 @@ showcase: build/showcase
 	build/showcase la build/la-showcase.wav
 	build/showcase 303 build/303-showcase.wav
 	build/showcase 808 build/808-showcase.wav
+	build/showcase kits build/kit-showcase.wav
 
 build/trance: $(CORE) $(HEADERS) tools/trance.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tools/trance.c -o $@

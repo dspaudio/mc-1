@@ -2,6 +2,30 @@
  * Copyright (C) 2026 dspaudio */
 #include "mcfm.h"
 #include "tables.h"
+const char *const mc_kit_names[MC_KITS]={"BASE 808","CLUB 909","TIGHT 606","VINTAGE","HOUSE","BREAK JUNGLE","IRON WORKS","ELECTRO LATIN"};
+typedef struct {
+    uint16_t hz[MC_DRUMS],decay[MC_DRUMS],sweep,click,clap;
+    uint8_t noise_weight,highpass;
+} DrumKit;
+/* Original oscillator/noise recipes; BASE preserves the original arithmetic. */
+static const DrumKit kits[MC_KITS]={
+    {{48,180,4021,4021,0,110,65,1100,260,185,4021,4021,4021,540,1700,140},
+     {32760,32749,32685,32758,32747,32755,32757,32500,32738,32748,32762,32759,32600,32745,32400,32752},550,130,441,3,4},
+    {{55,205,6340,5820,0,125,72,1350,310,210,7310,4930,8120,620,1920,165},
+     {32757,32753,32692,32753,32751,32751,32755,32540,32744,32744,32760,32756,32570,32740,32370,32749},920,210,320,5,6},
+    {{62,230,5180,4870,0,145,81,1450,345,235,6190,5270,9200,680,2140,185},
+     {32749,32736,32620,32739,32734,32739,32745,32400,32728,32735,32750,32745,32480,32725,32250,32738},390,80,270,4,3},
+    {{43,155,3140,2890,0,96,58,870,225,155,3560,2670,4390,430,1390,120},
+     {32753,32738,32660,32745,32732,32748,32751,32470,32730,32741,32755,32748,32520,32734,32320,32745},300,55,580,2,2},
+    {{51,195,4590,5230,0,132,69,1260,285,198,6470,4320,7130,590,1810,158},
+     {32762,32751,32675,32761,32756,32755,32759,32570,32746,32749,32763,32760,32640,32748,32440,32753},730,170,510,4,5},
+    {{59,280,7820,6590,0,172,78,1640,390,257,8470,5930,10100,745,2380,212},
+     {32754,32756,32635,32751,32749,32743,32752,32450,32750,32738,32758,32751,32550,32732,32280,32741},1100,245,230,7,7},
+    {{37,122,2370,1930,0,79,53,640,365,127,2730,1570,3690,310,980,103},
+     {32763,32758,32710,32763,32759,32760,32762,32640,32754,32755,32764,32762,32700,32758,32590,32758},1500,370,710,6,8},
+    {{67,245,5630,6090,0,197,89,1890,330,294,6830,4580,11100,820,2760,246},
+     {32751,32742,32648,32747,32743,32748,32747,32430,32734,32743,32753,32749,32500,32752,32200,32746},460,100,370,2,3}
+};
 static int32_t clamp(int32_t x,int32_t lo,int32_t hi) { return x<lo?lo:x>hi?hi:x; }
 static void zero(void *p,unsigned n) { uint8_t *b=p; while(n--) *b++=0; }
 static int32_t mul(int32_t x,int32_t y) { return (x*y)/32768; }
@@ -56,6 +80,7 @@ void mc_drum(McEngine *e,unsigned sound,unsigned velocity) {
     if(!d) for(unsigned i=0;i<MC_DRUM_VOICES;i++) if(!e->drum[i].env) { d=&e->drum[i]; break; }
     if(!d) d=&e->drum[oldest];
     zero(d,sizeof *d); d->env=32767; d->velocity=(uint8_t)velocity; d->sound=(uint8_t)sound;
+    d->kit=e->project.drum_kit;
 }
 static uint32_t step_samples(const McEngine *e) {
     unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
@@ -170,35 +195,35 @@ static int32_t melodic(McVoice *v) {
 static int32_t percussion(McEngine *e,McDrum *d) {
     if(!d->env) return 0;
     unsigned sound=d->sound;
+    const DrumKit *kit=&kits[d->kit];
     int32_t noise=(int32_t)(random32(e)>>17)-16384, s=0;
     /* BD, SN, CH, OH, CP, LT, B2, RS, S2, HT, CR, RD, SH, CB, CL, MT. */
     if(sound==0||sound==6||sound==5||sound==9||sound==15) {
-        unsigned hz=sound==0?48:sound==6?65:sound==5?110:sound==9?185:140;
+        unsigned hz=kit->hz[sound];
         uint32_t sweep=(uint32_t)(d->env*d->env/32768);
-        d->phase+=hz*97392u+sweep*(sound<7?550u:250u);
+        d->phase+=hz*97392u+sweep*(sound<7?kit->sweep:(unsigned)kit->sweep*5/11);
         s=mc_sine[d->phase>>22];
-        if(d->age<130) s+=noise*(130-(int)d->age)/260;
+        if(d->age<kit->click) s+=noise*((int)kit->click-(int)d->age)/(kit->click*2);
     } else if(sound==1||sound==8) {
-        d->phase+=(sound==1?180u:260u)*97392u;
-        s=(noise*3+mc_sine[d->phase>>22])/4;
+        d->phase+=kit->hz[sound]*97392u;
+        s=(noise*kit->noise_weight+mc_sine[d->phase>>22])/(kit->noise_weight+1);
     } else if(sound==4) {
         s=noise;
-        if(d->age<1323&&d->age%441>220) s/=4;
+        if(d->age<(unsigned)kit->clap*3&&d->age%kit->clap>kit->clap/2) s/=4;
     } else if(sound==7||sound==14) {
-        d->phase+=(sound==7?1100u:1700u)*97392u;
+        d->phase+=kit->hz[sound]*97392u;
         s=(noise+mc_sine[d->phase>>22])/2;
     } else if(sound==13) {
-        d->phase+=540u*97392u;
+        d->phase+=kit->hz[sound]*97392u;
         s=((d->phase&0x80000000u)?7500:-7500)+(((d->phase*3/2)&0x80000000u)?7000:-7000);
     } else {
-        d->noise_lp+=(noise-d->noise_lp)/4;
-        d->phase+=4021u*97392u;
+        d->noise_lp+=(noise-d->noise_lp)/kit->highpass;
+        d->phase+=kit->hz[sound]*97392u;
         s=(noise-d->noise_lp)/2+((d->phase&0x80000000u)?3500:-3500);
     }
-    static const uint16_t decay[16]={32760,32749,32685,32758,32747,32755,32757,32500,32738,32748,32762,32759,32600,32745,32400,32752};
     s=mul(s,d->env)*d->velocity/127;
     s=s*e->project.drum_level[sound]/127;
-    d->env=mul(d->env,decay[sound]); d->age++;
+    d->env=mul(d->env,kit->decay[sound]); d->age++;
     if(d->env<16) d->env=0;
     return s;
 }
@@ -220,12 +245,21 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
         for(unsigned i=0;i<MC_DRUM_VOICES;i++) part[3]+=percussion(e,&e->drum[i]);
         for(unsigned p=0;p<4;p++) {
             int32_t v=part[p]*e->project.level[p]/127;
-            if((e->mute>>p)&1) v=0;
-            l+=v*(127-e->project.pan[p])/127; r+=v*e->project.pan[p]/127;
+            int32_t pl=v*(127-e->project.pan[p])/127,pr=v*e->project.pan[p]/127;
+            const uint8_t *fx=e->project.track_fx[p];
+            unsigned active=fx[0]|fx[1]|fx[2]|fx[3];
+            if(active) {
+                mc_effects_process(&e->track_effects[p],e->project.bpm,fx,&pl,&pr);
+                e->track_fx_active|=(uint8_t)(1u<<p);
+            } else if(e->track_fx_active&(1u<<p)) {
+                zero(&e->track_effects[p],sizeof e->track_effects[p]);
+                e->track_fx_active&=(uint8_t)~(1u<<p);
+            }
+            if(!((e->mute>>p)&1)) { l+=pl;r+=pr; }
         }
         /* Conservative fixed headroom, then a bounded safety clamp; no wrapping. */
         l/=3;r/=3;mc_effects(e,&l,&r);
-        l=mul(l,e->master); r=mul(r,e->master);
+        l=(int32_t)((int64_t)l*e->master/32768); r=(int32_t)((int64_t)r*e->master/32768);
         if(l>32767||l< -32767||r>32767||r< -32767) e->clips++;
         int32_t al=l<0?-l:l, ar=r<0?-r:r;
         if((uint32_t)al>e->peak) e->peak=(uint32_t)al;
