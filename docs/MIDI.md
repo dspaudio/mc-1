@@ -65,6 +65,15 @@ their own output. Song Position Pointer, MIDI Time Code and MIDI file import are
 not implemented. Bounded output queues recover from overflow with an all-channel
 All Notes Off sequence instead of leaving unbounded pending messages.
 
+저장하는 동안에는 USB/TRS 연주 입력을 받지 않고 기존 입력 음을 해제한다.
+저장이 끝나면 UART DMA와 파서를 초기화하고 다시 수신한다. 저장 중 누른 건반은
+재개 후 다시 눌러야 한다. 실패한 저장에서도 같은 수신 재개 절차를 거친다.
+
+데모를 교체할 때는 이전 MIDI 발음 정리를 새 연주보다 먼저 출력한다.
+MC-1이 실제로 Note On을 출력한 채널에만 sustain 해제, All Sound Off,
+All Notes Off를 보내며, 사용하지 않은 채널에는 데모 교체로 인한 정리 메시지를
+보내지 않는다. 출력이 밀려도 이 정리와 새 연주의 순서를 유지한다.
+
 ## BLE integration boundary
 
 FM-1's chip has Bluetooth hardware. The missing component is its integration

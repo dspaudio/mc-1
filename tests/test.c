@@ -176,7 +176,7 @@ static void screen(const McEngine *engine,const McUi *ui,uint16_t *pixels) {
     for(unsigned row=0;row<240;row+=8) mc_ui_strip(engine,ui,row,8,pixels+row*240);
 }
 static void phrase_grid(void) {
-    McUi u;mc_ui_init(&u);mc_demo_load(&e,1);mc_start(&e);
+    McUi u;mc_ui_init(&u);mc_init(&e);mc_demo_load(&e,1);mc_start(&e);
     static uint16_t previous[240*240],current[240*240];screen(&e,&u,previous);
     for(unsigned pattern=1;pattern<4;pattern++) {
         for(unsigned frame=0;e.pattern!=pattern&&frame<MC_RATE*2;frame++) render_n(&e,1);

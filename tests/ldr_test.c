@@ -17,6 +17,9 @@ static size_t logical_len;
 static uint8_t rx[1024];
 static uint32_t rx_len, rx_full, now_ms, requests, erases, bad_range, record_cleared, f0_asked;
 static uint32_t corrupt_at, corrupt_once, no_finish;   /* the host serves a damaged byte / never says "success" */
+static uint32_t bad_finish, record_fault, record_erase_attempted, prog_fail_at;
+static uint32_t record_check_off = 0xE4000u;
+static uint32_t last_idle_ms, slow_record_erases;
 
 static uint32_t pack7(const uint8_t *in, uint32_t n, uint8_t *out)
 {
@@ -61,6 +64,8 @@ static int ota_wire_send(const uint8_t *p, uint32_t n)
         f0_asked += addr == 0xF0000000u;
         memset(m + 14, 0, len);
         memcpy(m + 14, "success", 8);
+        if (addr == 0xF0000000u && bad_finish)
+            memcpy(m + 14, bad_finish == 1 ? "failure" : "success!", 8);
     } else {
         if (addr + len > logical_len) { printf("read past the package %#x\n", addr); exit(1); }
         memcpy(m + 14, logical + addr, len);
@@ -79,7 +84,7 @@ static int ota_wire_send(const uint8_t *p, uint32_t n)
 static int ota_frame_get(const uint8_t **p, uint32_t *n) { if (!rx_full) return 0; *p = rx; *n = rx_len; return 1; }
 static void ota_frame_done(void) { rx_full = 0; }
 static uint32_t ota_now_ms(void) { return now_ms; }
-static void ota_idle(void) { now_ms++; }
+static void ota_idle(void) { last_idle_ms = ++now_ms; }
 static int ota_erase(uint32_t off) { (void)off; return -1; }
 static int ota_prog(uint32_t off, const void *p, uint32_t n) { (void)off; (void)p; (void)n; return -1; }
 static int ota_fread(uint32_t off, void *p, uint32_t n) { memcpy(p, nor + off, n); return 0; }
@@ -87,19 +92,38 @@ static void ota_show(uint32_t step, int32_t code) { (void)step; (void)code; }
 static void ota_commit(const uint8_t *parm) { (void)parm; }
 #include "../firmware/update/ota.c"
 
-static int ldr_fread(uint32_t off, void *p, uint32_t n) { memcpy(p, nor + off, n); return 0; }
+static int ldr_fread(uint32_t off, void *p, uint32_t n)
+{
+    if ((record_fault == 1 && off == 0xFBF00u) ||
+        (record_fault == 4 && record_erase_attempted && off == record_check_off))
+        return -1;
+    memcpy(p, nor + off, n);
+    return 0;
+}
 static int ldr_erase(uint32_t off)
 {
     if (off < 0x4000u || off >= 0xFC000u || (off & 0xFFFu)) bad_range++;
     if (off < 0x4000u) { printf("ERASE IN THE HEAD %#x\n", off); exit(1); }
     erases++;
+    if (slow_record_erases && off >= 0x93000u) {
+        /* 각 기록 삭제를 드라이버의 최대 대기시간인 500 ms로 모델링한다. */
+        now_ms += 500;
+        if (now_ms - last_idle_ms >= 8000u) return -1;
+    }
+    if (off == 0xE4000u) {
+        record_erase_attempted = 1;
+        if (record_fault == 2) return -1;
+        if (record_fault == 3) return 0;
+    }
     memset(nor + off, 0xFF, 0x1000);
+    if (off == 0xE4000u && record_fault == 5) nor[record_check_off] = 0;
     return 0;
 }
 static int ldr_prog(uint32_t off, const void *p, uint32_t n)
 {
     const uint8_t *s = p;
     uint32_t i;
+    if (prog_fail_at && off == prog_fail_at) return -1;
     if (off < 0x4000u || off + n > 0x93000u || ((off & 0xFFu) + n) > 256u) bad_range++;
     for (i = 0; i < n; i++) nor[off + i] &= s[i];
     return 0;
@@ -226,17 +250,108 @@ int main(int argc, char **argv)
         rc = ldr_session();
         bad += check("... and the next session finishes", rc == 0 && record_cleared && nor[0xE4F06] == 0xFF);
     }
-    /* another flash chip: nothing written, the records go (the old firmware starts again) */
+    /* 부분 설치 후 플래시 식별에 실패해도 손상된 앱으로 부팅하지 않도록 기록을 유지한다. */
     {
+        static uint8_t interrupted[sizeof nor];
         memcpy(nor, old + ofo, 0x93000);
         put_record();
         record_cleared = 0;
+        prog_fail_at = 0x4000u;
+        /* 첫 섹터가 반드시 갱신되도록 기존 이미지를 변경한다. */
+        nor[0x4000u] ^= 1;
+        rc = ldr_session();
+        bad += check("interrupted app programming preserves recovery records",
+                     rc == -10 && !record_cleared && nor[0xE4F06] == 0x41);
+        prog_fail_at = 0;
+        memcpy(interrupted, nor, sizeof nor);
         erases = 0;
         flash_unknown = 1;
         rc = ldr_session();
-        bad += check("unknown flash chip: nothing written, record dropped", rc == -14 && record_cleared && erases == 1
-                     && nor[0xE4F06] == 0xFF && !memcmp(nor, old + ofo, 0x93000));
+        bad += check("unknown flash after interruption preserves RAM and flash",
+                     rc == LDR_EFLASH && !record_cleared && erases == 0
+                     && !memcmp(nor, interrupted, sizeof nor));
         flash_unknown = 0;
+        rc = ldr_session();
+        bad += check("interrupted installation resumes after flash recognition",
+                     rc == 0 && record_cleared && nor[0xE4F06] == 0xFF
+                     && !memcmp(nor + 0x4000, logical + nfo + 0x4000, 0x8F000));
+    }
+    /* 수신 성공만으로 완료로 간주하지 않고 NUL을 포함한 응답 전체를 검증한다. */
+    for (bad_finish = 1; bad_finish <= 2; bad_finish++) {
+        put_record();
+        record_cleared = 0;
+        f0_asked = 0;
+        erases = 0;
+        rc = ldr_session();
+        bad += check("negative/malformed finish response preserves records",
+                     rc == LDR_ENOFIN && !record_cleared && !erases
+                     && f0_asked == 4 && nor[0xE4F06] == 0x41);
+    }
+    bad_finish = 0;
+    /* 읽기 검증 실패와 불완전 삭제는 섹터의 모든 256 B 구간에서 각각 주입한다. */
+    for (uint32_t fault = 1; fault <= 5; fault++) {
+        uint32_t failures_ok = 1, retries_ok = 1;
+        uint32_t chunks = fault >= 4 ? 16u : 1u;
+        for (uint32_t chunk = 0; chunk < chunks; chunk++) {
+            memset(nor + 0xE4000, 0xFF, 0x1000);
+            put_record();
+            record_cleared = 0;
+            record_erase_attempted = 0;
+            record_check_off = 0xE4000u + 256u * chunk;
+            record_fault = fault;
+            rc = ldr_session();
+            failures_ok &= rc == LDR_ERECORD && !record_cleared;
+            if (fault <= 3)
+                failures_ok &= nor[0xE4F06] == 0x41;
+            record_fault = 0;
+            rc = ldr_session();
+            retries_ok &= rc == 0 && record_cleared && nor[0xE4F06] == 0xFF;
+        }
+        printf("  record fault %u, %u positions\n", fault, chunks);
+        bad += check("record cleanup failure blocks success and RAM clear", failures_ok);
+        bad += check("cleanup retry finishes with recovery records invalidated", retries_ok);
+    }
+    /* 여러 기록 중 앞의 기록만 지운 뒤 실패해도 RAM과 남은 복구 기록을 보존한다. */
+    {
+        put_record();
+        memcpy(nor + 0xFBF00, nor + 0xE4F00, 112);
+        memcpy(nor + 0x93F00, nor + 0xE4F00, 112);
+        record_cleared = 0;
+        record_fault = 2;
+        erases = 0;
+        rc = ldr_session();
+        bad += check("partial record cleanup keeps RAM and remaining flash records",
+                     rc == LDR_ERECORD && !record_cleared && erases == 2
+                     && nor[0xFBF06] == 0xFF && nor[0xE4F06] == 0x41 && nor[0x93F06] == 0x41);
+        record_fault = 0;
+        erases = 0;
+        rc = ldr_session();
+        bad += check("retry clears remaining records including the lowest sector",
+                     rc == 0 && record_cleared && erases == 2
+                     && nor[0xFBF06] == 0xFF && nor[0xE4F06] == 0xFF && nor[0x93F06] == 0xFF);
+    }
+    /* 8초가 넘는 다중 기록 정리에서도 watchdog을 계속 갱신한다. */
+    {
+        int cleared = 1;
+        put_record();
+        for (uint32_t off = 0xE5F00u; off <= 0xF4F00u; off += 0x1000u)
+            memcpy(nor + off, nor + 0xE4F00, 112);
+        record_cleared = 0;
+        erases = 0;
+        last_idle_ms = now_ms;
+        slow_record_erases = 1;
+        rc = ldr_records_drop();
+        slow_record_erases = 0;
+        for (uint32_t off = 0xE4F00u; off <= 0xF4F00u; off += 0x1000u)
+            cleared &= nor[off + 6] == 0xFF;
+        bad += check("long record cleanup feeds the watchdog between sectors",
+                     rc == 0 && record_cleared && erases == 17 && cleared);
+    }
+    {
+        int preserved = bad_range == 0 && !memcmp(nor, head, sizeof head);
+        for (unsigned i = 0x97000; i < 0xAB000; i++) preserved &= nor[i] == 0xA5;
+        for (unsigned i = 0xFC000; i < 0x100000; i++) preserved &= nor[i] == 0x5A;
+        bad += check("all fault retries preserve head, project banks and calibration", preserved);
     }
     printf("%s\n", bad ? "LOADER TEST FAILED" : "loader test passed");
     free(old);free(logical);

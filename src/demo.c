@@ -2,10 +2,18 @@
  * Copyright (C) 2026 dspaudio. Original NEON SPIRAL composition. */
 #include "mcfm.h"
 void mc_demo_load(McEngine *e,unsigned demo) {
-    if(!demo) { mc_init(e);return; }
-    mc_init(e);for(unsigned i=0;i<sizeof e->project.step;i++) ((uint8_t *)e->project.step)[i]=0;
+    /* 아직 전송되지 않은 정리도 채널 소유 상태와 함께 다음 출력까지 보존한다. */
+    uint16_t channels=e->midi.output_channels;uint8_t running=e->midi.output_running;
+    mc_init(e);
+    e->midi.output_channels=channels;e->midi.output_running=running;
+    e->midi.cleanup=(uint8_t)(channels?3:0);e->midi.stop_pending=running;
+    if(!demo) return;
+    for(unsigned i=0;i<sizeof e->project.step;i++) ((uint8_t *)e->project.step)[i]=0;
     e->project.bpm=140;e->project.swing=0;
+    e->midi.receiving=1;
     mc_preset(e,0,MC_PRESET_SQUARE_RUBBER);mc_preset(e,1,MC_PRESET_HIGH_VOLTAGE);mc_preset(e,2,MC_PRESET_VECTOR_LEAD);
+    e->midi.receiving=0;
+    for(unsigned part=0;part<3;part++)mc_midi_send(e,0xc0u+e->project.midi_channel[part],e->project.preset[part],0,2);
     e->project.patch[0].cutoff=65;e->project.patch[0].resonance=35;e->project.patch[0].decay=30;e->project.patch[0].sustain=45;
     e->project.patch[1].resonance=35;e->project.patch[1].glide=55;
     e->project.patch[2].attack=1;e->project.patch[2].decay=35;e->project.patch[2].sustain=15;e->project.patch[2].release=22;e->project.patch[2].pcm_mix=30;

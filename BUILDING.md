@@ -87,6 +87,12 @@ Host simulation covers CRC failure/retry, wrong key, unknown chip, interrupted h
 completion, identical-image skip and persistent-region sentinels. It is not an
 actual electrical power-loss or USB test. Never install `previous-test-only.fwsc`.
 
+설치가 일부 진행된 뒤 플래시 식별에 실패해도 복구 기록을 유지하고 재부팅하지 않는다.
+완료 응답은 `success\0` 전체를 확인하며, 복구 기록의 읽기·삭제·삭제 후 검증이
+모두 성공해야 RAM 기록을 지우고 재부팅한다. 실패 시 설치기에 머물러 재시도를
+기다린다. 호스트 오류 주입으로 이러한 경로를 검사하지만 실제 전원 차단 복구를
+검증한 것은 아니다.
+
 **Recovery boundary:** this preview audio app has no USB updater. After installing,
 it cannot itself start another M-UPGRADE session. The implemented stopped-transport
 five-second OCT−/OCT+ hold enters UBOOT, but the physical recovery path and the

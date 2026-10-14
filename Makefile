@@ -27,8 +27,8 @@ build/test-midi: $(CORE) $(HEADERS) tests/midi.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/midi.c -o $@
 build/test-connections: firmware/update/usb.c firmware/connection/midi_uart.c firmware/hal/fm1_uart.h tests/connections.c | build
 	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function tests/connections.c -o $@
-build/test-connection-routing: firmware/connection/routing.c tests/connection_routing.c | build
-	$(CC) $(CFLAGS) tests/connection_routing.c -o $@
+build/test-connection-routing: $(CORE) $(HEADERS) firmware/connection/routing.c tests/connection_routing.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/connection_routing.c -o $@
 build/test-storage: $(CORE) $(HEADERS) tests/storage.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/storage.c -o $@
 build/test-effects-modes: src/effects.c $(HEADERS) tests/effects_modes.c | build

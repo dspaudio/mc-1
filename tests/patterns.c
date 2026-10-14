@@ -16,6 +16,7 @@ static void render(unsigned frames) {
     while(frames) { unsigned n=frames>1024?1024:frames;mc_render(&e,audio,n);frames-=n; }
 }
 static void factory(void) {
+    mc_init(&e);
     for(unsigned demo=0;demo<2;demo++) {
         mc_demo_load(&e,demo);
         for(unsigned p=4;p<MC_PATTERNS;p++) for(unsigned t=0;t<4;t++) for(unsigned s=0;s<16;s++) {

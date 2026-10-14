@@ -14,9 +14,29 @@ void mc_midi_send(McEngine *e,unsigned status,unsigned a,unsigned b,unsigned len
 }
 int mc_midi_pop(McEngine *e,McMidiMessage *message) {
     McMidiState *m=&e->midi;
+    if(m->stop_pending) {
+        message->data[0]=0xfc;message->data[1]=message->data[2]=0;message->length=1;
+        m->stop_pending=m->output_running=0;return 1;
+    }
+    if(m->cleanup) {
+        unsigned channel=0;while(!(m->output_channels&(1u<<channel)))channel++;
+        static const uint8_t controls[3]={123,120,64};
+        message->data[0]=(uint8_t)(0xb0u+channel);message->data[1]=controls[--m->cleanup];
+        message->data[2]=0;message->length=3;
+        if(!m->cleanup) {
+            m->output_channels&=(uint16_t)~(1u<<channel);
+            if(m->output_channels)m->cleanup=3;
+        }
+        return 1;
+    }
     if(m->panic) { message->data[0]=(uint8_t)(0xb0+16-m->panic--);message->data[1]=123;message->data[2]=0;message->length=3;return 1; }
     if(!m->count) return 0;
-    *message=m->queue[m->read];m->read=(uint16_t)((m->read+1)%MC_MIDI_QUEUE);m->count--;return 1;
+    *message=m->queue[m->read];m->read=(uint16_t)((m->read+1)%MC_MIDI_QUEUE);m->count--;
+    /* 소비자에게 넘긴 채널은 대기열 밖에서도 발음 중일 수 있다. */
+    if((message->data[0]&0xf0)==0x90&&message->data[2])m->output_channels|=(uint16_t)(1u<<(message->data[0]&15));
+    if(message->data[0]==0xfa||message->data[0]==0xfb)m->output_running=1;
+    else if(message->data[0]==0xfc)m->output_running=0;
+    return 1;
 }
 void mc_midi_note(McEngine *e,unsigned part,unsigned note,unsigned velocity) {
     if(part<4) mc_midi_send(e,(velocity?0x90u:0x80u)+e->project.midi_channel[part],note,velocity,3);

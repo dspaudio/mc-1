@@ -1,11 +1,11 @@
 {
   "status": "Package format and host loader simulation only; NOT device installed or tested",
-  "package_bytes": 610019,
-  "sha256": "8c27c7a3856bf9e50a01aa3aad5b150311d7de045da65e2e70e83893e0eb6e4a",
-  "app_sha256": "98848ce0bee3499abe82312255e7fff41074dc4f02a62654667697a04f86f536",
-  "loader_bytes": 8140,
+  "package_bytes": 610089,
+  "sha256": "e9946076a3b44fdf4a0bd15b6ee71bbdbc7bbb159f2dc7642915c8817ed202af",
+  "app_sha256": "9a5c262c730e2b967b689032172db2583ad196f6faa5aa51d36f78d9875598c9",
+  "loader_bytes": 8212,
   "loader_load": "0x01c0a800",
-  "loader_bss_end": "01c0f3a0",
+  "loader_bss_end": "01c0f3f0",
   "sdk_commit": "d179b4484759423312073f5fbb232501aa491047",
   "sdk_sha256": {
     "uboot.boot": "4e3b4c220dc96641cb5a723f41e68ce41d5261ae9434bb33fbd7f2c59976ded4",

@@ -9,9 +9,9 @@ typedef struct { uint8_t status, data[2], count, skip; } McMidiParser;
 typedef struct {
     McMidiParser parser[3];
     McMidiMessage queue[MC_MIDI_QUEUE];
-    uint16_t read, write, count;
+    uint16_t read, write, count, output_channels;
     uint32_t dropped, received[3], clock, ticks, last_tick, interval;
-    uint8_t receiving, panic, have_tick, sustain[4], held[4][16], deferred[4][16];
+    uint8_t receiving, panic, cleanup, stop_pending, output_running, have_tick, sustain[4], held[4][16], deferred[4][16];
     int16_t bend[4];
 } McMidiState;
 struct McEngine;

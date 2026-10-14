@@ -86,6 +86,12 @@ A zero host overrun count cannot establish a device deadline. UI updates use eig
 strips and do not mask interrupts for full frames. Input mutations use short IRQ-off sections.
 Flash save stops audio DMA, writes only when transport is stopped, then zeros/restarts DMA.
 
+부팅 시 프로젝트 복원은 UART·USB·오디오 시작 전에 IRQ를 끈 상태에서 완료한다.
+저장과 데모 교체 동안에는 오디오 IRQ를 마스킹하고 TRS 수신 DMA를 멈춘다.
+입력으로 유지되던 음·서스테인·ARP 상태를 정리하고, USB 서비스는 계속하면서
+연주 입력은 폐기한다. 재개 전에 보류된 USB 입력과 소프트웨어 큐를 비우고
+UART 파서와 DMA 커서를 초기화한다. 저장 중의 입력은 녹음하거나 나중에 재생하지 않는다.
+
 The inherited startup/HAL does **not** configure or prove a 240 MHz CPU clock. It inherits
 bootloader clock state; TIMER4 is explicitly sourced from the 24 MHz crystal. Reported stock
 240 MHz is not a measured MC-1 clock. Inspect actual clock registers and ISR metrics on-device
@@ -109,13 +115,13 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 304,704 bytes, including a 35,478-byte project. This is not total device
+Host `sizeof(McEngine)` is 304,708 bytes, including a 35,478-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 482,268-byte app, 46,656-byte globals,
-2,784-byte RAM code and 304,704-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 482,684-byte app, 46,656-byte globals,
+2,784-byte RAM code and 304,708-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety

@@ -17,7 +17,77 @@ static unsigned active(unsigned part,unsigned note) {
     return 0;
 }
 static void drain(void) { McMidiMessage m;while(mc_midi_pop(&e,&m)) {} }
+static void cleanup(unsigned channels,unsigned stopped) {
+    McMidiMessage m;
+    if(stopped)assert(mc_midi_pop(&e,&m)&&m.length==1&&m.data[0]==0xfc);
+    const unsigned controls[3]={64,120,123};
+    for(unsigned channel=0;channel<16;channel++) if(channels&(1u<<channel)) for(unsigned i=0;i<3;i++) {
+        assert(mc_midi_pop(&e,&m)&&m.length==3&&m.data[0]==0xb0+channel);
+        assert(m.data[1]==controls[i]&&!m.data[2]);
+    }
+    assert(!e.midi.cleanup&&!e.midi.stop_pending&&!e.midi.output_channels);
+}
+static void overflow_cleanup(void) {
+    McMidiMessage m;
+    for(unsigned channel=0;channel<16;channel++) {
+        assert(mc_midi_pop(&e,&m)&&m.length==3&&m.data[0]==0xb0+channel);
+        assert(m.data[1]==123&&!m.data[2]);
+    }
+    assert(!e.midi.panic&&!mc_midi_pop(&e,&m));
+}
+static void demo_cleanup(void) {
+    McMidiMessage m;
+    for(unsigned demo=0;demo<2;demo++) {
+        mc_init(&e);mc_demo_load(&e,demo);unsigned programs=0;
+        while(mc_midi_pop(&e,&m)) { assert((m.data[0]&0xf0)==0xc0);programs++; }
+        assert(programs==(demo?3u:0u));
+    }
+    for(unsigned demo=0;demo<2;demo++) for(unsigned mode=0;mode<4;mode++) {
+        mc_init(&e);e.project.midi_channel[0]=14;
+        e.project.patch[0].engine=MC_LA;
+        if(mode==1) { e.project.arp[0].enabled=1;e.project.arp[0].latch=1; }
+        mc_key(&e,0,60,100,1);render(1);
+        unsigned notes=0;
+        while(mc_midi_pop(&e,&m)) if(m.data[0]==0x9e)notes++;
+        assert(notes);
+        if(mode==2) { input(1,0xbe,64,127);input(1,0x9e,64,100);input(1,0x8e,64,0); }
+        /* 출력 정체 중 남은 Note On과 이미 발생한 overflow도 데모 교체로 폐기한다. */
+        for(unsigned i=0;i<(mode==3?MC_MIDI_QUEUE+1u:8u);i++)mc_midi_send(&e,0x9e,72,100,3);
+        if(mode==2)mc_midi_reset(&e,1);
+        mc_demo_load(&e,demo);
+        assert(!e.playing&&!active(0,60)&&!e.midi.sustain[0]);
+        mc_key(&e,0,60,0,0);render(1);
+        /* 정리 명령이 아직 전송되지 않아도 새 연주는 정리 뒤에 전달한다. */
+        mc_note(&e,0,67,100,0,0);
+        assert(!e.midi.panic);cleanup(1u<<14,0);notes=0;
+        while(mc_midi_pop(&e,&m)) {
+            assert((m.data[0]&0xf0)!=0xb0);
+            if((m.data[0]&0xf0)==0x90) { assert(m.data[0]==0x90&&m.data[1]==67);notes++; }
+        }
+        assert(notes==1&&e.midi.output_channels==1);
+    }
+    /* 채널 변경 전 출력과 전송 도중 재로드에서도 미완료 채널을 잊지 않는다. */
+    mc_init(&e);e.project.midi_channel[0]=4;mc_note(&e,0,60,100,0,0);drain();
+    mc_midi_all_off(&e,0);e.project.midi_channel[0]=15;mc_note(&e,0,64,100,0,0);drain();
+    mc_demo_load(&e,0);assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb4&&m.data[1]==64);
+    mc_demo_load(&e,1);cleanup((1u<<4)|(1u<<15),0);drain();
+    mc_note(&e,0,60,100,0,0);e.project.midi_channel[1]=15;mc_note(&e,1,64,100,0,0);drain();
+    mc_demo_load(&e,0);for(unsigned i=0;i<4;i++)assert(mc_midi_pop(&e,&m));
+    mc_demo_load(&e,0);cleanup(1u<<15,0);assert(!mc_midi_pop(&e,&m));
+    /* 이미 출력된 Start만 Stop으로 마감하며 새 Start는 정리 뒤에 전달한다. */
+    mc_init(&e);memset(e.project.step,0,sizeof e.project.step);mc_start(&e);drain();
+    mc_stop(&e);mc_demo_load(&e,0);mc_demo_load(&e,1);cleanup(0,1);drain();
+    memset(e.project.step,0,sizeof e.project.step);mc_start(&e);mc_note(&e,0,60,100,0,0);mc_drum(&e,0,100);
+    drain();mc_demo_load(&e,0);mc_start(&e);cleanup((1u<<0)|(1u<<9),1);
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xfa);drain();
+    /* 정리 도중 overflow도 정리를 유지하며 기존 16채널 복구 정책을 따른다. */
+    mc_init(&e);e.project.midi_channel[0]=14;mc_note(&e,0,60,100,0,0);drain();mc_demo_load(&e,0);
+    for(unsigned i=0;i<MC_MIDI_QUEUE+10u;i++)mc_midi_send(&e,0x90,72,100,3);
+    cleanup(1u<<14,0);overflow_cleanup();
+    puts("PASS MIDI demo: owned channels, live/ARP/sustain/reset, pending output, reload, transport and overflow");
+}
 int main(void) {
+    demo_cleanup();
     mc_init(&e);e.project.patch[0].engine=MC_LA;input(1,0x90,60,90);assert(active(0,60)&&!e.midi.count);
     mc_midi_byte(&e,1,64);mc_midi_byte(&e,1,0xf8);mc_midi_byte(&e,1,100);assert(active(0,64));
     input(2,0x91,67,80);assert(active(1,67));
@@ -36,8 +106,8 @@ int main(void) {
     mc_init(&e);mc_note(&e,0,60,100,0,20);McMidiMessage m;assert(mc_midi_pop(&e,&m)&&m.data[0]==0x90&&m.data[1]==60);
     render(20);assert(mc_midi_pop(&e,&m)&&m.data[0]==0x80&&!e.voice[0].midi_out);
     mc_note(&e,0,62,100,0,0);drain();mc_mute(&e,0);assert(mc_midi_pop(&e,&m)&&m.data[1]==123);
-    for(unsigned i=0;i<MC_MIDI_QUEUE+10;i++) mc_midi_send(&e,0x90,60,100,3);
-    assert(e.midi.dropped&&e.midi.panic);unsigned panic=0;while(mc_midi_pop(&e,&m)) { assert(m.data[1]==123);panic++; }assert(panic==16);
+    drain();for(unsigned i=0;i<MC_MIDI_QUEUE+10u;i++) mc_midi_send(&e,0x90,60,100,3);
+    assert(e.midi.dropped&&e.midi.panic);overflow_cleanup();
     for(unsigned bpm=60;bpm<=240;bpm*=2) {
         mc_init(&e);memset(e.project.step,0,sizeof e.project.step);mc_clock_source(&e,1);drain();
         mc_midi_byte(&e,1,0xfa);assert(e.playing);unsigned phase=0;

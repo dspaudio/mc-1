@@ -104,6 +104,7 @@ extern const char *const mc_preset_names[MC_PRESETS];
 extern const char *const mc_preset_categories[MC_PRESETS];
 extern const char *const mc_kit_names[MC_KITS];
 void mc_init(McEngine *e);
+/* mc_init으로 초기화한 엔진의 데모를 교체하며 이전 MIDI 출력 해제를 보존한다. */
 void mc_demo_load(McEngine *e,unsigned demo);
 void mc_demo_tick(McEngine *e);
 void mc_effects(McEngine *e,int32_t *l,int32_t *r);

@@ -24,8 +24,7 @@
  * Hooks from the platform (loader.c, tests/ldr_test.c):
  *   ldr_fread(off, p, n)  ldr_erase(off)  ldr_prog(off, p, n)   flash, 0 = ok
  *   ldr_record_clear()    forget the RAM update record
- *   ldr_flash_known()     the flash chip is the 1 MiB part SLOOP's storage expects (else nothing is
- *                         written: the update records go and the old firmware starts again)
+ *   ldr_flash_known()     지원하는 1 MiB 플래시인지 확인한다. 실패 시 복구 기록을 보존한다.
  *   ldr_progress(done, total)
  * plus the ota.c hooks (frames, time, idle). */
 #define LDR_APP_LO 0x4000u
@@ -86,20 +85,32 @@ static int ldr_chip_key(uint32_t *key)
 
 #define LDR_EBADPKG (-12)                       /* flash.bin as served does not match the package's CRC16 */
 #define LDR_ENOFIN (-13)                        /* no "success" from the host */
-#define LDR_EFLASH (-14)                        /* another flash chip: nothing written, the records dropped */
+#define LDR_EFLASH (-14)                        /* 플래시 식별 실패: 쓰기 없이 복구 대기 */
+#define LDR_ERECORD (-15)                       /* 복구 기록 정리 또는 검증 실패 */
 
-/* the update records (RAM, and flash: a 4K boundary - 256) go: the SPL boots the app */
-static void ldr_records_drop(void)
+/* 앱과 완료 응답 검증 후에만 삭제한다. 모든 플래시 정리가 끝날 때까지 RAM 기록을 보존한다. */
+static int ldr_records_drop(void)
 {
-    uint32_t s;
-    ldr_record_clear();
+    uint32_t s, off, i;
     for (s = LDR_REC_HI; s > LDR_REC_LO; s -= 0x1000u) {
-        uint8_t r[80];
+        uint8_t r[256];
         if (ldr_fread(s - 0x100u, r, 80))
-            break;
-        if (ota_rd16(r + 6) == 0x5441u && ota_rd16(r) && ota_rd16(r) == ota_crc16(r + 2, 78, 0))
-            ldr_erase(s - 0x1000u);
+            return LDR_ERECORD;
+        if (ota_rd16(r + 6) == 0x5441u && ota_rd16(r) && ota_rd16(r) == ota_crc16(r + 2, 78, 0)) {
+            if (ldr_erase(s - 0x1000u))
+                return LDR_ERECORD;
+            for (off = s - 0x1000u; off < s; off += sizeof r) {
+                if (ldr_fread(off, r, sizeof r))
+                    return LDR_ERECORD;
+                for (i = 0; i < sizeof r; i++)
+                    if (r[i] != 0xFFu)
+                        return LDR_ERECORD;
+            }
+        }
+        ota_idle();                                  /* 여러 기록을 정리하는 동안 USB와 watchdog을 유지한다. */
     }
+    ldr_record_clear();
+    return 0;
 }
 
 static int ldr_pass(void)
@@ -120,8 +131,7 @@ static int ldr_pass(void)
     ldr_sfc(sec, 32, 0, key);
     if (ota_crc16(sec + 2, 30, 0) != ota_rd16(sec))
         return -6;                                       /* package for another chip key */
-    if (!ldr_flash_known()) {                            /* SLOOP would run without its storage and could not */
-        ldr_records_drop();                              /* be updated again: keep the firmware there is */
+    if (!ldr_flash_known()) {                            /* 이전 설치가 중단되어 앱이 손상되었을 수 있다. */
         return LDR_EFLASH;
     }
     /* the head of flash.bin is never written, but it is part of the package's CRC */
@@ -168,12 +178,11 @@ static int ldr_pass(void)
     if (crc != want)
         return LDR_EBADPKG;
     for (i = 0; i < 4u; i++)
-        if (!ota_read(0xF0000000u, sec, 8))
+        if (!ota_read(0xF0000000u, sec, 8) && ota_memeq(sec, (const uint8_t *)"success", 8))
             break;
     if (i == 4u)
         return LDR_ENOFIN;
-    ldr_records_drop();
-    return 0;
+    return ldr_records_drop();
 }
 
 /* a pass that does not add up (a byte damaged on the way) is run again: the host answers any read, so it

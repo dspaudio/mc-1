@@ -10,7 +10,7 @@ static void put16(FILE *f,unsigned n) { fputc((int)(n&255),f);fputc((int)((n>>8)
 static void put32(FILE *f,unsigned n) { put16(f,n);put16(f,n>>16); }
 int main(int argc,char **argv) {
     if(argc!=2) return 1;
-    mc_demo_load(&e,1);
+    mc_init(&e);mc_demo_load(&e,1);
     unsigned songframes=MC_RATE*240u*32u/140u,frames=songframes+MC_RATE*4;
     FILE *f=fopen(argv[1],"wb");if(!f)return 1;
     fwrite("RIFF",1,4,f);put32(f,36+frames*4);fwrite("WAVEfmt ",1,8,f);put32(f,16);

@@ -21,15 +21,32 @@
 static volatile uint8_t um_ring[UM_RING] __attribute__((aligned(16)));
 static struct {
     uint32_t rd, bytes, drops, msgs;
-    uint8_t st, need, got, d0, sysex;
+    uint8_t st, need, got, d0, sysex, active;
 } um;
 
-static void uart_midi_init(void)                   /* before timer5_start(): PORTH RMW */
+static void uart_midi_stop(void)
 {
+    fm1_uart1_midi_stop();
+    um.active = 0;
+}
+
+/* IRQ가 꺼진 상태에서만 호출한다. DMA를 먼저 멈춰 링 초기화와 경합하지 않는다. */
+static void uart_midi_start(void)
+{
+    uart_midi_stop();
+    um.rd = 0;
+    um.st = um.need = um.got = um.d0 = um.sysex = 0;
     uint32_t i;
     for (i = 0; i < UM_RING; i++)
         um_ring[i] = UM_EMPTY;
-    fm1_uart1_midi_init(um_ring, UM_RING);
+    fm1_uart1_midi_start(um_ring, UM_RING);
+    um.active = 1;
+}
+
+static void uart_midi_init(void)                   /* before timer5_start(): PORTH RMW */
+{
+    fm1_uart1_midi_init();
+    uart_midi_start();
 }
 
 static uint32_t um_len(uint32_t s)                 /* data bytes of a channel status */
@@ -97,6 +114,8 @@ static void um_drain(void)
 
 static void uart_midi_poll(void)                   /* TIMER5 ISR, same context as usb_poll */
 {
+    if (!um.active)
+        return;
     fm1_uart1_rx_take();                           /* acknowledges the pendings; the count is not used */
     um_drain();
 }

@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <assert.h>
 #define HALF_FRAMES 128
 #define MC_USB_APP 1
 #define FELUCCA_UAC 1
@@ -17,6 +18,23 @@
 static void fm1_delay_ms(uint32_t ms) { (void)ms; }
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 #include "../firmware/update/usb.c"
+/* 실제 UART HAL의 레지스터 쓰기 순서를 호스트 메모리로 검증한다. */
+static volatile uint32_t uart_registers[15];
+static volatile uint32_t *uart_register(uint32_t addr)
+{
+    static const uint32_t addresses[] = {
+        0x12100u, 0x12104u, 0x12108u, 0x12110u, 0x1211Cu, 0x12120u, 0x12124u, 0x12128u,
+        0x10010u, 0x51024u, 0x51028u, 0x501C8u, 0x501CCu, 0x501D0u, 0x501D4u
+    };
+    for (unsigned i = 0; i < sizeof addresses / sizeof addresses[0]; i++)
+        if (addr == addresses[i])
+            return &uart_registers[i];
+    assert(0);
+    return &uart_registers[0];
+}
+static void uart_sync(void);
+#define FM1_UART_REG(addr) (*uart_register(addr))
+#define FM1_UART_SYNC() uart_sync()
 #include "../firmware/connection/midi_uart.c"
 
 static int fails;
@@ -261,7 +279,7 @@ static void test_ring(void)
     next_half = 300000;
     next_pkt = 1000000;
     run(3, 0, 1, 1);                                    /* alt 1 set: no IN token yet */
-    check("not fed before the host reads (no overruns while it waits)", uac.overruns == 0 && ua_w == 0);
+    check("not fed before the host reads (no overruns while it waits)", uac.overruns == 0 && ua_w == 0 && cons_zero > 0);
     uac.flowing = 1;                                    /* (uac_service: the first packet went) */
     run(2000, 0, 1, 1);
     memset(sizes, 0, sizeof sizes);
@@ -368,9 +386,13 @@ static void test_pcm_cadence(void)
 }
 
 /* the RX DMA: bytes land in the ring in order, from where it last stopped */
-static uint32_t dma_w;
+static uint32_t dma_w, dma_ignored, dma_restarts, uart_stops;
 static void dma_put(const uint8_t *p, uint32_t n)
 {
+    if ((FM1_UT1_CON0 & 0x41u) != 0x41u) {
+        dma_ignored += n;
+        return;
+    }
     while (n--) {
         um_ring[dma_w] = *p++;
         dma_w = (dma_w + 1u) & (UM_RING - 1u);
@@ -386,6 +408,20 @@ static int ring_clean(void)
     return 1;
 }
 
+static void uart_sync(void)
+{
+    if (!(FM1_UT1_CON0 & 0x41u))
+        uart_stops++;
+    else if (!(FM1_UT1_CON0 & 1u)) {
+        assert(FM1_UT1_RXSADR == (uint32_t)(uintptr_t)um_ring);
+        assert(FM1_UT1_RXEADR == (uint32_t)(uintptr_t)um_ring + UM_RING);
+        assert(FM1_UT1_RXCNT == UM_RING && ring_clean());
+        assert(!um.rd && !um.st && !um.need && !um.got && !um.d0 && !um.sysex);
+        dma_w = 0;
+        dma_restarts++;
+    }
+}
+
 /* the ring read by content (the Salt fix): no byte left behind, across the wrap, line noise skipped */
 static int test_uart_ring(void)
 {
@@ -394,10 +430,8 @@ static int test_uart_ring(void)
     uint32_t i, k, w0, ok;
     int bad = 0;
     memset(&um, 0, sizeof um);
-    for (i = 0; i < UM_RING; i++)
-        um_ring[i] = UM_EMPTY;
+    uart_midi_init();
     mi_r = mi_w;
-    dma_w = 0;
     um_drain();
     bad += check("uart ring: nothing landed, nothing read", mi_w == mi_r && um.rd == 0 && um.bytes == 0);
 
@@ -430,6 +464,46 @@ static int test_uart_ring(void)
     bad += check("uart ring: a received FD is skipped, not taken for empty", ok && ring_clean());
     mi_r = mi_w;
     return bad;
+}
+
+static void test_uart_pause(void)
+{
+    const uint8_t on[] = {0x90, 60, 100}, off[] = {0x80, 60, 0};
+    uint8_t erase_burst[131];
+    uart_midi_start();
+    mi_r = mi_w;
+    dma_put(on, sizeof on);
+    uart_midi_poll();
+    check("UART 중지 전 Note On은 즉시 전달된다", mi_w - mi_r == 1 && um.st == 0x90);
+    mi_r = mi_w;
+    dma_put((const uint8_t[]){62}, 1);
+    uart_midi_poll();
+    dma_put(off, sizeof off);
+    uint32_t stops = uart_stops, starts = dma_restarts, before = um.bytes, ignored = dma_ignored;
+    uart_midi_stop();
+    memcpy(erase_burst, off, sizeof off);
+    memset(erase_burst + sizeof off, 0xFE, sizeof erase_burst - sizeof off);
+    for (unsigned i = 0; i < 12; i++)
+        dma_put(erase_burst, sizeof erase_burst);
+    uart_midi_poll();
+    check("UART 저장 경계: RX/DMA off, 1,572바이트 입력 폐기, 미완성 파서 소비 없음",
+          !(FM1_UT1_CON0 & 0x41u) && uart_stops > stops &&
+          dma_ignored - ignored == 1572 && mi_w == mi_r && um.bytes == before);
+    FM1_UT1_RXSADR = FM1_UT1_RXEADR = FM1_UT1_RXCNT = 0;
+    uart_midi_start();
+    check("UART 재개: 링·부분 메시지·DMA 커서 초기화, RX는 마지막에 켜진다",
+          dma_restarts == starts + 1 && dma_w == 0 && ring_clean() &&
+          !um.rd && !um.st && !um.got && um.active && (FM1_UT1_CON0 & 0x41u) == 0x41u);
+    dma_put((const uint8_t[]){100, 64, 100}, 3);
+    uart_midi_poll();
+    check("UART 재개 후 이전 running status의 나머지 데이터는 무시된다", mi_r == mi_w);
+    dma_put(on, sizeof on);
+    dma_put(off, sizeof off);
+    uart_midi_poll();
+    check("UART 재개 후 새 Note On/Off는 마지막 바이트까지 순서대로 전달된다",
+          mi_w - mi_r == 2 && midi_in_q[mi_r % MQ] == 0x643C9019u &&
+          midi_in_q[(mi_r + 1) % MQ] == 0x003C8018u && um.rd == dma_w && ring_clean());
+    mi_r = mi_w;
 }
 
 /* EP1 OUT (USB-MIDI from the computer): back-pressure instead of drops, malformed events ignored */
@@ -568,6 +642,7 @@ int main(void)
     (void)test_uart_ring();
     (void)test_usb_ep1();
     test_midi_edges();
+    test_uart_pause();
     printf("connections: %s (%d failures)\n", fails ? "FAIL" : "all ok", fails);
     return fails != 0;
 }

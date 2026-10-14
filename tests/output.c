@@ -50,6 +50,7 @@ static void hot(void) {
     printf("Hot polyphony + all track/master FX, block identity: PASS; peak=%u limited_frames=%u clips=%u\n",a.peak,a.limiter_hits,a.clips);
 }
 static void demos(void) {
+    mc_init(&a);mc_init(&b);
     for(unsigned demo=0;demo<2;demo++) {
         mc_demo_load(&a,demo);mc_demo_load(&b,demo);b.master=28000;mc_start(&a);mc_start(&b);
         uint64_t sum=0,reference=0;unsigned frames=MC_RATE*60;

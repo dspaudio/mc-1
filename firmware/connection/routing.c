@@ -1,6 +1,32 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 dspaudio */
-/* Audio ISR only. TIMER5 publishes RX; all engine mutation remains in audio. */
+static volatile uint8_t connection_paused;
+
+/* 오디오 IRQ와 전역 IRQ를 막은 뒤 호출한다. 저장 중 놓치는 Note Off를 선제 해제한다. */
+static void connection_midi_pause(McEngine *engine) {
+    connection_paused=1;
+    uart_midi_stop();
+    mi_r=mi_w;
+    mc_midi_reset(engine,1);mc_midi_reset(engine,2);
+}
+
+/* TIMER5는 저장 중에도 USB를 서비스하되, 연주 입력은 재개 전까지 폐기한다. */
+static void connection_midi_poll(unsigned due) {
+    if(due&1u)usb_poll();
+    if(connection_paused) { mi_r=mi_w;return; }
+    if(due&2u)uart_midi_poll();
+}
+
+/* 전역 IRQ가 꺼진 상태에서 소프트웨어 큐와 마지막 EP1 패킷을 함께 비운다. */
+static void connection_midi_resume(void) {
+    mi_r=mi_w;
+    if(usb.up&&usb.config)ep1_rx();
+    mi_r=mi_w;
+    uart_midi_start();
+    connection_paused=0;
+}
+
+/* 오디오 ISR 전용. TIMER5가 수신을 게시하며 저장 중에는 엔진 소비를 멈춘다. */
 static void connection_midi_input(McEngine *engine) {
     static uint32_t resets,drops;
     static uint8_t suspended;

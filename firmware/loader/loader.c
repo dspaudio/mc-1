@@ -95,7 +95,7 @@ void ldr_main(void)
             int rc;
             usb.ota_req = 0;
             rc = ldr_session();
-            if (rc == 0 || rc == LDR_EFLASH) {      /* done, or another flash chip: the old firmware again */
+            if (rc == 0) {                         /* 앱과 복구 기록 정리가 검증된 경우만 재부팅한다. */
                 fm1_delay_ms(200);                  /* the "success" reply leaves */
                 usb_detach();
                 fm1_delay_ms(30);
@@ -108,8 +108,7 @@ void ldr_main(void)
 void ldr_cstart(void)
 {
     uint32_t *p;
-    ldr_record_clear();                             /* first thing: a crash below cannot loop through a
-                                                     * warm reset; resume after power loss uses the flash record */
+    /* 복구가 완료되기 전 watchdog 재시작에서도 RAM 기록을 유지한다. */
     for (p = _bss_start; p < _bss_end; p++)
         *p = 0;
     ldr_main();

@@ -20,7 +20,7 @@ jobs:
           build/test-effects-modes-sanitized
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/connections.c -o build/test-connections-sanitized
           build/test-connections-sanitized
-          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all tests/connection_routing.c -o build/test-connection-routing-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/connection_routing.c -o build/test-connection-routing-sanitized
           build/test-connection-routing-sanitized
       - run: python3 tools/gen_assets.py && python3 tools/gen_recorded_pcm.py && python3 tools/gen_presets.py && git diff --exit-code src/recorded_pcm.h src/tables.h src/presets.h src/factory.c host/index.html README.md docs/PRESETS.md
       - run: python3 tests/host_http.py
