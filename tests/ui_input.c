@@ -266,4 +266,17 @@ static void green_feedback(void) {
     e.project.step[0][3][0].velocity=100;e.mute=8;draw(first);assert(first[26*240+29]!=0x67e8u);
     puts("PASS: green cursor only on active unmuted melodic/drum hits; silent steps remain dark");
 }
-int main(void) { acceleration();small_ranges();metronome_ui();song_midi_ui();patterns64();popup();performance_ui();green_feedback();return 0; }
+static void strip_equivalence(void) {
+    init();e.playing=1;
+    for(unsigned part=0;part<3;part++) {
+        e.selected=(uint8_t)part;
+        for(unsigned step=0;step<16;step++) {
+            e.step=(uint8_t)step;
+            for(unsigned y=0;y<240;y++)mc_ui_strip(&e,&u,y,1,first+y*240);
+            draw(second);
+            assert(!memcmp(first,second,sizeof first));
+        }
+    }
+    puts("PASS: 1행과 8행 분할 렌더의 픽셀 일치, 3파트 및 16개 재생 위치");
+}
+int main(void) { acceleration();small_ranges();metronome_ui();song_midi_ui();patterns64();popup();performance_ui();green_feedback();strip_equivalence();return 0; }

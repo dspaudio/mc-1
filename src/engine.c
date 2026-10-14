@@ -462,19 +462,24 @@ static int32_t melodic(McEngine *e,McVoice *v) {
     uint32_t ratio=(uint32_t)(65536+bend*(bend<0?7150:8026)/8192);
     uint32_t increment=(uint32_t)(((uint64_t)v->increment*ratio)>>16);
     v->phase+=increment; v->phase2+=increment+increment/401;
-    int32_t sample=oscillator(v->phase,p->wave,v->note);
-    if(p->engine==MC_LA) {
-        sample=(sample+oscillator(v->phase2,p->wave,v->note))/2;
-        unsigned pos=v->pcm_pos>>16;
-        if(p->pcm>=MC_PCM_ATTACKS) {
-            int32_t pcm=recorded(v,ratio);
-            sample=(sample*(127-p->pcm_mix)+pcm*p->pcm_mix)/127;
-        } else if(pos<511) {
-            int32_t pcm=mc_attack[p->pcm][pos];
-            pcm+=(mc_attack[p->pcm][pos+1]-pcm)*(int32_t)(v->pcm_pos&65535)/65536;
-            int32_t weight=p->pcm_mix*(512-(int32_t)pos)/512;
-            sample=sample*(127-weight)/127+pcm*weight/127;
-            v->pcm_pos+=(uint32_t)(((uint64_t)mc_pcm_rate[v->note]*ratio)>>16);
+    int32_t sample;
+    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS&&p->pcm_mix==127) {
+        sample=recorded(v,ratio);
+    } else {
+        sample=oscillator(v->phase,p->wave,v->note);
+        if(p->engine==MC_LA) {
+            sample=(sample+oscillator(v->phase2,p->wave,v->note))/2;
+            unsigned pos=v->pcm_pos>>16;
+            if(p->pcm>=MC_PCM_ATTACKS) {
+                int32_t pcm=recorded(v,ratio);
+                sample=(sample*(127-p->pcm_mix)+pcm*p->pcm_mix)/127;
+            } else if(pos<511) {
+                int32_t pcm=mc_attack[p->pcm][pos];
+                pcm+=(mc_attack[p->pcm][pos+1]-pcm)*(int32_t)(v->pcm_pos&65535)/65536;
+                int32_t weight=p->pcm_mix*(512-(int32_t)pos)/512;
+                sample=sample*(127-weight)/127+pcm*weight/127;
+                v->pcm_pos+=(uint32_t)(((uint64_t)mc_pcm_rate[v->note]*ratio)>>16);
+            }
         }
     }
     /* Bounded four-stage feedback lowpass. Original approximation, not circuit emulation. */
@@ -550,7 +555,9 @@ void mc_output(McEngine *e,int32_t *left,int32_t *right) {
         e->limiter_gain+=(unity-e->limiter_gain+2204)/2205;
         if(e->limiter_gain>needed)e->limiter_gain=needed;
     }
-    l=l*e->limiter_gain/unity;r=r*e->limiter_gain/unity;
+    if(e->limiter_gain!=unity) {
+        l=l*e->limiter_gain/unity;r=r*e->limiter_gain/unity;
+    }
     if(l>32767||l< -32767||r>32767||r< -32767)e->clips++;
     al=l<0?-l:l;ar=r<0?-r:r;
     if((uint32_t)al>e->peak)e->peak=(uint32_t)al;

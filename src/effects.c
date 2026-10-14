@@ -65,8 +65,10 @@ void mc_effects_process_typed(McEffects *f,unsigned bpm,const uint8_t amount[4],
                 for(unsigned stage=0;stage<4;stage++)
                     wet[c]=fx_allpass(wet[c],coefficient+(int32_t)stage*1024,&f->phaser[c][stage]);
             } else {
-                unsigned pos=(f->chorus_pos-(taps[c]>>4))&1023u,next=(pos-1)&1023u,frac=taps[c]&15;
-                wet[c]=(f->chorus[c][pos]*(int32_t)(16-frac)+f->chorus[c][next]*(int32_t)frac)/16;
+                if(chorus) {
+                    unsigned pos=(f->chorus_pos-(taps[c]>>4))&1023u,next=(pos-1)&1023u,frac=taps[c]&15;
+                    wet[c]=(f->chorus[c][pos]*(int32_t)(16-frac)+f->chorus[c][next]*(int32_t)frac)/16;
+                } else wet[c]=0;
                 f->chorus[c][f->chorus_pos]=(int16_t)fx_limit(in[c]+(type[3]==2&&chorus?wet[c]/2:0));
             }
         }

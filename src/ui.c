@@ -450,6 +450,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         }
         for(unsigned t=0;t<4;t++) {
             int yy=59+(int)t*27;
+            if(yy+22<=(int)y||yy>=(int)(y+height))continue;
             unsigned low=108,high=12;
             if(t<3) for(unsigned pattern=0;pattern<MC_PATTERNS;pattern++) for(unsigned step=0;step<16;step++) {
                 const McStep *st=&e->project.step[pattern][t][step];

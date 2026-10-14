@@ -459,7 +459,38 @@ static void recorded_samples(void) {
     render_n(&e,MC_RATE*10);
     printf("PASS: 64 recorded presets,16 sources,112 mip bounds/peaks,80 pitch/loop/release cases, PCM-only and blend, persistence;10s sampled stress %.3fs host CPU\n",(double)(clock()-begin)/CLOCKS_PER_SEC);
 }
+static void recorded_mix_transitions(void) {
+    static const uint8_t mix[6]={127,0,127,63,0,127};
+    static const int16_t bend[3]={0,4096,-4096};
+    for(unsigned id=0;id<MC_RECORDED_SAMPLES;id++) {
+        unsigned preset=0;while(mc_presets[preset].pcm!=id+MC_PCM_ATTACKS)preset++;
+        for(unsigned note=36;note<=84;note+=24) {
+            mc_init(&a);mc_preset(&a,0,preset);a.project.patch[0].sustain=127;
+            b=a;a.project.patch[0].pcm_mix=127;b.project.patch[0].pcm_mix=126;
+            mc_note(&a,0,note,100,0,0);mc_note(&b,0,note,100,0,0);
+            for(unsigned step=0;step<6;step++) {
+                assert(!mc_parameter_set(&a,0,3,mix[step]));
+                /* 126은 오실레이터를 평가하는 기존 혼합 경로를 유지한다. */
+                assert(!mc_parameter_set(&b,0,3,mix[step]==127?126:mix[step]));
+                a.midi.bend[0]=b.midi.bend[0]=bend[step%3];
+                mc_render(&a,x,4096);mc_render(&b,y,4096);
+                assert(a.voice[0].phase==b.voice[0].phase);
+                assert(a.voice[0].phase2==b.voice[0].phase2);
+                assert(a.voice[0].pcm_pos==b.voice[0].pcm_pos);
+                assert(a.voice[0].envelope==b.voice[0].envelope);
+                assert(a.voice[0].age==b.voice[0].age);
+                const McRecordedLevel *level=&mc_recorded[id].levels[a.voice[0].sample_level];
+                if(level->loop_end)assert(a.voice[0].pcm_pos<((uint32_t)level->loop_end<<16));
+                else assert(a.voice[0].pcm_pos<=((uint32_t)level->length<<16)+65536u+8026u);
+            }
+            mc_off(&a,0,note);mc_off(&b,0,note);
+            render_n(&a,MC_RATE*3);render_n(&b,MC_RATE*3);
+            assert(!a.voice[0].active&&!b.voice[0].active);
+        }
+    }
+    puts("PASS: PCM-only/live mix changes preserve oscillator/sample phase, pitch bend, loop/end and release");
+}
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35478&&MC_PROJECT_BYTES==35094);
-    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();recorded_mix_transitions();stress();puts("ALL TESTS PASSED");return 0;
 }

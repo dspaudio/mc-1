@@ -81,6 +81,44 @@ static void phaser(void) {
     printf("phaser fixed-LFO notch=%uHz gain=%.6f passband=%.6f\n",notch,minimum,maximum);
     assert(minimum<0.08&&maximum>0.9&&maximum<1.02);
 }
+static void legacy_modulation(McEffects *f,unsigned type,unsigned amount,
+    int32_t *left,int32_t *right) {
+    int32_t in[2]={*left,*right},wet[2];
+    f->phase+=29217u;
+    unsigned tri=f->phase>>20;if(tri>2047)tri=4095-tri;
+    unsigned taps[2]={4800+tri*2,4800+(2047-tri)*2};
+    if(type==2) {taps[0]=32+tri*4;taps[1]=32+(2047-tri)*4;}
+    for(unsigned c=0;c<2;c++) {
+        unsigned pos=(f->chorus_pos-(taps[c]>>4))&1023u,next=(pos-1)&1023u,frac=taps[c]&15;
+        wet[c]=(f->chorus[c][pos]*(int32_t)(16-frac)+f->chorus[c][next]*(int32_t)frac)/16;
+        f->chorus[c][f->chorus_pos]=(int16_t)(in[c]+(type==2&&amount?wet[c]/2:0));
+    }
+    f->chorus_pos=(uint16_t)((f->chorus_pos+1)&1023u);
+    *left+= (wet[0]-*left)*(int32_t)amount/254;
+    *right+=(wet[1]-*right)*(int32_t)amount/254;
+}
+static void zero_to_wet(void) {
+    for(unsigned type=0;type<=2;type+=2) {
+        memset(&effects[0],0,sizeof effects[0]);memset(&effects[1],0,sizeof effects[1]);
+        uint8_t amount[4]={0},mode[4]={0};mode[3]=(uint8_t)type;
+        for(unsigned n=0;n<4096;n++) {
+            int32_t l=(int32_t)(n*43u%16001u)-8000,r=(int32_t)(n*97u%14001u)-7000;
+            int32_t reference_l=l,reference_r=r;
+            legacy_modulation(&effects[1],type,0,&reference_l,&reference_r);
+            mc_effects_process_typed(&effects[0],120,amount,mode,zero,&l,&r);
+            assert(l==reference_l&&r==reference_r);
+        }
+        amount[3]=91;
+        int32_t l=7311,r=-4927,reference_l=l,reference_r=r;
+        legacy_modulation(&effects[1],type,91,&reference_l,&reference_r);
+        mc_effects_process_typed(&effects[0],120,amount,mode,zero,&l,&r);
+        assert(l==reference_l&&r==reference_r);
+        assert(effects[0].phase==effects[1].phase);
+        assert(effects[0].chorus_pos==effects[1].chorus_pos);
+        assert(!memcmp(effects[0].chorus,effects[1].chorus,sizeof effects[0].chorus));
+    }
+    puts("zero-to-wet chorus/flanger arithmetic and history: PASS");
+}
 static void transitions(void) {
     for(unsigned family=0;family<4;family++) {
         uint8_t amount[4]={0},type[4]={0};amount[family]=127;
@@ -122,6 +160,6 @@ static void stress(void) {
     printf("stress 192 mode combinations x 44100 samples x 5 cascades peak=%d state=%zu bytes\n",peak,sizeof(McEffects));
 }
 int main(void) {
-    legacy();impulse();filters();phaser();transitions();stress();
+    legacy();impulse();filters();phaser();zero_to_wet();transitions();stress();
     puts("effects modes PASS");return 0;
 }
