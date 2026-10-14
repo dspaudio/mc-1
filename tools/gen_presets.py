@@ -12,19 +12,28 @@ assert [p['category'] for p in rows]==[category for category,count in categories
 assert all(len(category)<=15 for category,count in categories)
 enum_ids=['MC_PRESET_'+re.sub(r'[^A-Z0-9]+','_',p['name']).strip('_') for p in rows]
 assert len(set(enum_ids))==len(rows)
+assert all(len(p['name'])<=18 for p in rows)
+assert sum(p['source']=='recorded PCM' for p in rows)==64
+samples=json.loads((r/'assets/recorded/manifest.json').read_text())['samples']
+assert [sample['id'] for sample in samples]==list(range(16))
 for p in rows:
  assert len(p['patch'])==12 and all(0<=v<=127 for v in p['patch'])
- assert p['patch'][0]<2 and p['patch'][1]<3 and p['patch'][2]<24
+ assert p['patch'][0]<2 and p['patch'][1]<3 and p['patch'][2]<40
+ recorded=p['patch'][2]>=24
+ assert p['source']==('recorded PCM' if recorded else 'original synthesis')
+ if recorded: assert p['patch'][0]==0 and p['patch'][3]==127 and p['sample']==samples[p['patch'][2]-24]['name']
 p=r/'src/factory.c';s=p.read_text();start=s.index('/* Generated from presets.json') if '/* Generated from presets.json' in s else s.index('const char *const');end=s.index('static void clear_bytes')
 s=s[:start]+'/* Generated from presets.json by tools/gen_presets.py. */\nconst char *const mc_preset_names[MC_PRESETS] = {\n'+''.join('    '+json.dumps(p['name'])+',\n' for p in rows)+'};\nconst char *const mc_preset_categories[MC_PRESETS] = {\n'+''.join('    '+json.dumps(p['category'])+',\n' for p in rows)+'};\n/* engine,wave,PCM,mix,cutoff,resonance,A,D,S,R,glide,level */\nconst McPatch mc_presets[MC_PRESETS] = {\n'+''.join('    {'+','.join(map(str,p['patch']))+'},\n' for p in rows)+'};\n'+s[end:];p.write_text(s)
 (r/'src/presets.h').write_text('/* SPDX-License-Identifier: GPL-3.0-only\n * Copyright (C) 2026 dspaudio */\n/* Generated from presets.json by tools/gen_presets.py. */\n#ifndef MC_PRESETS_H\n#define MC_PRESETS_H\nenum {\n'+''.join(f'    {name} = {i},\n' for i,name in enumerate(enum_ids))+'};\n#endif\n')
 p=r/'host/index.html';s=p.read_text();s=re.sub(r'const names=\[.*?\];', 'const names='+json.dumps([p['name'] for p in rows])+';',s);p.write_text(s)
-bank='## Complete factory preset list\n\n128 original melodic presets: 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.\n\nThe [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original names, parameters and mathematical attacks; no Roland patches, ROMs or samples are copied.\n\nThe bank is ordered by category. All 64 previous names, patch values and family descriptions are preserved; their displayed numbers change to fit these groups. The 24 original PCM attacks and eight drum kits are unchanged.\n\n### Category index\n\n| Category | Presets | Count |\n|---|---|---|\n'
+bank='## Complete factory preset list\n\n128 melodic presets: 64 original synthesis presets and 64 presets based on real instrument recordings. The engine allocation is 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.\n\nThe [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original patch names and parameters; no Roland patches, ROMs or samples are copied.\n\nThe bank is ordered by category. All 64 earlier synthesis names, patch values and family descriptions are preserved. The 24 original mathematical PCM attacks and eight drum kits are unchanged. The 64 additions use 16 CC0 VSCO instrument recordings, with PCM mix set to 127 for recorded-only playback by default. Filter and envelope variations provide distinct presets from each recording. These compact excerpts and sustain loops are instrument sketches rather than full multisampled instruments. The Voice category additions process flute, oboe and clarinet recordings; they are not human vocal recordings.\n\nThe Source column identifies the actual recorded instrument. See the [recording manifest](assets/recorded/manifest.json) for source files and processing, and the [CC0 source license](LICENSES/CC0-VSCO.txt).\n\n### Category index\n\n| Category | Presets | Count |\n|---|---|---|\n'
 offset=0
 for category,count in categories:
  bank+=f'| {category} | {offset+1:03}–{offset+count:03} | {count} |\n';offset+=count
-bank+='\n| # | Category | Sound engine | Preset name | Family |\n|---|---|---|---|---|\n'
-for i,p in enumerate(rows):bank+=f"| {i+1:03} | {p['category']} | {'303-inspired' if p['patch'][0] else 'LA-inspired'} | {p['name']} | {p['family']} |\n"
+bank+='\n| # | Category | Sound engine | Preset name | Family | Source |\n|---|---|---|---|---|---|\n'
+for i,p in enumerate(rows):
+ source=p['source']+(f": {p['sample']}" if p['patch'][2]>=24 else '')
+ bank+=f"| {i+1:03} | {p['category']} | {'303-inspired' if p['patch'][0] else 'LA-inspired'} | {p['name']} | {p['family']} | {source} |\n"
 kit_names=re.findall(r'"([^"]+)"',(r/'src/engine.c').read_text().split('mc_kit_names[MC_KITS]={',1)[1].split('};',1)[0]);assert len(kit_names)==8
 kit_descriptions=[
  'Original default kit: deep kicks, noise snares, hats, cymbals and pitched percussion.',
@@ -45,4 +54,4 @@ p=r/'README.md';s=p.read_text();start='<!-- BEGIN PRESETS -->';end='<!-- END PRE
 if start in s:s=s[:s.index(start)]+start+'\n'+bank+end+s[s.index(end)+len(end):]
 else:s+='\n'+start+'\n'+bank+end+'\n'
 p.write_text(s)
-(r/'docs/PRESETS.md').write_text(bank.replace('(docs/audio/kit-showcase.wav)','(audio/kit-showcase.wav)'))
+(r/'docs/PRESETS.md').write_text(bank.replace('(docs/audio/kit-showcase.wav)','(audio/kit-showcase.wav)').replace('(assets/recorded/manifest.json)','(../assets/recorded/manifest.json)').replace('(LICENSES/CC0-VSCO.txt)','(../LICENSES/CC0-VSCO.txt)'))

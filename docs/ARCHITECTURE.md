@@ -9,7 +9,17 @@ FM6, tape, radio, editor or ROM bank in the image.
 
 Eight melodic voice structs are shared by three parts. LA uses two detuned band-limited
 lookup oscillators, 24 short PCM attack choices with a crossfade to synthesized sustain,
-an envelope and two lowpass stages. Acid uses a monophonic voice per part, destination-step
+an envelope and two lowpass stages. PCM IDs 24–39 instead play 16 recorded instrument
+excerpts from CC0 VSCO 2 Community Edition, with linear interpolation, one-shot or
+crossfaded sustain loops and seven offline anti-aliased mip levels. Each voice chooses
+a level with Q16 advance at most one sample per output frame; SFZ pitch keycenters
+determine tuning. The PCM mix retains its blend meaning; all 64 recorded presets
+default to 127, so no oscillator contributes until the user lowers the mix.
+Samples are mono 16-bit at a 16 kHz base rate, 6,144 frames each before mip reduction.
+All levels are peak-bounded to 16,000, keeping interpolation products in signed 32-bit
+range. The 390,144 bytes of PCM plus 8,320 bytes of 32-bit metadata reside in XIP;
+only sample phase, rate and mip selection live in each voice.
+Acid uses a monophonic voice per part, destination-step
 legato slide, accent and a bounded original four-stage feedback filter. This is a musical
 approximation, not a circuit model. Controls are 0–127 macros. Envelopes are quantized linear
 ramps; modulation, effects and fine editor pages can be extended later.
@@ -19,7 +29,9 @@ IDs keep factory patterns, demos and showcases tied to the intended named sounds
 the bank order changes. The UI shows category and number, and resolves an exact patch
 match before browsing from a loaded project. Custom patches use the last browser position.
 Projects serialize patch parameters, not preset indexes, so reordered banks do not
-change saved sounds.
+change saved sounds. New recorded PCM IDs retain format version 3 but are outside
+older firmware validators: old projects load in this release, while a project using
+new recorded patches cannot be loaded by earlier releases.
 
 Six shared drum voice structs synthesize 16 lane sounds in each of eight original kits
 from noise, sine/pulse oscillators, pitch sweeps and decays. Immutable kit recipes change
@@ -65,13 +77,13 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 269,352 bytes, including a 2,136-byte project. This is not total device
+Host `sizeof(McEngine)` is 269,384 bytes, including a 2,136-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 62,340-byte app, 11,472-byte globals,
-2,784-byte RAM code and 269,352-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 461,096-byte app, 11,472-byte globals,
+2,784-byte RAM code and 269,384-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety

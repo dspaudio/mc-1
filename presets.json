@@ -16,7 +16,8 @@
       0,
       105
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
     "name": "DEEP CELL",
@@ -35,7 +36,8 @@
       0,
       115
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
     "name": "CLUB PULSE",
@@ -54,7 +56,8 @@
       0,
       103
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
     "name": "CLICK FLOOR",
@@ -73,7 +76,8 @@
       0,
       103
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
     "name": "WIRE PICK",
@@ -92,7 +96,8 @@
       0,
       104
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
     "name": "DUB CHAMBER",
@@ -111,36 +116,39 @@
       0,
       109
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "original synthesis"
   },
   {
-    "name": "SUB ANCHOR",
+    "name": "CONTRABASS ROOT",
     "family": "Bass",
     "patch": [
       0,
       2,
-      4,
-      20,
-      18,
+      33,
+      127,
+      85,
       8,
       2,
       85,
       110,
       24,
       0,
-      116
+      110
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Contrabass"
   },
   {
-    "name": "PLUSH OCTAVE",
+    "name": "CONTRABASS ROUND",
     "family": "Bass",
     "patch": [
       0,
-      1,
-      12,
-      45,
-      34,
+      2,
+      33,
+      127,
+      85,
       12,
       3,
       68,
@@ -149,18 +157,20 @@
       0,
       106
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Contrabass"
   },
   {
-    "name": "GRIT PULSE",
+    "name": "CONTRABASS SNAP",
     "family": "Bass",
     "patch": [
       0,
-      1,
-      23,
+      2,
+      33,
+      127,
       85,
-      49,
-      46,
+      24,
       1,
       48,
       62,
@@ -168,36 +178,40 @@
       0,
       101
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Contrabass"
   },
   {
-    "name": "PLUCKED SUB",
+    "name": "CELLO LOW BOW",
     "family": "Bass",
     "patch": [
       0,
       2,
-      14,
-      88,
       32,
+      127,
+      85,
       14,
       1,
       58,
       28,
       22,
       0,
-      118
+      110
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Cello section"
   },
   {
-    "name": "GLASS FLOOR",
+    "name": "CELLO BASS PULSE",
     "family": "Bass",
     "patch": [
       0,
       2,
-      15,
-      72,
-      58,
+      32,
+      127,
+      85,
       8,
       1,
       75,
@@ -206,18 +220,20 @@
       0,
       108
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Cello section"
   },
   {
-    "name": "HOLLOW ROOT",
+    "name": "BASSOON ROOT",
     "family": "Bass",
     "patch": [
       0,
-      1,
-      16,
-      62,
-      39,
-      32,
+      2,
+      37,
+      127,
+      85,
+      24,
       4,
       84,
       88,
@@ -225,7 +241,9 @@
       0,
       104
     ],
-    "category": "Bass"
+    "category": "Bass",
+    "source": "recorded PCM",
+    "sample": "Bassoon"
   },
   {
     "name": "ACID SAW",
@@ -244,7 +262,8 @@
       55,
       100
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "SQUARE RUBBER",
@@ -263,7 +282,8 @@
       70,
       100
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "HIGH VOLTAGE",
@@ -282,7 +302,8 @@
       40,
       90
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "SOFT STEP",
@@ -301,7 +322,8 @@
       85,
       100
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "RESONA BASS",
@@ -320,7 +342,8 @@
       55,
       94
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "LIQUID STEP",
@@ -339,7 +362,8 @@
       75,
       94
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "BRIGHT COIL",
@@ -358,7 +382,8 @@
       24,
       90
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "HOLLOW REED",
@@ -377,7 +402,8 @@
       38,
       93
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "NEEDLE LINE",
@@ -396,7 +422,8 @@
       20,
       85
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "BUBBLE RUN",
@@ -415,7 +442,8 @@
       62,
       100
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "VELVET MONO",
@@ -434,7 +462,8 @@
       85,
       98
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "RAZOR MONO",
@@ -453,7 +482,8 @@
       15,
       82
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "ACID RIBBON",
@@ -472,7 +502,8 @@
       93,
       89
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "COIL WALK",
@@ -491,7 +522,8 @@
       34,
       98
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "SQUELCH GRID",
@@ -510,7 +542,8 @@
       48,
       84
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "RUBBER CHASE",
@@ -529,7 +562,8 @@
       102,
       94
     ],
-    "category": "Acid"
+    "category": "Acid",
+    "source": "original synthesis"
   },
   {
     "name": "VECTOR LEAD",
@@ -548,7 +582,8 @@
       0,
       95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "original synthesis"
   },
   {
     "name": "WIDE SAW",
@@ -567,7 +602,8 @@
       0,
       91
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "original synthesis"
   },
   {
     "name": "SOFT PIPE",
@@ -586,7 +622,8 @@
       0,
       100
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "original synthesis"
   },
   {
     "name": "POLY CHROME",
@@ -605,55 +642,60 @@
       0,
       89
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "original synthesis"
   },
   {
-    "name": "COPPER EDGE",
+    "name": "TRUMPET LEAD",
     "family": "Lead",
     "patch": [
       0,
-      0,
-      19,
-      60,
+      2,
+      38,
+      127,
       100,
-      32,
+      24,
       2,
       52,
       104,
       28,
       0,
-      90
+      95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Trumpet"
   },
   {
-    "name": "SOLO ARC",
+    "name": "HORN SOLO",
     "family": "Lead",
     "patch": [
       0,
-      1,
-      10,
-      42,
-      78,
+      2,
+      39,
+      127,
+      85,
       19,
       5,
       80,
       110,
       42,
       0,
-      94
+      95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "French horn"
   },
   {
-    "name": "NEON FLUTE",
+    "name": "FLUTE LEAD",
     "family": "Lead",
     "patch": [
       0,
       2,
-      17,
-      70,
-      83,
+      34,
+      127,
+      85,
       11,
       8,
       86,
@@ -662,56 +704,62 @@
       0,
       108
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Flute"
   },
   {
-    "name": "SAW CANOPY",
+    "name": "FLUTE SOFT ARC",
     "family": "Lead",
     "patch": [
       0,
-      0,
-      9,
-      26,
-      68,
-      25,
+      2,
+      34,
+      127,
+      85,
+      24,
       12,
       90,
       116,
       58,
       0,
-      88
+      95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Flute"
   },
   {
-    "name": "PULSE TORCH",
+    "name": "OBOE BRIGHT",
     "family": "Lead",
     "patch": [
       0,
-      1,
-      22,
-      65,
+      2,
+      35,
+      127,
       108,
-      42,
+      24,
       1,
       42,
       95,
       24,
       0,
-      87
+      95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Oboe"
   },
   {
-    "name": "GLASS REED",
+    "name": "OBOE SOLO",
     "family": "Lead",
     "patch": [
       0,
       2,
-      16,
-      94,
+      35,
+      127,
       95,
-      28,
+      24,
       2,
       76,
       85,
@@ -719,17 +767,19 @@
       0,
       103
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Oboe"
   },
   {
-    "name": "SOFT COMET",
+    "name": "CLARINET ARC",
     "family": "Lead",
     "patch": [
       0,
       2,
-      18,
-      55,
-      61,
+      36,
+      127,
+      85,
       15,
       18,
       95,
@@ -738,16 +788,18 @@
       0,
       107
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Clarinet"
   },
   {
-    "name": "BRIGHT VECTOR",
+    "name": "CLARINET BRIGHT",
     "family": "Lead",
     "patch": [
       0,
-      0,
-      0,
-      93,
+      2,
+      36,
+      127,
       116,
       24,
       1,
@@ -755,9 +807,11 @@
       90,
       30,
       0,
-      86
+      95
     ],
-    "category": "Lead"
+    "category": "Lead",
+    "source": "recorded PCM",
+    "sample": "Clarinet"
   },
   {
     "name": "SEQUENCE KEY",
@@ -776,7 +830,8 @@
       0,
       100
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "original synthesis"
   },
   {
     "name": "SPARK SEQ",
@@ -795,7 +850,8 @@
       0,
       98
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "original synthesis"
   },
   {
     "name": "RATCHET PLUCK",
@@ -814,18 +870,19 @@
       0,
       104
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "original synthesis"
   },
   {
-    "name": "CLOCK BLOOM",
+    "name": "PIANO STEPS",
     "family": "Sequence",
     "patch": [
       0,
-      1,
-      12,
-      95,
-      72,
-      26,
+      2,
+      24,
+      127,
+      85,
+      24,
       1,
       42,
       22,
@@ -833,18 +890,20 @@
       0,
       106
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "PINWHEEL",
+    "name": "MARIMBA RUN",
     "family": "Sequence",
     "patch": [
       0,
-      0,
-      22,
-      110,
+      2,
+      26,
+      127,
       96,
-      50,
+      24,
       1,
       38,
       12,
@@ -852,16 +911,18 @@
       0,
       99
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Marimba"
   },
   {
-    "name": "CRYSTAL GATE",
+    "name": "GLOCK GRID",
     "family": "Sequence",
     "patch": [
       0,
       2,
-      15,
-      115,
+      27,
+      127,
       109,
       18,
       1,
@@ -871,37 +932,41 @@
       0,
       110
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Glockenspiel"
   },
   {
-    "name": "WOODEN STEP",
+    "name": "XYLO WALK",
     "family": "Sequence",
     "patch": [
       0,
       2,
-      20,
-      117,
-      64,
+      28,
+      127,
+      85,
       12,
       1,
       45,
       12,
       20,
       0,
-      120
+      110
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Xylophone"
   },
   {
-    "name": "LANTERN RUN",
+    "name": "HARP PATTERN",
     "family": "Sequence",
     "patch": [
       0,
-      1,
-      16,
-      100,
-      56,
-      38,
+      2,
+      29,
+      127,
+      85,
+      24,
       2,
       52,
       32,
@@ -909,18 +974,20 @@
       0,
       107
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Harp"
   },
   {
-    "name": "SILVER TICK",
+    "name": "CLARINET GATE",
     "family": "Sequence",
     "patch": [
       0,
-      0,
-      21,
-      105,
+      2,
+      36,
+      127,
       87,
-      30,
+      24,
       1,
       43,
       16,
@@ -928,18 +995,20 @@
       0,
       104
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Clarinet"
   },
   {
-    "name": "POCKET PULSE",
+    "name": "VIOLIN PULSE",
     "family": "Sequence",
     "patch": [
       0,
-      1,
-      23,
-      94,
-      45,
-      52,
+      2,
+      30,
+      127,
+      85,
+      24,
       1,
       48,
       35,
@@ -947,7 +1016,9 @@
       0,
       110
     ],
-    "category": "Sequence"
+    "category": "Sequence",
+    "source": "recorded PCM",
+    "sample": "Solo violin"
   },
   {
     "name": "HAMMER KEY",
@@ -966,7 +1037,8 @@
       0,
       108
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
     "name": "SOFT TINES",
@@ -985,7 +1057,8 @@
       0,
       105
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
     "name": "CLAVI CLICK",
@@ -1004,7 +1077,8 @@
       0,
       103
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
     "name": "VELVET CHORD",
@@ -1023,7 +1097,8 @@
       0,
       105
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
     "name": "AMBER PIANO",
@@ -1042,7 +1117,8 @@
       0,
       106
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
     "name": "PRISM KEY",
@@ -1061,35 +1137,38 @@
       0,
       101
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "original synthesis"
   },
   {
-    "name": "FELT GLOW",
+    "name": "PIANO FELT",
     "family": "Keys",
     "patch": [
       0,
       2,
-      14,
-      92,
-      60,
+      24,
+      127,
+      85,
       4,
       2,
       108,
       43,
       66,
       0,
-      114
+      110
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "DIGITAL IVORY",
+    "name": "PIANO BRIGHT",
     "family": "Keys",
     "patch": [
       0,
       2,
-      6,
-      124,
+      24,
+      127,
       103,
       8,
       1,
@@ -1097,18 +1176,20 @@
       34,
       53,
       0,
-      111
+      110
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "CHORDED TINE",
+    "name": "PIANO ROOM",
     "family": "Keys",
     "patch": [
       0,
-      1,
-      11,
-      103,
+      2,
+      24,
+      127,
       86,
       11,
       1,
@@ -1118,26 +1199,30 @@
       0,
       99
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "SOFT HAMMER",
+    "name": "PIANO SHORT",
     "family": "Keys",
     "patch": [
       0,
       2,
-      13,
-      106,
-      68,
+      24,
+      127,
+      85,
       7,
       2,
       88,
       38,
       42,
       0,
-      116
+      110
     ],
-    "category": "Keys"
+    "category": "Keys",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
     "name": "DRAWBAR KEY",
@@ -1156,7 +1241,8 @@
       0,
       93
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "original synthesis"
   },
   {
     "name": "PERC ORGAN",
@@ -1175,7 +1261,8 @@
       0,
       99
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "original synthesis"
   },
   {
     "name": "CELLAR ORGAN",
@@ -1194,17 +1281,18 @@
       0,
       97
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "original synthesis"
   },
   {
-    "name": "DUSK DRAWBAR",
+    "name": "ORGAN MELLOW",
     "family": "Organ",
     "patch": [
       0,
-      1,
-      12,
+      2,
       25,
-      42,
+      127,
+      85,
       4,
       3,
       30,
@@ -1213,35 +1301,39 @@
       0,
       99
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
-    "name": "CHAPEL PULSE",
+    "name": "ORGAN CHAPEL",
     "family": "Organ",
     "patch": [
       0,
-      1,
-      8,
-      48,
-      74,
+      2,
+      25,
+      127,
+      85,
       8,
       10,
       60,
       116,
       52,
       0,
-      94
+      95
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
-    "name": "CLICK REED",
+    "name": "ORGAN PERC",
     "family": "Organ",
     "patch": [
       0,
-      1,
-      7,
-      110,
+      2,
+      25,
+      127,
       89,
       13,
       1,
@@ -1251,35 +1343,39 @@
       0,
       98
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
-    "name": "SOUL REGISTER",
+    "name": "ORGAN FULL",
     "family": "Organ",
     "patch": [
       0,
       2,
-      12,
-      96,
-      77,
+      25,
+      127,
+      85,
       4,
       1,
       55,
       114,
       23,
       0,
-      111
+      110
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
-    "name": "BRIGHT MANUAL",
+    "name": "ORGAN BRIGHT",
     "family": "Organ",
     "patch": [
       0,
-      1,
-      13,
-      72,
+      2,
+      25,
+      127,
       104,
       6,
       1,
@@ -1287,9 +1383,11 @@
       118,
       18,
       0,
-      88
+      95
     ],
-    "category": "Organ"
+    "category": "Organ",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
     "name": "REED STACK",
@@ -1308,7 +1406,8 @@
       0,
       90
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "original synthesis"
   },
   {
     "name": "BRASS BLOCK",
@@ -1327,7 +1426,8 @@
       0,
       92
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "original synthesis"
   },
   {
     "name": "SOFT HORNS",
@@ -1346,36 +1446,39 @@
       0,
       91
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "original synthesis"
   },
   {
-    "name": "COPPER SECTION",
+    "name": "TRUMPET SECTION",
     "family": "Brass/Reed",
     "patch": [
       0,
-      0,
-      19,
-      86,
-      84,
+      2,
+      38,
+      127,
+      85,
       20,
       12,
       60,
       98,
       34,
       0,
-      94
+      95
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "recorded PCM",
+    "sample": "Trumpet"
   },
   {
-    "name": "MELLOW STACK",
+    "name": "HORN MELLOW",
     "family": "Brass/Reed",
     "patch": [
       0,
-      0,
-      10,
-      48,
-      53,
+      2,
+      39,
+      127,
+      85,
       15,
       24,
       84,
@@ -1384,17 +1487,19 @@
       0,
       96
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "recorded PCM",
+    "sample": "French horn"
   },
   {
-    "name": "REED CHAMBER",
+    "name": "BASSOON REED",
     "family": "Brass/Reed",
     "patch": [
       0,
-      1,
-      17,
-      78,
-      73,
+      2,
+      37,
+      127,
+      85,
       23,
       10,
       70,
@@ -1403,45 +1508,51 @@
       0,
       96
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "recorded PCM",
+    "sample": "Bassoon"
   },
   {
-    "name": "SHARP FANFARE",
+    "name": "TRUMPET FANFARE",
     "family": "Brass/Reed",
     "patch": [
       0,
-      0,
-      19,
-      108,
+      2,
+      38,
+      127,
       106,
-      34,
+      24,
       3,
       47,
       81,
       30,
       0,
-      91
+      95
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "recorded PCM",
+    "sample": "Trumpet"
   },
   {
-    "name": "LOW HORN",
+    "name": "HORN LOW",
     "family": "Brass/Reed",
     "patch": [
       0,
       2,
-      10,
-      60,
-      45,
+      39,
+      127,
+      85,
       14,
       18,
       91,
       110,
       54,
       0,
-      113
+      110
     ],
-    "category": "Brass/Reed"
+    "category": "Brass/Reed",
+    "source": "recorded PCM",
+    "sample": "French horn"
   },
   {
     "name": "STRING VEIL",
@@ -1460,102 +1571,113 @@
       0,
       82
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "original synthesis"
   },
   {
-    "name": "ROSIN VEIL",
+    "name": "VIOLIN BOW",
     "family": "Strings",
     "patch": [
       0,
-      0,
-      9,
-      52,
-      75,
+      2,
+      30,
+      127,
+      85,
       13,
-      62,
+      40,
       95,
       106,
       92,
       0,
-      88
+      95
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "recorded PCM",
+    "sample": "Solo violin"
   },
   {
-    "name": "CHAMBER LINE",
+    "name": "VIOLA CHAMBER",
     "family": "Strings",
     "patch": [
       0,
-      1,
-      17,
-      30,
-      54,
+      2,
+      31,
+      127,
+      85,
       15,
-      44,
+      40,
       90,
       111,
       74,
       0,
-      91
+      95
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "recorded PCM",
+    "sample": "Viola section"
   },
   {
-    "name": "LOW ENSEMBLE",
+    "name": "CELLO ENSEMBLE",
     "family": "Strings",
     "patch": [
       0,
-      0,
-      14,
-      20,
-      38,
+      2,
+      32,
+      127,
+      85,
       11,
-      84,
+      40,
       112,
       117,
       100,
       0,
       96
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "recorded PCM",
+    "sample": "Cello section"
   },
   {
-    "name": "SILVER BOW",
+    "name": "VIOLIN SILVER",
     "family": "Strings",
     "patch": [
       0,
-      0,
-      18,
-      42,
+      2,
+      30,
+      127,
       94,
       19,
-      50,
+      40,
       86,
       102,
       83,
       0,
-      85
+      95
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "recorded PCM",
+    "sample": "Solo violin"
   },
   {
-    "name": "WARM OCTAVES",
+    "name": "CONTRABASS BOW",
     "family": "Strings",
     "patch": [
       0,
-      1,
-      13,
-      25,
-      62,
+      2,
+      33,
+      127,
+      85,
       8,
-      74,
+      40,
       108,
       113,
       94,
       0,
-      89
+      95
     ],
-    "category": "Strings"
+    "category": "Strings",
+    "source": "recorded PCM",
+    "sample": "Contrabass"
   },
   {
     "name": "SILK PAD",
@@ -1574,7 +1696,8 @@
       0,
       85
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "original synthesis"
   },
   {
     "name": "SLOW HALO",
@@ -1593,7 +1716,8 @@
       0,
       86
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "original synthesis"
   },
   {
     "name": "BELL CLOUD",
@@ -1612,7 +1736,8 @@
       0,
       93
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "original synthesis"
   },
   {
     "name": "DUSK SCREEN",
@@ -1631,7 +1756,8 @@
       0,
       85
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "original synthesis"
   },
   {
     "name": "AIR CHAMBER",
@@ -1650,140 +1776,155 @@
       0,
       98
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "original synthesis"
   },
   {
-    "name": "CLOUD ATRIUM",
+    "name": "PIANO CLOUD",
     "family": "Pad",
     "patch": [
       0,
-      0,
       2,
-      35,
-      52,
+      24,
+      127,
+      85,
       22,
-      96,
+      40,
       110,
       114,
       121,
       0,
-      91
+      95
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "WARM HORIZON",
+    "name": "ORGAN HORIZON",
     "family": "Pad",
     "patch": [
       0,
-      1,
+      2,
+      25,
+      127,
+      85,
       12,
-      20,
-      36,
-      12,
-      108,
+      40,
       114,
       119,
       120,
       0,
       98
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Organ"
   },
   {
-    "name": "LUNAR GLASS",
+    "name": "VIOLIN HALO",
     "family": "Pad",
     "patch": [
       0,
       2,
-      15,
-      85,
+      30,
+      127,
       94,
       16,
-      58,
+      40,
       108,
       94,
       117,
       0,
-      112
+      110
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Solo violin"
   },
   {
-    "name": "VELVET AIR",
+    "name": "VIOLA VEIL",
     "family": "Pad",
     "patch": [
       0,
       2,
-      17,
-      74,
-      59,
+      31,
+      127,
+      85,
       24,
-      84,
+      40,
       100,
       105,
       113,
       0,
-      116
+      110
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Viola section"
   },
   {
-    "name": "SUNSET CHOIR",
-    "family": "Pad",
-    "patch": [
-      0,
-      1,
-      18,
-      57,
-      65,
-      21,
-      72,
-      112,
-      100,
-      109,
-      0,
-      94
-    ],
-    "category": "Pad"
-  },
-  {
-    "name": "FAINT AURORA",
-    "family": "Pad",
-    "patch": [
-      0,
-      0,
-      5,
-      42,
-      82,
-      41,
-      101,
-      120,
-      91,
-      124,
-      0,
-      89
-    ],
-    "category": "Pad"
-  },
-  {
-    "name": "SLOW CURRENT",
+    "name": "CELLO WARM PAD",
     "family": "Pad",
     "patch": [
       0,
       2,
-      3,
-      66,
-      47,
-      33,
-      117,
+      32,
+      127,
+      85,
+      21,
+      40,
+      112,
+      100,
+      109,
+      0,
+      95
+    ],
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Cello section"
+  },
+  {
+    "name": "FLUTE AURORA",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      34,
+      127,
+      85,
+      24,
+      40,
+      120,
+      91,
+      124,
+      0,
+      95
+    ],
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "Flute"
+  },
+  {
+    "name": "HORN SLOW PAD",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      39,
+      127,
+      85,
+      24,
+      40,
       114,
       116,
       126,
       0,
-      119
+      110
     ],
-    "category": "Pad"
+    "category": "Pad",
+    "source": "recorded PCM",
+    "sample": "French horn"
   },
   {
     "name": "NYLON PLUCK",
@@ -1802,7 +1943,8 @@
       0,
       110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "original synthesis"
   },
   {
     "name": "THUMB PLUCK",
@@ -1821,7 +1963,8 @@
       0,
       113
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "original synthesis"
   },
   {
     "name": "WIRE ZITHER",
@@ -1840,16 +1983,17 @@
       0,
       106
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "original synthesis"
   },
   {
-    "name": "COPPER STRING",
+    "name": "HARP BRIGHT",
     "family": "Pluck",
     "patch": [
       0,
-      0,
-      7,
-      118,
+      2,
+      29,
+      127,
       87,
       18,
       1,
@@ -1859,16 +2003,18 @@
       0,
       107
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Harp"
   },
   {
-    "name": "RAIN PICK",
+    "name": "HARP RAIN",
     "family": "Pluck",
     "patch": [
       0,
       2,
-      15,
-      125,
+      29,
+      127,
       106,
       8,
       1,
@@ -1876,37 +2022,41 @@
       10,
       45,
       0,
-      113
+      110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Harp"
   },
   {
-    "name": "NYLON DUSK",
+    "name": "HARP MELLOW",
     "family": "Pluck",
     "patch": [
       0,
-      1,
-      0,
-      104,
-      48,
+      2,
+      29,
+      127,
+      85,
       9,
       1,
       64,
       24,
       35,
       0,
-      112
+      110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Harp"
   },
   {
-    "name": "CRYSTAL THREAD",
+    "name": "HARP THREAD",
     "family": "Pluck",
     "patch": [
       0,
       2,
-      21,
-      122,
+      29,
+      127,
       94,
       22,
       1,
@@ -1914,38 +2064,42 @@
       16,
       54,
       0,
-      111
+      110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Harp"
   },
   {
-    "name": "WOODEN THUMB",
+    "name": "PIANO PLUCK",
     "family": "Pluck",
     "patch": [
       0,
       2,
-      20,
-      119,
-      54,
+      24,
+      127,
+      85,
       6,
       1,
       52,
       20,
       32,
       0,
-      121
+      110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Piano"
   },
   {
-    "name": "SOFT ZITHER",
+    "name": "MARIMBA PLUCK",
     "family": "Pluck",
     "patch": [
       0,
-      1,
-      14,
-      108,
-      61,
+      2,
+      26,
+      127,
+      85,
       20,
       2,
       72,
@@ -1954,26 +2108,30 @@
       0,
       107
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Marimba"
   },
   {
-    "name": "SPRUCE SNAP",
+    "name": "XYLO PLUCK",
     "family": "Pluck",
     "patch": [
       0,
-      0,
-      23,
-      120,
-      79,
+      2,
+      28,
+      127,
+      85,
       16,
       1,
       48,
       14,
       27,
       0,
-      112
+      110
     ],
-    "category": "Pluck"
+    "category": "Pluck",
+    "source": "recorded PCM",
+    "sample": "Xylophone"
   },
   {
     "name": "GLASS BELL",
@@ -1992,7 +2150,8 @@
       0,
       100
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "original synthesis"
   },
   {
     "name": "WOOD MALLET",
@@ -2011,7 +2170,8 @@
       0,
       113
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "original synthesis"
   },
   {
     "name": "GLASS TINES",
@@ -2030,17 +2190,18 @@
       0,
       102
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "original synthesis"
   },
   {
-    "name": "AMBER BELL",
+    "name": "GLOCK BELL",
     "family": "Mallet/Bell",
     "patch": [
       0,
       2,
-      1,
-      124,
-      82,
+      27,
+      127,
+      85,
       6,
       1,
       110,
@@ -2049,35 +2210,39 @@
       0,
       110
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "recorded PCM",
+    "sample": "Glockenspiel"
   },
   {
-    "name": "HOLLOW BAR",
+    "name": "MARIMBA HOLLOW",
     "family": "Mallet/Bell",
     "patch": [
       0,
       2,
-      20,
-      122,
-      71,
+      26,
+      127,
+      85,
       12,
       1,
       66,
       12,
       43,
       0,
-      121
+      110
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "recorded PCM",
+    "sample": "Marimba"
   },
   {
-    "name": "CHIME DROPS",
+    "name": "GLOCK DROPS",
     "family": "Mallet/Bell",
     "patch": [
       0,
       2,
-      15,
-      126,
+      27,
+      127,
       119,
       5,
       1,
@@ -2087,18 +2252,20 @@
       0,
       108
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "recorded PCM",
+    "sample": "Glockenspiel"
   },
   {
-    "name": "BRONZE PIN",
+    "name": "XYLO BAR",
     "family": "Mallet/Bell",
     "patch": [
       0,
-      1,
-      21,
-      120,
+      2,
+      28,
+      127,
       96,
-      27,
+      24,
       1,
       76,
       14,
@@ -2106,26 +2273,30 @@
       0,
       101
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "recorded PCM",
+    "sample": "Xylophone"
   },
   {
-    "name": "ROUND MARIMBA",
+    "name": "MARIMBA ROUND",
     "family": "Mallet/Bell",
     "patch": [
       0,
       2,
-      7,
-      115,
-      49,
+      26,
+      127,
+      85,
       4,
       1,
       69,
       18,
       37,
       0,
-      123
+      110
     ],
-    "category": "Mallet/Bell"
+    "category": "Mallet/Bell",
+    "source": "recorded PCM",
+    "sample": "Marimba"
   },
   {
     "name": "VOWEL CHIME",
@@ -2144,7 +2315,8 @@
       0,
       94
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "original synthesis"
   },
   {
     "name": "BREATH STACK",
@@ -2163,7 +2335,8 @@
       0,
       88
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "original synthesis"
   },
   {
     "name": "CHOIR FLICK",
@@ -2182,18 +2355,19 @@
       0,
       101
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "original synthesis"
   },
   {
-    "name": "OPEN VOWEL",
-    "family": "Voice",
+    "name": "FLUTE CHOIR",
+    "family": "Processed woodwind",
     "patch": [
       0,
-      1,
-      16,
-      116,
-      73,
-      43,
+      2,
+      34,
+      127,
+      85,
+      24,
       8,
       94,
       84,
@@ -2201,45 +2375,51 @@
       0,
       101
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "recorded PCM",
+    "sample": "Flute"
   },
   {
-    "name": "SOFT CHOIR",
-    "family": "Voice",
+    "name": "OBOE VOWEL",
+    "family": "Processed woodwind",
     "patch": [
       0,
       2,
-      18,
-      108,
-      67,
+      35,
+      127,
+      85,
       22,
       19,
       108,
       97,
       91,
       0,
-      117
+      110
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "recorded PCM",
+    "sample": "Oboe"
   },
   {
-    "name": "ROBOT HUM",
-    "family": "Voice",
+    "name": "CLARINET VOICE",
+    "family": "Processed woodwind",
     "patch": [
       0,
-      1,
-      17,
-      123,
+      2,
+      36,
+      127,
       94,
-      58,
+      24,
       2,
       78,
       65,
       46,
       0,
-      92
+      95
     ],
-    "category": "Voice"
+    "category": "Voice",
+    "source": "recorded PCM",
+    "sample": "Clarinet"
   },
   {
     "name": "CHORD STAB",
@@ -2258,7 +2438,8 @@
       0,
       100
     ],
-    "category": "Hit/Percussion"
+    "category": "Hit/Percussion",
+    "source": "original synthesis"
   },
   {
     "name": "BRASS IMPACT",
@@ -2277,7 +2458,8 @@
       0,
       97
     ],
-    "category": "Hit/Percussion"
+    "category": "Hit/Percussion",
+    "source": "original synthesis"
   },
   {
     "name": "TIMBER HIT",
@@ -2296,7 +2478,8 @@
       0,
       113
     ],
-    "category": "Hit/Percussion"
+    "category": "Hit/Percussion",
+    "source": "original synthesis"
   },
   {
     "name": "TUBE STRIKE",
@@ -2315,26 +2498,29 @@
       0,
       106
     ],
-    "category": "Hit/Percussion"
+    "category": "Hit/Percussion",
+    "source": "original synthesis"
   },
   {
-    "name": "GLASS IMPACT",
+    "name": "TRUMPET HIT",
     "family": "Hit/Percussion",
     "patch": [
       0,
       2,
-      21,
+      38,
       127,
       112,
-      34,
+      24,
       1,
       62,
       6,
       44,
       0,
-      116
+      110
     ],
-    "category": "Hit/Percussion"
+    "category": "Hit/Percussion",
+    "source": "recorded PCM",
+    "sample": "Trumpet"
   },
   {
     "name": "ORBITAL MT",
@@ -2353,7 +2539,8 @@
       0,
       90
     ],
-    "category": "Texture"
+    "category": "Texture",
+    "source": "original synthesis"
   },
   {
     "name": "METAL RAIN",
@@ -2372,7 +2559,8 @@
       0,
       100
     ],
-    "category": "Texture"
+    "category": "Texture",
+    "source": "original synthesis"
   },
   {
     "name": "SPACE SHARD",
@@ -2391,7 +2579,8 @@
       0,
       98
     ],
-    "category": "Texture"
+    "category": "Texture",
+    "source": "original synthesis"
   },
   {
     "name": "DIGITAL MIST",
@@ -2410,18 +2599,19 @@
       0,
       89
     ],
-    "category": "Texture"
+    "category": "Texture",
+    "source": "original synthesis"
   },
   {
-    "name": "QUARTZ DRIFT",
+    "name": "VIOLA DRIFT",
     "family": "Texture",
     "patch": [
       0,
       2,
-      5,
-      118,
+      31,
+      127,
       97,
-      56,
+      24,
       32,
       119,
       64,
@@ -2429,6 +2619,8 @@
       0,
       109
     ],
-    "category": "Texture"
+    "category": "Texture",
+    "source": "recorded PCM",
+    "sample": "Viola section"
   }
 ]

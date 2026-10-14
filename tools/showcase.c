@@ -28,6 +28,25 @@ static int kit_showcase(const char *path) {
     }
     int failed=ferror(f);if(fclose(f))failed=1;return failed;
 }
+static int recorded_showcase(const char *path) {
+    const unsigned segment=MC_RATE*3,frames=segment*MC_RECORDED_SAMPLES;int16_t audio[256*2];
+    FILE *f=fopen(path,"wb");if(!f)return 1;
+    fwrite("RIFF",1,4,f);put32(f,36+frames*4);fwrite("WAVEfmt ",1,8,f);put32(f,16);
+    put16(f,1);put16(f,2);put32(f,MC_RATE);put32(f,MC_RATE*4);put16(f,4);put16(f,16);
+    fwrite("data",1,4,f);put32(f,frames*4);
+    for(unsigned id=0;id<MC_RECORDED_SAMPLES;id++) {
+        unsigned preset=0;while(preset<MC_PRESETS&&mc_presets[preset].pcm!=MC_PCM_ATTACKS+id)preset++;
+        if(preset==MC_PRESETS) { fclose(f);return 1; }
+        mc_init(&e);mc_preset(&e,0,preset);mc_note(&e,0,60,110,0,MC_RATE*2);
+        for(unsigned at=0;at<segment;) {
+            unsigned n=segment-at;if(n>256)n=256;
+            mc_render(&e,audio,n);for(unsigned i=0;i<n*2;i++)put16(f,(uint16_t)audio[i]);at+=n;
+        }
+        printf("recorded %u %s: peak=%u clips=%u\n",id,mc_preset_names[preset],e.peak,e.clips);
+        if(e.clips) { fclose(f);return 1; }
+    }
+    int failed=ferror(f);if(fclose(f))failed=1;return failed;
+}
 static int render(const char *path,unsigned kind) {
     const unsigned seconds=16,frames=MC_RATE*seconds;int16_t audio[256*2];
     mc_init(&e);e.project.bpm=120;e.project.swing=12;
@@ -74,7 +93,8 @@ static int render(const char *path,unsigned kind) {
     return failed||e.clips!=0;
 }
 int main(int argc,char **argv) {
-    if(argc!=3) { fprintf(stderr,"usage: showcase la|303|808|kits OUTPUT.wav\n");return 1; }
+    if(argc!=3) { fprintf(stderr,"usage: showcase la|303|808|kits|recorded OUTPUT.wav\n");return 1; }
+    if(!strcmp(argv[1],"recorded"))return recorded_showcase(argv[2]);
     if(!strcmp(argv[1],"kits"))return kit_showcase(argv[2]);
     unsigned kind=!strcmp(argv[1],"la")?0:!strcmp(argv[1],"303")?1:!strcmp(argv[1],"808")?2:3;
     return kind>2?1:render(argv[2],kind);

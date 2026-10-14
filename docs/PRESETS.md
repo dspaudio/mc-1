@@ -1,10 +1,12 @@
 ## Complete factory preset list
 
-128 original melodic presets: 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
+128 melodic presets: 64 original synthesis presets and 64 presets based on real instrument recordings. The engine allocation is 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
 
-The [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original names, parameters and mathematical attacks; no Roland patches, ROMs or samples are copied.
+The [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original patch names and parameters; no Roland patches, ROMs or samples are copied.
 
-The bank is ordered by category. All 64 previous names, patch values and family descriptions are preserved; their displayed numbers change to fit these groups. The 24 original PCM attacks and eight drum kits are unchanged.
+The bank is ordered by category. All 64 earlier synthesis names, patch values and family descriptions are preserved. The 24 original mathematical PCM attacks and eight drum kits are unchanged. The 64 additions use 16 CC0 VSCO instrument recordings, with PCM mix set to 127 for recorded-only playback by default. Filter and envelope variations provide distinct presets from each recording. These compact excerpts and sustain loops are instrument sketches rather than full multisampled instruments. The Voice category additions process flute, oboe and clarinet recordings; they are not human vocal recordings.
+
+The Source column identifies the actual recorded instrument. See the [recording manifest](../assets/recorded/manifest.json) for source files and processing, and the [CC0 source license](../LICENSES/CC0-VSCO.txt).
 
 ### Category index
 
@@ -25,136 +27,136 @@ The bank is ordered by category. All 64 previous names, patch values and family 
 | Hit/Percussion | 119–123 | 5 |
 | Texture | 124–128 | 5 |
 
-| # | Category | Sound engine | Preset name | Family |
-|---|---|---|---|---|
-| 001 | Bass | LA-inspired | ROUND BASS | Bass |
-| 002 | Bass | LA-inspired | DEEP CELL | Bass |
-| 003 | Bass | LA-inspired | CLUB PULSE | Bass |
-| 004 | Bass | LA-inspired | CLICK FLOOR | Bass |
-| 005 | Bass | LA-inspired | WIRE PICK | Bass |
-| 006 | Bass | LA-inspired | DUB CHAMBER | Bass |
-| 007 | Bass | LA-inspired | SUB ANCHOR | Bass |
-| 008 | Bass | LA-inspired | PLUSH OCTAVE | Bass |
-| 009 | Bass | LA-inspired | GRIT PULSE | Bass |
-| 010 | Bass | LA-inspired | PLUCKED SUB | Bass |
-| 011 | Bass | LA-inspired | GLASS FLOOR | Bass |
-| 012 | Bass | LA-inspired | HOLLOW ROOT | Bass |
-| 013 | Acid | 303-inspired | ACID SAW | Bass / lead |
-| 014 | Acid | 303-inspired | SQUARE RUBBER | Bass / lead |
-| 015 | Acid | 303-inspired | HIGH VOLTAGE | Lead |
-| 016 | Acid | 303-inspired | SOFT STEP | Lead |
-| 017 | Acid | 303-inspired | RESONA BASS | Bass |
-| 018 | Acid | 303-inspired | LIQUID STEP | Bass |
-| 019 | Acid | 303-inspired | BRIGHT COIL | Lead |
-| 020 | Acid | 303-inspired | HOLLOW REED | Lead |
-| 021 | Acid | 303-inspired | NEEDLE LINE | Lead |
-| 022 | Acid | 303-inspired | BUBBLE RUN | Sequence |
-| 023 | Acid | 303-inspired | VELVET MONO | Lead |
-| 024 | Acid | 303-inspired | RAZOR MONO | Lead |
-| 025 | Acid | 303-inspired | ACID RIBBON | Bass / lead |
-| 026 | Acid | 303-inspired | COIL WALK | Acid sequence |
-| 027 | Acid | 303-inspired | SQUELCH GRID | Acid sequence |
-| 028 | Acid | 303-inspired | RUBBER CHASE | Acid sequence |
-| 029 | Lead | LA-inspired | VECTOR LEAD | Lead |
-| 030 | Lead | LA-inspired | WIDE SAW | Lead |
-| 031 | Lead | LA-inspired | SOFT PIPE | Lead |
-| 032 | Lead | LA-inspired | POLY CHROME | Poly synth |
-| 033 | Lead | LA-inspired | COPPER EDGE | Lead |
-| 034 | Lead | LA-inspired | SOLO ARC | Lead |
-| 035 | Lead | LA-inspired | NEON FLUTE | Lead |
-| 036 | Lead | LA-inspired | SAW CANOPY | Lead |
-| 037 | Lead | LA-inspired | PULSE TORCH | Lead |
-| 038 | Lead | LA-inspired | GLASS REED | Lead |
-| 039 | Lead | LA-inspired | SOFT COMET | Lead |
-| 040 | Lead | LA-inspired | BRIGHT VECTOR | Lead |
-| 041 | Sequence | LA-inspired | SEQUENCE KEY | Sequence |
-| 042 | Sequence | LA-inspired | SPARK SEQ | Sequence |
-| 043 | Sequence | LA-inspired | RATCHET PLUCK | Sequence |
-| 044 | Sequence | LA-inspired | CLOCK BLOOM | Sequence |
-| 045 | Sequence | LA-inspired | PINWHEEL | Sequence |
-| 046 | Sequence | LA-inspired | CRYSTAL GATE | Sequence |
-| 047 | Sequence | LA-inspired | WOODEN STEP | Sequence |
-| 048 | Sequence | LA-inspired | LANTERN RUN | Sequence |
-| 049 | Sequence | LA-inspired | SILVER TICK | Sequence |
-| 050 | Sequence | LA-inspired | POCKET PULSE | Sequence |
-| 051 | Keys | LA-inspired | HAMMER KEY | Keys |
-| 052 | Keys | LA-inspired | SOFT TINES | Keys |
-| 053 | Keys | LA-inspired | CLAVI CLICK | Keys |
-| 054 | Keys | LA-inspired | VELVET CHORD | House keys |
-| 055 | Keys | LA-inspired | AMBER PIANO | Keys |
-| 056 | Keys | LA-inspired | PRISM KEY | Keys |
-| 057 | Keys | LA-inspired | FELT GLOW | Keys |
-| 058 | Keys | LA-inspired | DIGITAL IVORY | Keys |
-| 059 | Keys | LA-inspired | CHORDED TINE | Keys |
-| 060 | Keys | LA-inspired | SOFT HAMMER | Keys |
-| 061 | Organ | LA-inspired | DRAWBAR KEY | Organ |
-| 062 | Organ | LA-inspired | PERC ORGAN | Organ |
-| 063 | Organ | LA-inspired | CELLAR ORGAN | House organ |
-| 064 | Organ | LA-inspired | DUSK DRAWBAR | Organ |
-| 065 | Organ | LA-inspired | CHAPEL PULSE | Organ |
-| 066 | Organ | LA-inspired | CLICK REED | Organ |
-| 067 | Organ | LA-inspired | SOUL REGISTER | Organ |
-| 068 | Organ | LA-inspired | BRIGHT MANUAL | Organ |
-| 069 | Brass/Reed | LA-inspired | REED STACK | Reed |
-| 070 | Brass/Reed | LA-inspired | BRASS BLOCK | Brass |
-| 071 | Brass/Reed | LA-inspired | SOFT HORNS | Brass |
-| 072 | Brass/Reed | LA-inspired | COPPER SECTION | Brass/Reed |
-| 073 | Brass/Reed | LA-inspired | MELLOW STACK | Brass/Reed |
-| 074 | Brass/Reed | LA-inspired | REED CHAMBER | Brass/Reed |
-| 075 | Brass/Reed | LA-inspired | SHARP FANFARE | Brass/Reed |
-| 076 | Brass/Reed | LA-inspired | LOW HORN | Brass/Reed |
-| 077 | Strings | LA-inspired | STRING VEIL | Strings |
-| 078 | Strings | LA-inspired | ROSIN VEIL | Strings |
-| 079 | Strings | LA-inspired | CHAMBER LINE | Strings |
-| 080 | Strings | LA-inspired | LOW ENSEMBLE | Strings |
-| 081 | Strings | LA-inspired | SILVER BOW | Strings |
-| 082 | Strings | LA-inspired | WARM OCTAVES | Strings |
-| 083 | Pad | LA-inspired | SILK PAD | Pad |
-| 084 | Pad | LA-inspired | SLOW HALO | Pad |
-| 085 | Pad | LA-inspired | BELL CLOUD | Pad |
-| 086 | Pad | LA-inspired | DUSK SCREEN | Pad |
-| 087 | Pad | LA-inspired | AIR CHAMBER | Pad |
-| 088 | Pad | LA-inspired | CLOUD ATRIUM | Pad |
-| 089 | Pad | LA-inspired | WARM HORIZON | Pad |
-| 090 | Pad | LA-inspired | LUNAR GLASS | Pad |
-| 091 | Pad | LA-inspired | VELVET AIR | Pad |
-| 092 | Pad | LA-inspired | SUNSET CHOIR | Pad |
-| 093 | Pad | LA-inspired | FAINT AURORA | Pad |
-| 094 | Pad | LA-inspired | SLOW CURRENT | Pad |
-| 095 | Pluck | LA-inspired | NYLON PLUCK | Pluck |
-| 096 | Pluck | LA-inspired | THUMB PLUCK | Pluck |
-| 097 | Pluck | LA-inspired | WIRE ZITHER | Pluck |
-| 098 | Pluck | LA-inspired | COPPER STRING | Pluck |
-| 099 | Pluck | LA-inspired | RAIN PICK | Pluck |
-| 100 | Pluck | LA-inspired | NYLON DUSK | Pluck |
-| 101 | Pluck | LA-inspired | CRYSTAL THREAD | Pluck |
-| 102 | Pluck | LA-inspired | WOODEN THUMB | Pluck |
-| 103 | Pluck | LA-inspired | SOFT ZITHER | Pluck |
-| 104 | Pluck | LA-inspired | SPRUCE SNAP | Pluck |
-| 105 | Mallet/Bell | LA-inspired | GLASS BELL | Bell |
-| 106 | Mallet/Bell | LA-inspired | WOOD MALLET | Mallet |
-| 107 | Mallet/Bell | LA-inspired | GLASS TINES | Mallet |
-| 108 | Mallet/Bell | LA-inspired | AMBER BELL | Mallet/Bell |
-| 109 | Mallet/Bell | LA-inspired | HOLLOW BAR | Mallet/Bell |
-| 110 | Mallet/Bell | LA-inspired | CHIME DROPS | Mallet/Bell |
-| 111 | Mallet/Bell | LA-inspired | BRONZE PIN | Mallet/Bell |
-| 112 | Mallet/Bell | LA-inspired | ROUND MARIMBA | Mallet/Bell |
-| 113 | Voice | LA-inspired | VOWEL CHIME | Voice-like |
-| 114 | Voice | LA-inspired | BREATH STACK | Voice-like |
-| 115 | Voice | LA-inspired | CHOIR FLICK | Voice-like |
-| 116 | Voice | LA-inspired | OPEN VOWEL | Voice |
-| 117 | Voice | LA-inspired | SOFT CHOIR | Voice |
-| 118 | Voice | LA-inspired | ROBOT HUM | Voice |
-| 119 | Hit/Percussion | LA-inspired | CHORD STAB | Stab |
-| 120 | Hit/Percussion | LA-inspired | BRASS IMPACT | Hit |
-| 121 | Hit/Percussion | LA-inspired | TIMBER HIT | Percussion |
-| 122 | Hit/Percussion | LA-inspired | TUBE STRIKE | Percussion |
-| 123 | Hit/Percussion | LA-inspired | GLASS IMPACT | Hit/Percussion |
-| 124 | Texture | LA-inspired | ORBITAL MT | Texture |
-| 125 | Texture | LA-inspired | METAL RAIN | Texture |
-| 126 | Texture | LA-inspired | SPACE SHARD | Texture |
-| 127 | Texture | LA-inspired | DIGITAL MIST | Texture |
-| 128 | Texture | LA-inspired | QUARTZ DRIFT | Texture |
+| # | Category | Sound engine | Preset name | Family | Source |
+|---|---|---|---|---|---|
+| 001 | Bass | LA-inspired | ROUND BASS | Bass | original synthesis |
+| 002 | Bass | LA-inspired | DEEP CELL | Bass | original synthesis |
+| 003 | Bass | LA-inspired | CLUB PULSE | Bass | original synthesis |
+| 004 | Bass | LA-inspired | CLICK FLOOR | Bass | original synthesis |
+| 005 | Bass | LA-inspired | WIRE PICK | Bass | original synthesis |
+| 006 | Bass | LA-inspired | DUB CHAMBER | Bass | original synthesis |
+| 007 | Bass | LA-inspired | CONTRABASS ROOT | Bass | recorded PCM: Contrabass |
+| 008 | Bass | LA-inspired | CONTRABASS ROUND | Bass | recorded PCM: Contrabass |
+| 009 | Bass | LA-inspired | CONTRABASS SNAP | Bass | recorded PCM: Contrabass |
+| 010 | Bass | LA-inspired | CELLO LOW BOW | Bass | recorded PCM: Cello section |
+| 011 | Bass | LA-inspired | CELLO BASS PULSE | Bass | recorded PCM: Cello section |
+| 012 | Bass | LA-inspired | BASSOON ROOT | Bass | recorded PCM: Bassoon |
+| 013 | Acid | 303-inspired | ACID SAW | Bass / lead | original synthesis |
+| 014 | Acid | 303-inspired | SQUARE RUBBER | Bass / lead | original synthesis |
+| 015 | Acid | 303-inspired | HIGH VOLTAGE | Lead | original synthesis |
+| 016 | Acid | 303-inspired | SOFT STEP | Lead | original synthesis |
+| 017 | Acid | 303-inspired | RESONA BASS | Bass | original synthesis |
+| 018 | Acid | 303-inspired | LIQUID STEP | Bass | original synthesis |
+| 019 | Acid | 303-inspired | BRIGHT COIL | Lead | original synthesis |
+| 020 | Acid | 303-inspired | HOLLOW REED | Lead | original synthesis |
+| 021 | Acid | 303-inspired | NEEDLE LINE | Lead | original synthesis |
+| 022 | Acid | 303-inspired | BUBBLE RUN | Sequence | original synthesis |
+| 023 | Acid | 303-inspired | VELVET MONO | Lead | original synthesis |
+| 024 | Acid | 303-inspired | RAZOR MONO | Lead | original synthesis |
+| 025 | Acid | 303-inspired | ACID RIBBON | Bass / lead | original synthesis |
+| 026 | Acid | 303-inspired | COIL WALK | Acid sequence | original synthesis |
+| 027 | Acid | 303-inspired | SQUELCH GRID | Acid sequence | original synthesis |
+| 028 | Acid | 303-inspired | RUBBER CHASE | Acid sequence | original synthesis |
+| 029 | Lead | LA-inspired | VECTOR LEAD | Lead | original synthesis |
+| 030 | Lead | LA-inspired | WIDE SAW | Lead | original synthesis |
+| 031 | Lead | LA-inspired | SOFT PIPE | Lead | original synthesis |
+| 032 | Lead | LA-inspired | POLY CHROME | Poly synth | original synthesis |
+| 033 | Lead | LA-inspired | TRUMPET LEAD | Lead | recorded PCM: Trumpet |
+| 034 | Lead | LA-inspired | HORN SOLO | Lead | recorded PCM: French horn |
+| 035 | Lead | LA-inspired | FLUTE LEAD | Lead | recorded PCM: Flute |
+| 036 | Lead | LA-inspired | FLUTE SOFT ARC | Lead | recorded PCM: Flute |
+| 037 | Lead | LA-inspired | OBOE BRIGHT | Lead | recorded PCM: Oboe |
+| 038 | Lead | LA-inspired | OBOE SOLO | Lead | recorded PCM: Oboe |
+| 039 | Lead | LA-inspired | CLARINET ARC | Lead | recorded PCM: Clarinet |
+| 040 | Lead | LA-inspired | CLARINET BRIGHT | Lead | recorded PCM: Clarinet |
+| 041 | Sequence | LA-inspired | SEQUENCE KEY | Sequence | original synthesis |
+| 042 | Sequence | LA-inspired | SPARK SEQ | Sequence | original synthesis |
+| 043 | Sequence | LA-inspired | RATCHET PLUCK | Sequence | original synthesis |
+| 044 | Sequence | LA-inspired | PIANO STEPS | Sequence | recorded PCM: Piano |
+| 045 | Sequence | LA-inspired | MARIMBA RUN | Sequence | recorded PCM: Marimba |
+| 046 | Sequence | LA-inspired | GLOCK GRID | Sequence | recorded PCM: Glockenspiel |
+| 047 | Sequence | LA-inspired | XYLO WALK | Sequence | recorded PCM: Xylophone |
+| 048 | Sequence | LA-inspired | HARP PATTERN | Sequence | recorded PCM: Harp |
+| 049 | Sequence | LA-inspired | CLARINET GATE | Sequence | recorded PCM: Clarinet |
+| 050 | Sequence | LA-inspired | VIOLIN PULSE | Sequence | recorded PCM: Solo violin |
+| 051 | Keys | LA-inspired | HAMMER KEY | Keys | original synthesis |
+| 052 | Keys | LA-inspired | SOFT TINES | Keys | original synthesis |
+| 053 | Keys | LA-inspired | CLAVI CLICK | Keys | original synthesis |
+| 054 | Keys | LA-inspired | VELVET CHORD | House keys | original synthesis |
+| 055 | Keys | LA-inspired | AMBER PIANO | Keys | original synthesis |
+| 056 | Keys | LA-inspired | PRISM KEY | Keys | original synthesis |
+| 057 | Keys | LA-inspired | PIANO FELT | Keys | recorded PCM: Piano |
+| 058 | Keys | LA-inspired | PIANO BRIGHT | Keys | recorded PCM: Piano |
+| 059 | Keys | LA-inspired | PIANO ROOM | Keys | recorded PCM: Piano |
+| 060 | Keys | LA-inspired | PIANO SHORT | Keys | recorded PCM: Piano |
+| 061 | Organ | LA-inspired | DRAWBAR KEY | Organ | original synthesis |
+| 062 | Organ | LA-inspired | PERC ORGAN | Organ | original synthesis |
+| 063 | Organ | LA-inspired | CELLAR ORGAN | House organ | original synthesis |
+| 064 | Organ | LA-inspired | ORGAN MELLOW | Organ | recorded PCM: Organ |
+| 065 | Organ | LA-inspired | ORGAN CHAPEL | Organ | recorded PCM: Organ |
+| 066 | Organ | LA-inspired | ORGAN PERC | Organ | recorded PCM: Organ |
+| 067 | Organ | LA-inspired | ORGAN FULL | Organ | recorded PCM: Organ |
+| 068 | Organ | LA-inspired | ORGAN BRIGHT | Organ | recorded PCM: Organ |
+| 069 | Brass/Reed | LA-inspired | REED STACK | Reed | original synthesis |
+| 070 | Brass/Reed | LA-inspired | BRASS BLOCK | Brass | original synthesis |
+| 071 | Brass/Reed | LA-inspired | SOFT HORNS | Brass | original synthesis |
+| 072 | Brass/Reed | LA-inspired | TRUMPET SECTION | Brass/Reed | recorded PCM: Trumpet |
+| 073 | Brass/Reed | LA-inspired | HORN MELLOW | Brass/Reed | recorded PCM: French horn |
+| 074 | Brass/Reed | LA-inspired | BASSOON REED | Brass/Reed | recorded PCM: Bassoon |
+| 075 | Brass/Reed | LA-inspired | TRUMPET FANFARE | Brass/Reed | recorded PCM: Trumpet |
+| 076 | Brass/Reed | LA-inspired | HORN LOW | Brass/Reed | recorded PCM: French horn |
+| 077 | Strings | LA-inspired | STRING VEIL | Strings | original synthesis |
+| 078 | Strings | LA-inspired | VIOLIN BOW | Strings | recorded PCM: Solo violin |
+| 079 | Strings | LA-inspired | VIOLA CHAMBER | Strings | recorded PCM: Viola section |
+| 080 | Strings | LA-inspired | CELLO ENSEMBLE | Strings | recorded PCM: Cello section |
+| 081 | Strings | LA-inspired | VIOLIN SILVER | Strings | recorded PCM: Solo violin |
+| 082 | Strings | LA-inspired | CONTRABASS BOW | Strings | recorded PCM: Contrabass |
+| 083 | Pad | LA-inspired | SILK PAD | Pad | original synthesis |
+| 084 | Pad | LA-inspired | SLOW HALO | Pad | original synthesis |
+| 085 | Pad | LA-inspired | BELL CLOUD | Pad | original synthesis |
+| 086 | Pad | LA-inspired | DUSK SCREEN | Pad | original synthesis |
+| 087 | Pad | LA-inspired | AIR CHAMBER | Pad | original synthesis |
+| 088 | Pad | LA-inspired | PIANO CLOUD | Pad | recorded PCM: Piano |
+| 089 | Pad | LA-inspired | ORGAN HORIZON | Pad | recorded PCM: Organ |
+| 090 | Pad | LA-inspired | VIOLIN HALO | Pad | recorded PCM: Solo violin |
+| 091 | Pad | LA-inspired | VIOLA VEIL | Pad | recorded PCM: Viola section |
+| 092 | Pad | LA-inspired | CELLO WARM PAD | Pad | recorded PCM: Cello section |
+| 093 | Pad | LA-inspired | FLUTE AURORA | Pad | recorded PCM: Flute |
+| 094 | Pad | LA-inspired | HORN SLOW PAD | Pad | recorded PCM: French horn |
+| 095 | Pluck | LA-inspired | NYLON PLUCK | Pluck | original synthesis |
+| 096 | Pluck | LA-inspired | THUMB PLUCK | Pluck | original synthesis |
+| 097 | Pluck | LA-inspired | WIRE ZITHER | Pluck | original synthesis |
+| 098 | Pluck | LA-inspired | HARP BRIGHT | Pluck | recorded PCM: Harp |
+| 099 | Pluck | LA-inspired | HARP RAIN | Pluck | recorded PCM: Harp |
+| 100 | Pluck | LA-inspired | HARP MELLOW | Pluck | recorded PCM: Harp |
+| 101 | Pluck | LA-inspired | HARP THREAD | Pluck | recorded PCM: Harp |
+| 102 | Pluck | LA-inspired | PIANO PLUCK | Pluck | recorded PCM: Piano |
+| 103 | Pluck | LA-inspired | MARIMBA PLUCK | Pluck | recorded PCM: Marimba |
+| 104 | Pluck | LA-inspired | XYLO PLUCK | Pluck | recorded PCM: Xylophone |
+| 105 | Mallet/Bell | LA-inspired | GLASS BELL | Bell | original synthesis |
+| 106 | Mallet/Bell | LA-inspired | WOOD MALLET | Mallet | original synthesis |
+| 107 | Mallet/Bell | LA-inspired | GLASS TINES | Mallet | original synthesis |
+| 108 | Mallet/Bell | LA-inspired | GLOCK BELL | Mallet/Bell | recorded PCM: Glockenspiel |
+| 109 | Mallet/Bell | LA-inspired | MARIMBA HOLLOW | Mallet/Bell | recorded PCM: Marimba |
+| 110 | Mallet/Bell | LA-inspired | GLOCK DROPS | Mallet/Bell | recorded PCM: Glockenspiel |
+| 111 | Mallet/Bell | LA-inspired | XYLO BAR | Mallet/Bell | recorded PCM: Xylophone |
+| 112 | Mallet/Bell | LA-inspired | MARIMBA ROUND | Mallet/Bell | recorded PCM: Marimba |
+| 113 | Voice | LA-inspired | VOWEL CHIME | Voice-like | original synthesis |
+| 114 | Voice | LA-inspired | BREATH STACK | Voice-like | original synthesis |
+| 115 | Voice | LA-inspired | CHOIR FLICK | Voice-like | original synthesis |
+| 116 | Voice | LA-inspired | FLUTE CHOIR | Processed woodwind | recorded PCM: Flute |
+| 117 | Voice | LA-inspired | OBOE VOWEL | Processed woodwind | recorded PCM: Oboe |
+| 118 | Voice | LA-inspired | CLARINET VOICE | Processed woodwind | recorded PCM: Clarinet |
+| 119 | Hit/Percussion | LA-inspired | CHORD STAB | Stab | original synthesis |
+| 120 | Hit/Percussion | LA-inspired | BRASS IMPACT | Hit | original synthesis |
+| 121 | Hit/Percussion | LA-inspired | TIMBER HIT | Percussion | original synthesis |
+| 122 | Hit/Percussion | LA-inspired | TUBE STRIKE | Percussion | original synthesis |
+| 123 | Hit/Percussion | LA-inspired | TRUMPET HIT | Hit/Percussion | recorded PCM: Trumpet |
+| 124 | Texture | LA-inspired | ORBITAL MT | Texture | original synthesis |
+| 125 | Texture | LA-inspired | METAL RAIN | Texture | original synthesis |
+| 126 | Texture | LA-inspired | SPACE SHARD | Texture | original synthesis |
+| 127 | Texture | LA-inspired | DIGITAL MIST | Texture | original synthesis |
+| 128 | Texture | LA-inspired | VIOLA DRIFT | Texture | recorded PCM: Viola section |
 
 ### Drum kits
 

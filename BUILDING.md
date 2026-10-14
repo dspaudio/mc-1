@@ -18,8 +18,12 @@ cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined \
 build/test-sanitized
 ```
 
-Regenerate assets with `python3 tools/gen_assets.py`; checked-in tables make normal builds
-independent of Python floating-point rounding. Python standard-library scripts can render
+Regenerate original mathematical assets with `python3 tools/gen_assets.py`; checked-in tables make normal builds
+independent of Python floating-point rounding. Regenerate recorded PCM with Python 3.11+
+using `python3.11 tools/gen_recorded_pcm.py`; retained CC0 source WAVs make this conversion
+offline and independent of external packages. The manifest pins hashes and pitch roots; conversion measurements go to
+`build/recorded-pcm-report.json`.
+`python3 tools/gen_presets.py` regenerates the factory bank, symbolic IDs and sound lists. Python standard-library scripts can render
 and inspect demos without installing modules. `host/serve.py` compiles a native shared library
 and exposes only fixed loopback endpoints; it does not accept local filesystem paths.
 

@@ -181,7 +181,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     Canvas c={y,height,pixels}; rect(&c,0,(int)y,240,(int)height,BG);
     unsigned p=e->selected;
     text(&c,3,4,p==3?"DRUMS":"MC-1",ORANGE,1);
-    text(&c,63,4,p==3?mc_drum_names[u->sound]:e->project.patch[p].engine?"303":"LA",WHITE,1);
+    text(&c,63,4,p==3?mc_drum_names[u->sound]:e->project.patch[p].engine?"303":e->project.patch[p].pcm>=MC_PCM_ATTACKS?"PCM":"LA",WHITE,1);
     number(&c,163,4,e->pattern+1,WHITE);text(&c,169,4,"/4",DIM,1);
     text(&c,191,4,e->playing?"+":"-",WHITE,1);number(&c,211,4,e->project.bpm,WHITE);
     if(e->queued<4) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }

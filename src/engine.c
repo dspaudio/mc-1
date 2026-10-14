@@ -2,6 +2,7 @@
  * Copyright (C) 2026 dspaudio */
 #include "mcfm.h"
 #include "tables.h"
+#include "recorded_pcm.h"
 const char *const mc_kit_names[MC_KITS]={"BASE 808","CLUB 909","TIGHT 606","VINTAGE","HOUSE","BREAK JUNGLE","IRON WORKS","ELECTRO LATIN"};
 typedef struct {
     uint16_t hz[MC_DRUMS],decay[MC_DRUMS],sweep,click,clap;
@@ -62,6 +63,10 @@ void mc_note(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned 
     zero(v,sizeof *v); v->active=1; v->part=(uint8_t)part; v->note=(uint8_t)note;
     v->velocity=(uint8_t)velocity; v->accent=(flags&MC_ACCENT)!=0;
     v->patch=*p; v->increment=v->target=mc_frequency[note];
+    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS) {
+        v->sample_step=mc_recorded[p->pcm-MC_PCM_ATTACKS].step[note];
+        while(v->sample_step>65536&&v->sample_level<6) { v->sample_step=(v->sample_step+1)/2;v->sample_level++; }
+    }
     v->phase2=0x31000000u; v->gate_left=gate;
     /* Attack 1..~920 ms; decay/release 20 ms..~2.3 s. */
     v->attack_step=32767/(1+p->attack*p->attack*MC_RATE/18000);
@@ -144,6 +149,20 @@ static int32_t oscillator(uint32_t phase,unsigned wave,unsigned note) {
     unsigned i=phase>>24, frac=(phase>>16)&255;
     return table[i]+((table[(i+1)&255]-table[i])*(int32_t)frac)/256;
 }
+static int32_t recorded(McVoice *v) {
+    const McRecordedLevel *level=&mc_recorded[v->patch.pcm-MC_PCM_ATTACKS].levels[v->sample_level];
+    unsigned pos=v->pcm_pos>>16;
+    if(pos>=level->length) return 0;
+    unsigned next=pos+1;
+    if(level->loop_end&&next>=level->loop_end) next=level->loop_start;
+    else if(next>=level->length)next=level->length-1;
+    int32_t sample=level->data[pos];
+    sample+=(level->data[next]-sample)*(int32_t)(v->pcm_pos&65535)/65536;
+    v->pcm_pos+=v->sample_step;
+    if(level->loop_end&&v->pcm_pos>=((uint32_t)level->loop_end<<16))
+        v->pcm_pos-=((uint32_t)(level->loop_end-level->loop_start)<<16);
+    return sample;
+}
 static int32_t melodic(McVoice *v) {
     if(!v->active) return 0;
     McPatch *p=&v->patch;
@@ -169,7 +188,10 @@ static int32_t melodic(McVoice *v) {
     if(p->engine==MC_LA) {
         sample=(sample+oscillator(v->phase2,p->wave,v->note))/2;
         unsigned pos=v->pcm_pos>>16;
-        if(pos<511) {
+        if(p->pcm>=MC_PCM_ATTACKS) {
+            int32_t pcm=recorded(v);
+            sample=(sample*(127-p->pcm_mix)+pcm*p->pcm_mix)/127;
+        } else if(pos<511) {
             int32_t pcm=mc_attack[p->pcm][pos];
             pcm+=(mc_attack[p->pcm][pos+1]-pcm)*(int32_t)(v->pcm_pos&65535)/65536;
             int32_t weight=p->pcm_mix*(512-(int32_t)pos)/512;

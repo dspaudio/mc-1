@@ -4,6 +4,7 @@
 #include "store.h"
 #include "ui.h"
 #include "presets_012.h"
+#include "recorded_pcm.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -409,7 +410,52 @@ static void sorted_bank(void) {
     puts("PASS: 128 presets in14 contiguous families, original64 patch/PCM snapshots and both demo project snapshots unchanged");
     puts("PASS: all128 preset forward/backward wrap on each melodic part and browsing relative to loaded patch");
 }
+static void recorded_samples(void) {
+    unsigned count=0,used=0;
+    for(unsigned p=0;p<MC_PRESETS;p++)if(mc_presets[p].pcm>=MC_PCM_ATTACKS) {
+        assert(mc_presets[p].engine==MC_LA&&mc_presets[p].pcm_mix==127);
+        used|=1u<<(mc_presets[p].pcm-MC_PCM_ATTACKS);count++;
+        mc_init(&e);mc_preset(&e,0,p);uint8_t record[MC_RECORD_BYTES];McProject q;uint32_t seq;
+        assert(mc_encode(&e.project,1,record,sizeof record)>0&&!mc_decode(&q,&seq,record,sizeof record));
+        assert(!memcmp(&e.project,&q,sizeof q));
+    }
+    assert(count==64&&used==65535);
+    for(unsigned id=0;id<MC_RECORDED_SAMPLES;id++) {
+        const McRecordedSample *sample=&mc_recorded[id];
+        for(unsigned mip=0;mip<7;mip++) {
+            const McRecordedLevel *l=&sample->levels[mip];assert(l->length>=2&&l->length<32768);
+            assert((!l->loop_start&&!l->loop_end)||(l->loop_start+1<l->loop_end&&l->loop_end<=l->length));
+            for(unsigned i=0;i<l->length;i++)assert(abs(l->data[i])<=16000);
+        }
+        unsigned preset=0;while(mc_presets[preset].pcm!=id+MC_PCM_ATTACKS)preset++;
+        mc_init(&a);mc_preset(&a,0,preset);b=a;a.project.patch[0].wave=0;b.project.patch[0].wave=2;
+        mc_note(&a,0,60,110,0,0);mc_note(&b,0,60,110,0,0);
+        mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x)&&energy(x,8192)>0);
+        mc_init(&b);mc_preset(&b,0,preset);b.project.patch[0].pcm_mix=0;mc_note(&b,0,60,110,0,0);
+        mc_render(&b,y,4096);assert(memcmp(x,y,sizeof x));
+        for(unsigned note=12;note<=108;note+=24) {
+            mc_init(&a);mc_preset(&a,0,preset);a.project.patch[0].sustain=127;a.project.patch[0].release=0;
+            mc_note(&a,0,note,127,0,0);assert(a.voice[0].sample_step>0&&a.voice[0].sample_step<=65536);
+            b=a;mc_render(&a,x,4096);for(unsigned n=0;n<4096;n+=64)mc_render(&b,y+n*2,64);
+            assert(!memcmp(x,y,sizeof x));
+            render_n(&a,MC_RATE);const McRecordedLevel *l=&sample->levels[a.voice[0].sample_level];
+            if(l->loop_end)assert(a.voice[0].pcm_pos<((uint32_t)l->loop_end<<16));
+            else assert(a.voice[0].pcm_pos<=((uint32_t)l->length<<16)+65536);
+            mc_off(&a,0,note);render_n(&a,MC_RATE);assert(!a.voice[0].active&&!a.clips);
+        }
+    }
+    mc_init(&e);e.project.patch[0].pcm=MC_PCM_SOURCES;uint8_t record[MC_RECORD_BYTES];
+    assert(mc_encode(&e.project,1,record,sizeof record)<0);
+    e.project.patch[0].pcm=MC_PCM_ATTACKS;e.project.patch[0].engine=MC_ACID;
+    assert(mc_encode(&e.project,1,record,sizeof record)<0);
+    clock_t begin=clock();mc_init(&e);
+    for(unsigned p=0;p<3;p++) { unsigned n=0;while(mc_presets[n].pcm<MC_PCM_ATTACKS)n++;mc_preset(&e,p,n); }
+    for(unsigned fx=0;fx<4;fx++) { e.project.fx[fx]=127;for(unsigned p=0;p<4;p++)e.project.track_fx[p][fx]=127; }
+    for(unsigned n=0;n<8;n++)mc_note(&e,n%3,108-n,127,MC_ACCENT,0);
+    render_n(&e,MC_RATE*10);
+    printf("PASS: 64 recorded presets,16 sources,112 mip bounds/peaks,80 pitch/loop/release cases, PCM-only and blend, persistence;10s sampled stress %.3fs host CPU\n",(double)(clock()-begin)/CLOCKS_PER_SEC);
+}
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();stress();puts("ALL TESTS PASSED");return 0;
 }

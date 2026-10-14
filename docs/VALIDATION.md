@@ -12,7 +12,7 @@ through completion with zero saturation; all effects at maximum are included in
 the 10-second multi-part stress test with all four track processors and master FX
 at maximum (peak 28,589, zero clips on host). A separate coherent-voice test at six
 tempos deliberately saturates cascaded delay/reverb and verifies the final clamp
-without signed overflow. ASan/UBSan passes. Host engine size: 269,352 B;
+without signed overflow. ASan/UBSan passes. Host engine size: 269,384 B;
 project: 2,136 B; encoded record: 2,156 B.
 
 NEON SPIRAL uses all four native effects. The MP3 is 320 kbps stereo 44.1 kHz,
@@ -50,16 +50,16 @@ target report retains the CI compiler path.
 
 | Target region | Used | Bound | Remaining |
 |---|---:|---:|---:|
-| App load image | 62,340 B | 581,564 B | 519,224 B |
+| App load image | 461,096 B | 581,564 B | 120,468 B |
 | Data + BSS | 11,472 B | 98,304 B | 86,832 B |
 | RAM code | 2,784 B | 24,576 B | 21,792 B |
-| Pool | 269,352 B | 344,064 B | 74,712 B |
+| Pool | 269,384 B | 344,064 B | 74,680 B |
 
-The app SHA-256 is `4a6c93e6d6e3b859f590b947937e122708e6dc4da1f95bcc155cd18af1fa2e8c`.
+The app SHA-256 is `2d6180ed1a371f844049389dff337564f118b38e2459839a74d103ad791e3b11`.
 The experimental package is 610,019 B, SHA-256
-`d8d2456000c49d4c6cb05cb92196fbdb2140eabe6db82416ba73e95ed25b642a`.
+`9619ad842204a7d7505f98507cd80f602955c698af75f0c637ed66808b6a6f3f`.
 The RAM loader is 8,140 B, BSS end `0x01C0F3A0`. Static app RAM above sums to
-283,608 B excluding stacks/reservations; no measured stack high-water is claimed.
+283,640 B excluding stacks/reservations; no measured stack high-water is claimed.
 
 Each kit passes all 16 non-silent, distinct-output, decay and hat-choke checks;
 changing the selected kit leaves existing drum voices unchanged. The 64-second
@@ -70,6 +70,35 @@ WAVs, including NEON SPIRAL and the kit comparison, are byte-identical to 0.1.2.
 Independent frozen fixtures check the old 64 patch/PCM results and both built-in
 demo project records. All 129 current renders pass the unchanged energy, DC,
 clipping and release checks.
+
+The 64 new patches use all 16 CC0 instrument recordings, with PCM mix 127. Tests
+change oscillator waveforms while confirming identical PCM-only output, then verify
+that lowering PCM mix audibly changes the rendered samples. All 112 mip tables stay
+within ±16,000 and valid interpolation/loop bounds. Eighty integration cases exercise
+MIDI notes 12, 36, 60, 84 and 108 across all sources, block boundaries, held loops and
+release. Independent sanitizer coverage checks all 97 supported notes and fractional
+sample ends. New patches round-trip through project version 3; invalid source IDs and
+recorded sources assigned to Acid are rejected. Earlier saves load with their original
+patches; earlier firmware cannot load new recorded-source IDs.
+
+Offline regeneration verifies the retained WAV and CC0 license hashes and produces
+byte-identical PCM. Source commits, SFZ keycenters and conversion settings are in the
+[sample manifest](../assets/recorded/manifest.json). The conversion uses 128-tap Blackman
+resampling at 90% of Nyquist, 63-tap half-rate mip filtering, 2 ms onset margin, a
+2 ms fade-in and 64 ms end fade or sustain-loop crossfade. Each base excerpt is
+0.384 seconds at 16 kHz; looped instruments repeat 0.192–0.384 seconds. These are
+compact single-note, single-velocity recordings, not full multisampled instruments.
+All measured loop wrap jumps remain below each table's maximum adjacent jump;
+this is a numeric discontinuity check, not a listening-quality guarantee. Pitch roots
+follow the upstream SFZ mapping. Near-root autocorrelation estimates agree within
+16.2 cents for 15 recordings; the inharmonic glockenspiel estimate differs by 68.3
+cents, so no pitch correction was inferred or applied.
+
+The [48-second recorded audition](audio/recorded-showcase.wav) plays one preset per
+source at MIDI note 60 in manifest order, three seconds each, with no external effects.
+An eight-voice recorded-PCM stress render with all track and master FX takes 0.061
+seconds of host CPU for ten seconds of audio in the optimized Mac build. This does
+not establish target CPU load, codec sound, IRQ latency or hardware stability.
 
 The generator validates 128 unique names, patches and symbolic IDs, and 14 contiguous
 category ranges. Tests browse all 128 sounds on each melodic part, wrap in both

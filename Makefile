@@ -2,7 +2,7 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion
 CORE = src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c
-HEADERS = src/mcfm.h src/presets.h src/store.h src/ui.h src/tables.h
+HEADERS = src/mcfm.h src/presets.h src/recorded_pcm.h src/store.h src/ui.h src/tables.h
 .PHONY: all test render clean assets target
 all: build/mc1-host
 build:
@@ -29,6 +29,7 @@ showcase: build/showcase
 	build/showcase 303 build/303-showcase.wav
 	build/showcase 808 build/808-showcase.wav
 	build/showcase kits build/kit-showcase.wav
+	build/showcase recorded build/recorded-showcase.wav
 
 build/trance: $(CORE) $(HEADERS) tools/trance.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tools/trance.c -o $@
