@@ -21,3 +21,10 @@ target:
 	python3 tools/build_target.py
 clean:
 	rm -rf build
+
+build/showcase: $(CORE) $(HEADERS) tools/showcase.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tools/showcase.c -o $@
+showcase: build/showcase
+	build/showcase la build/la-showcase.wav
+	build/showcase 303 build/303-showcase.wav
+	build/showcase 808 build/808-showcase.wav

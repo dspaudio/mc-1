@@ -9,13 +9,15 @@ The following files were copied from the **public** dspaudio/orbit repository at
 
 - `firmware/hal/fm1_*.h`, `firmware/hal/fm1_isr.S`, `firmware/hal/fm1_vec.S`
 - `firmware/crt0.S`, `firmware/app.ld`, `firmware/lcd.c`, `firmware/libc.c`
+- `firmware/loader/*`, `firmware/update/*`, `tools/fm1pkg_make.py`, `tools/lz4blk.py`,
+  `tests/ldr_test.c`; loader wrapping in `tools/build_package.py` is adapted from upstream `tools/build.py`.
 
 Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments.
 The lineage is ORBIT → SLOOP → Felucca; ORBIT identifies SLOOP origin commit
 `d691ba7b2d922f1a1f41a3622cffe29ce41c5506` and subsequent upstream integrations.
 Upstream source: https://github.com/dspaudio/orbit/tree/07e3fed30e8e6757dbe3c6810276599987e4970e
 
-Only hardware, startup, LCD-transfer and freestanding libc infrastructure is reused.
+Only hardware, startup, LCD-transfer, freestanding libc and update-loader infrastructure is reused.
 MCFM-1 does not include ORBIT engines, tape workflow, sequencer, sample banks, patch assets,
 restricted Felucca icons, panel photos, Hügelton Sample Pack, proprietary Roland ROMs,
 PicoFaceJV ROMs, Munt code, Open303 code or DaisySP code.
@@ -25,9 +27,17 @@ and six original short deterministic attacks. All generated assets, demo composi
 original bitmap font glyphs are GPL-3.0-only. No sampled commercial instrument recordings
 or third-party fonts are needed. Screenshots depict the original MCFM-1 UI.
 
-The JieLi compiler and optional vendor SDK are external build dependencies and are not
-redistributed here. No SDK bootloader/configuration binaries are committed. Building and
-sharing an installable package would require separate SDK provenance and package validation.
+The JieLi compiler and SDK are external build dependencies, absent from the source tree.
+Experimental `.fwsc` packages include three Apache-2.0 SDK assets (`uboot.boot`,
+`cfg_tool.bin`, `cfg/eq_cfg_hw.bin`) from the official JieLi AC79 SDK commit
+`d179b4484759423312073f5fbb232501aa491047`, tag `AC79NN_SDK_V1.2.1_2023-12-13`:
+https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK
+Their hashes are pinned in `tools/build_package.py` and the package report. See
+`LICENSES/Apache-2.0-AC79.txt` for the SDK license. The included bootloader head is
+package metadata: the inherited RAM update loader never writes flash below 0x4000.
+The protocol identity FM-1_900 and FELUCCA-LOADER-1 marker are retained for updater
+compatibility. They do not change product branding. USB/OTA code is linked only
+into the RAM installer, not into the MCFM-1 audio application.
 
 Roland, MC-303, TB-303, TR-808, MT-32, M-VAVE and FM-1 names identify inspirations or target
 hardware. Their owners do not sponsor or endorse MCFM-1. No original tone/patch compatibility

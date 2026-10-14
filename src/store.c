@@ -7,7 +7,13 @@ static int read_both(const McStorage *io) {
     return io->read(MC_STORE_A,records[0],MC_RECORD_BYTES)||io->read(MC_STORE_B,records[1],MC_RECORD_BYTES);
 }
 int mc_store_load(const McStorage *io,McProject *p,uint32_t *seq) {
-    if(read_both(io)) return -1;
+    /* A failed bank read must not hide a readable, valid other bank.
+     * Save remains stricter: an unreadable bank is never safe to erase. */
+    int a=io->read(MC_STORE_A,records[0],MC_RECORD_BYTES);
+    int b=io->read(MC_STORE_B,records[1],MC_RECORD_BYTES);
+    if(a&&b) return -1;
+    if(a) return mc_decode(p,seq,records[1],MC_RECORD_BYTES)<0?-1:1;
+    if(b) return mc_decode(p,seq,records[0],MC_RECORD_BYTES)<0?-1:0;
     return mc_recover(p,seq,records[0],records[1]);
 }
 int mc_store_save(const McStorage *io,const McProject *p) {

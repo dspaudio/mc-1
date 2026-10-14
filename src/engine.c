@@ -156,8 +156,9 @@ static int32_t melodic(McVoice *v) {
     int32_t cutoff=250+p->cutoff*p->cutoff/2;
     if(p->engine==MC_ACID) cutoff+=mul(v->envelope,3500+v->accent*4500);
     cutoff=clamp(cutoff,250,14000);
-    int32_t x=clamp(sample-v->filter[3]*(p->resonance*3)/127,-24000,24000);
-    for(unsigned k=0;k<(p->engine==MC_ACID?4u:2u);k++) {
+    unsigned stages=p->engine==MC_ACID?4u:2u;
+    int32_t x=clamp(sample-v->filter[stages-1]*(p->resonance*3)/127,-24000,24000);
+    for(unsigned k=0;k<stages;k++) {
         v->filter[k]+=mul(x-v->filter[k],cutoff); x=v->filter[k];
     }
     v->age++;

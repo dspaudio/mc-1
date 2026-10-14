@@ -1,0 +1,37 @@
+{
+  "method": "Shared C DSP, peak-only normalization to -3.01 dBFS for audition. Not a device recording or a relative-loudness comparison.",
+  "files": [
+    {
+      "file": "la-showcase.wav",
+      "frames": 705600,
+      "raw_peak": 1589,
+      "audition_gain": 14.581498,
+      "normalized_peak": 23170,
+      "sha256": "f0afc69ccaca7a0dd56cf2a5fd1cd37f947a65e19bb3ed5f74a3586d36ebddfc"
+    },
+    {
+      "file": "303-showcase.wav",
+      "frames": 705600,
+      "raw_peak": 730,
+      "audition_gain": 31.739726,
+      "normalized_peak": 23170,
+      "sha256": "90e7af43c582a406c3ef1dd931ce9e70c1cb9d088a433b6388e666312a0c0e84"
+    },
+    {
+      "file": "808-showcase.wav",
+      "frames": 705600,
+      "raw_peak": 5273,
+      "audition_gain": 4.394083,
+      "normalized_peak": 23170,
+      "sha256": "97c471673a38d9d7c6638e148726823704fbd6317c32253bca29bb1994d7fbc6"
+    },
+    {
+      "file": "full-mix-preview.wav",
+      "frames": 705600,
+      "raw_peak": 4469,
+      "audition_gain": 5.184605,
+      "normalized_peak": 23170,
+      "sha256": "280b40ba78e4da8fce45392bc745f1e443788bd77d6c780a200c9c1705f8f0e8"
+    }
+  ]
+}

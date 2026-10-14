@@ -12,8 +12,9 @@ static McEngine e,a,b;
 static int16_t x[4096*2],y[4096*2];
 static uint8_t flash[8192], backup[8192];
 static int cut=-1;
+static uint32_t unreadable;
 static int read_store(uint32_t off,void *p,unsigned n) {
-    if(off<MC_STORE_A||off>MC_STORE_B+4096||n>MC_STORE_B+4096-off) return -1;
+    if(off==unreadable||off<MC_STORE_A||off>MC_STORE_B+4096||n>MC_STORE_B+4096-off) return -1;
     memcpy(p,flash+(off-MC_STORE_A),n);return 0;
 }
 static int write_byte(unsigned off,uint8_t v,int erase) {
@@ -69,6 +70,45 @@ static void engines(void) {
     assert(e.steals==22);
     puts("PASS: 12 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
 }
+static void knob_audio(void) {
+    McUi ua,ub;
+    /* Every displayed melodic performance knob must alter rendered sound.
+       PCM is tested at note attack; glide requires a legato destination note. */
+    for(unsigned engine=0;engine<2;engine++) for(unsigned knob=0;knob<4;knob++) {
+        mc_init(&a);mc_ui_init(&ua);mc_preset(&a,0,engine?6:0);b=a;ub=ua;
+        mc_ui_encoder(&a,&ua,knob+3,-127);mc_ui_encoder(&b,&ub,knob+3,127);
+        mc_note(&a,0,48,110,0,0);mc_note(&b,0,48,110,0,0);
+        if(engine&&knob==3) {
+            render_n(&a,512);render_n(&b,512);
+            mc_note(&a,0,72,110,MC_SLIDE,0);mc_note(&b,0,72,110,MC_SLIDE,0);
+        }
+        mc_render(&a,x,4096);mc_render(&b,y,4096);
+        assert(memcmp(x,y,sizeof x));
+        uint64_t difference=0;
+        for(unsigned i=0;i<8192;i++) { int32_t d=x[i]-y[i];difference+=(uint64_t)(d*d); }
+        assert(difference>100000);assert(!a.clips&&!b.clips);
+    }
+    /* LA resonance at maximum remains bounded over the complete keyboard/cutoff range. */
+    for(unsigned note=12;note<=108;note+=12) for(unsigned cut=0;cut<=127;cut+=127) {
+        mc_init(&e);mc_preset(&e,0,0);e.project.patch[0].resonance=127;
+        e.project.patch[0].cutoff=(uint8_t)cut;mc_note(&e,0,note,127,0,4096);
+        render_n(&e,MC_RATE*2);assert(!e.clips);
+        for(unsigned v=0;v<MC_VOICES;v++) assert(!e.voice[v].active);
+    }
+    for(unsigned k=0;k<4;k++) {
+        mc_init(&a);mc_ui_init(&ua);ua.page=1;b=a;ub=ua;
+        mc_ui_encoder(&a,&ua,k+3,-127);mc_ui_encoder(&b,&ub,k+3,127);
+        mc_note(&a,0,60,100,0,MC_RATE/4);mc_note(&b,0,60,100,0,MC_RATE/4);
+        uint32_t ha=0,hb=0;
+        for(unsigned t=0;t<16;t++) { mc_render(&a,x,4096);mc_render(&b,y,4096);ha^=mc_crc(x,sizeof x);hb^=mc_crc(y,sizeof y); }
+        assert(ha!=hb);
+    }
+    mc_init(&a);mc_ui_init(&ua);a.selected=3;b=a;ub=ua;
+    mc_ui_encoder(&a,&ua,6,-127);mc_ui_encoder(&b,&ub,6,127);
+    mc_drum(&a,0,100);mc_drum(&b,0,100);mc_render(&a,x,4096);mc_render(&b,y,4096);
+    assert(!energy(x,8192)&&energy(y,8192)>10000);
+    puts("PASS: LA/303 performance and envelope knob audio effects, drum level, LA resonance stability");
+}
 static void sequence(void) {
     mc_init(&a);b=a;mc_start(&a);mc_start(&b);
     mc_render(&a,x,4096);
@@ -109,6 +149,11 @@ static void persistence(void) {
     assert(mc_encode(&p,0xffffffffu,flash,MC_RECORD_BYTES)>0);
     assert(mc_encode(&p,0,flash+4096,MC_RECORD_BYTES)>0);
     assert(mc_store_load(&io,&q,&seq)==1&&seq==0);
+    memcpy(backup,flash,sizeof flash);
+    unreadable=MC_STORE_A;assert(mc_store_load(&io,&q,&seq)==1);
+    assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));
+    unreadable=MC_STORE_B;assert(mc_store_load(&io,&q,&seq)==0);
+    assert(mc_store_save(&io,&p)<0&&!memcmp(flash,backup,sizeof flash));unreadable=0;
     puts("PASS: portable project format, truncation/corruption, validation, rollover and 6228 power cuts");
 }
 static void panel(void) {
@@ -121,6 +166,17 @@ static void panel(void) {
     mc_ui_button(&e,&u,UI_SAVE);assert(!u.save_request&&u.save_pending);
     mc_ui_button(&e,&u,UI_SAVE);assert(u.save_request);
     u.save_request=0;mc_start(&e);mc_ui_button(&e,&u,UI_SAVE);assert(!u.save_request);
+    mc_stop(&e);e.selected=0;mc_ui_button(&e,&u,UI_GLO);
+    mc_ui_encoder(&e,&u,3,1000);assert(e.project.bpm==240);
+    mc_ui_encoder(&e,&u,4,1000);assert(e.project.swing==45);
+    mc_ui_encoder(&e,&u,5,1);assert(e.pattern==1);
+    mc_ui_encoder(&e,&u,6,-1000);assert(e.project.level[0]==0);
+    mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_SEQ);
+    mc_ui_encoder(&e,&u,3,1);unsigned step=e.edit_step;
+    mc_ui_encoder(&e,&u,4,-1000);assert(e.project.step[e.pattern][0][step].velocity==0);
+    mc_ui_encoder(&e,&u,5,1000);assert(e.project.step[e.pattern][0][step].gate==100);
+    mc_ui_encoder(&e,&u,6,3);assert(e.project.step[e.pattern][0][step].flags<4);
+    mc_ui_key(&e,&u,4,1);assert(e.project.step[e.pattern][0][step].note[0]==57);
     uint16_t pixels[240*8+2];pixels[0]=123;pixels[240*8+1]=456;
     for(unsigned part=0;part<4;part++) for(unsigned page=0;page<3;page++) for(unsigned row=0;row<240;row+=8) {
         e.selected=(uint8_t)part;u.page=(uint8_t)page;mc_ui_strip(&e,&u,row,8,pixels+1);
@@ -138,5 +194,5 @@ static void stress(void) {
 }
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    engines();sequence();persistence();panel();stress();puts("ALL TESTS PASSED");return 0;
+    engines();knob_audio();sequence();persistence();panel();stress();puts("ALL TESTS PASSED");return 0;
 }

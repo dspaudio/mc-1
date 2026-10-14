@@ -137,12 +137,15 @@ static void number(Canvas *c,int x,int y,unsigned n,uint16_t color) {
     for(unsigned i=0;i<len/2;i++) { char t=b[i];b[i]=b[len-1-i];b[len-1-i]=t; } b[len]=0;
     text(c,x,y,b,color,1);
 }
-static void knob(Canvas *c,int x,const char *label,unsigned value,uint16_t color) {
+static void knob_scaled(Canvas *c,int x,const char *label,unsigned value,unsigned maximum,uint16_t color) {
     static const int8_t dx[9]={-8,-9,-7,-4,0,4,7,9,8},dy[9]={5,0,-5,-8,-9,-8,-5,0,5};
     for(unsigned i=0;i<9;i++) rect(c,x+dx[i],199+dy[i],3,3,color);
-    unsigned pos=value*8/127;
+    unsigned pos=value*8/maximum;if(pos>8) pos=8;
     rect(c,x,200,2,2,WHITE);rect(c,x+dx[pos]/2,200+dy[pos]/2,2,2,WHITE);
     text(c,x-17,214,label,DIM,1);number(c,x-5,227,value,WHITE);
+}
+static void knob(Canvas *c,int x,const char *label,unsigned value,uint16_t color) {
+    knob_scaled(c,x,label,value,127,color);
 }
 void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint16_t *pixels) {
     if(y>=240||height>8||y+height>240) return;
@@ -159,7 +162,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         text(&c,14,99,"PRESETS: QUEUE PATTERN",WHITE,1);
         text(&c,14,116,"ARP: MUTE SELECTED PART",WHITE,1);
         text(&c,14,140,"HOST AND HARDWARE CORE",DIM,1);
-        knob(&c,26,"TEMPO",e->project.bpm/2,0x3317);knob(&c,85,"SWING",e->project.swing,0x3d48);
+        knob_scaled(&c,26,"TEMPO",e->project.bpm,240,0x3317);knob(&c,85,"SWING",e->project.swing,0x3d48);
         knob(&c,145,"PATT",e->pattern+1,DIM);knob(&c,205,"LEVEL",e->project.level[p],HIT);
     } else if(p==3) {
         for(unsigned row=0;row<16;row++) {

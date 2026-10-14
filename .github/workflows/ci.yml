@@ -15,6 +15,7 @@ jobs:
       - run: python3 tools/gen_assets.py && git diff --exit-code src/tables.h
       - run: python3 tests/host_http.py
       - run: python3 tools/verify_audio.py
+      - run: python3 tools/showcase.py
       - uses: actions/upload-artifact@v4
         with:
           name: host-audio-evidence
@@ -35,12 +36,26 @@ jobs:
         env:
           JIELI_TOOLCHAIN: /tmp/mcfm-toolchain/jieli-linux-toolchains-20260730.1
         run: make target
+      - name: Pinned official SDK and experimental package
+        env:
+          JIELI_TOOLCHAIN: /tmp/mcfm-toolchain/jieli-linux-toolchains-20260730.1
+          AC79_SDK: /tmp/mcfm-sdk
+        run: |
+          git clone --depth 1 --single-branch --branch AC79NN_SDK_V1.2.1_2023-12-13 --filter=blob:none --sparse https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK.git /tmp/mcfm-sdk
+          git -C /tmp/mcfm-sdk sparse-checkout set cpu/wl82/tools
+          test "$(git -C /tmp/mcfm-sdk rev-parse HEAD)" = d179b4484759423312073f5fbb232501aa491047
+          python3 tools/build_package.py
+          cc -O1 -g -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ldr_test.c -o build/ldr-test
+          build/ldr-test build/previous-test-only.fwsc build/mcfm-1-EXPERIMENTAL.fwsc
       - uses: actions/upload-artifact@v4
         with:
-          name: experimental-raw-app-NOT-INSTALLER
+          name: experimental-target-NOT-DEVICE-TESTED
           path: |
             build/mcfm-1.elf
             build/mcfm-1.app.bin
             build/mcfm-1.dis
             build/mcfm-1.symbols
             build/target-report.json
+            build/package-report.json
+            build/mcfm-1-EXPERIMENTAL.fwsc
+            build/loader/
