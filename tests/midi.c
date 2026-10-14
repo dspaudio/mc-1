@@ -60,7 +60,10 @@ int main(void) {
     mc_init(&e);memset(e.project.step,0,sizeof e.project.step);e.project.arp[0].enabled=1;e.recording=1;
     input(1,0x90,60,90);input(1,0x90,64,80);mc_start(&e);
     assert(e.project.step[0][0][0].note[0]==60);unsigned notes=0;
-    while(mc_midi_pop(&e,&m)) if(m.data[0]==0x90) { assert(m.data[1]==60);notes++; }assert(notes==1);
+    while(mc_midi_pop(&e,&m)) {
+        if(m.data[0]==0x90) { assert(m.data[1]==60);notes++; }
+    }
+    assert(notes==1);
     mc_init(&e);mc_note(&e,0,60,100,0,441);input(1,0xe0,0,90);a=e;
     mc_render(&e,buffer,2048);for(unsigned i=0;i<2048;i+=32) mc_render(&a,split+2*i,32);
     assert(!memcmp(buffer,split,sizeof buffer)&&!memcmp(&e,&a,sizeof e));
