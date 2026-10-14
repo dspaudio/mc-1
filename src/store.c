@@ -27,6 +27,8 @@ int mc_store_save(const McStorage *io,const McProject *p) {
     /* Payload first; header (including CRC) commits only after a complete write. */
     if(io->program(addr+20,records[dest]+20,MC_PROJECT_BYTES)) return -1;
     if(io->program(addr,records[dest],20)) return -1;
-    if(io->read(addr,records[dest],MC_RECORD_BYTES)) return -1;
-    return mc_decode(&previous,&seq,records[dest],MC_RECORD_BYTES);
+    if(io->read(addr,records[1-dest],MC_RECORD_BYTES)) return -1;
+    for(unsigned i=0;i<MC_RECORD_BYTES;i++)
+        if(records[dest][i]!=records[1-dest][i]) return -1;
+    return mc_decode(&previous,&seq,records[1-dest],MC_RECORD_BYTES);
 }

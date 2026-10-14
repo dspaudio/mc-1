@@ -6,7 +6,7 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MCFM-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1:** the native host engine, sequencer, display and storage tests work. The pi32v2 target build and Linux/macOS host checks pass; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. No installable update package is provided. The compiled raw target app is a development artifact—not an installer.
+> **Experimental 0.1:** the native host engine, sequencer, display and storage tests work. The pi32v2 target build and Linux/macOS host checks pass; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
@@ -35,6 +35,27 @@ build/mcfm-host                 # interactive command help
 ```
 
 [Listen to NIGHT CIRCUIT](docs/audio/night-circuit.wav): an original host-rendered four-pattern demo at 118 BPM. It is not a recording of an FM-1 or Roland device.
+
+## Listening demos
+
+- [NEON SPIRAL — 56-second original psy-trance study](docs/audio/neon-spiral.wav)
+- [LA lead, pad and bell](docs/audio/la-showcase.wav)
+- [303 cutoff and slide](docs/audio/303-showcase.wav)
+- [808 synthesized drums](docs/audio/808-showcase.wav)
+- [Full factory mix](docs/audio/full-mix-preview.wav)
+
+The MC-505 factory demo video's opening chapter is labeled
+[Psy Trance](https://www.youtube.com/watch?v=d9VYCMy6IOc). NEON SPIRAL explores that
+broad style using an original 140 BPM composition: rolling bass, acid sequence,
+LA arpeggio, drum dropout and return, with cutoff and resonance sweeps.
+It does not recreate or claim a listening match to the original demo.
+At 27.4–34.3 seconds the isolated acid line sweeps cutoff and resonance; at 34.3
+seconds drums/bass return, and at 41.1 seconds the LA arpeggio joins.
+The host performs mutes/pattern changes/knobs through the shared C core; automatic
+song arrangement is not a firmware feature. All five listening files use only
+peak gain to −3.01 dBFS, without external instruments or effects. They are not
+device recordings or relative-loudness comparisons. Rebuild with
+`python3 tools/showcase.py`; [metrics and hashes](docs/showcase-report.json).
 
 ## What is implemented
 

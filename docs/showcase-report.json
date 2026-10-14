@@ -32,6 +32,14 @@
       "audition_gain": 5.184605,
       "normalized_peak": 23170,
       "sha256": "280b40ba78e4da8fce45392bc745f1e443788bd77d6c780a200c9c1705f8f0e8"
+    },
+    {
+      "file": "neon-spiral.wav",
+      "frames": 2463300,
+      "raw_peak": 2838,
+      "audition_gain": 8.1642,
+      "normalized_peak": 23170,
+      "sha256": "c9da48e0ba44ac5d499cefc53ba6a2d5c73e3a664e5edbc2d958a6272d842a17"
     }
   ]
 }

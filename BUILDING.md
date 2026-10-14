@@ -45,10 +45,46 @@ RAM sections, pool headroom and absence of calls from flash-off RAM code. Link f
 are errors, not waived warnings. Each compiler command has a 60-second timeout.
 
 **The raw `.app.bin` is not a `.fwsc` update package. Do not feed it to an updater.**
-No installation or flashing command is included. The AC79 SDK boot/config binaries and
-OTA installer are not in this project. Hardware installation/recovery planning, boot checks,
-calibration verification and real-time measurement remain separate work requiring permission.
+No installation or flashing command is included. Hardware installation, boot checks,
+calibration verification and real-time measurement require a separate device test.
 
 The development Mac's Docker daemon left new ARM and x86 containers in Created state,
 even for `uname`; existing unrelated containers were not restarted. CI on native Linux
 provides the independent target compilation path. Both host and pi32v2 CI jobs have passed; see the validation record for the exact commit, image hash and section sizes.
+
+## Experimental .fwsc package
+
+Use the official SDK commit `d179b4484759423312073f5fbb232501aa491047` from
+https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK (tag `AC79NN_SDK_V1.2.1_2023-12-13`).
+The CI workflow shows the exact sparse checkout and toolchain acquisition.
+
+```sh
+export AC79_SDK=/path/to/fw-AC79_AIoT_SDK
+python3 tools/build_package.py
+cc -O2 -Wall -Wextra -Werror -Wno-unused-function tests/ldr_test.c -o build/ldr-test
+build/ldr-test build/previous-test-only.fwsc build/mcfm-1-EXPERIMENTAL.fwsc
+```
+
+This rebuilds the app and a separate, entirely RAM-resident upstream loader, verifies
+three SDK binary hashes, round-trips each LZ4 block, then packages both using the
+upstream FM-1 format. The `.fwsc` is a candidate for the standard M-UPGRADE path
+when entered from a compatible existing stock/SLOOP/Felucca/ORBIT updater. Physical
+USB handshakes, install and boot are **not tested**. Protocol identity `FM-1_900`
+is inherited; this is not an official vendor release or verified version check.
+
+The loader writes app/config `0x4000..0x92FFF`, never boot head `0..0x3FFF`.
+It scans `0x93000..0xFBFFF` for valid update records and erases only matching record
+sectors. It leaves calibration/global/tail `0xFC000..0xFFFFF` untouched. This is a
+separate installer policy; the audio app still writes only `0x97000..0x98FFF`.
+Host simulation covers CRC failure/retry, wrong key, unknown chip, interrupted host
+completion, identical-image skip and persistent-region sentinels. It is not an
+actual electrical power-loss or USB test. Never install `previous-test-only.fwsc`.
+
+**Recovery boundary:** this preview audio app has no USB updater. After installing,
+it cannot itself start another M-UPGRADE session. The implemented stopped-transport
+five-second OCT−/OCT+ hold enters UBOOT, but the physical recovery path and the
+necessary external recovery utility have not been verified. Do not treat a package
+build as permission to flash or as a verified reversible installation. Retain a
+known working recovery method before a separately authorized hardware trial.
+SDK binaries remain outside source; packages carry the Apache-2.0 assets described
+in NOTICE.md and LICENSES/Apache-2.0-AC79.txt.

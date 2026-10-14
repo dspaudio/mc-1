@@ -166,6 +166,8 @@ int main(int argc, char **argv)
     memset(nor, 0xFF, sizeof nor);
     memcpy(nor, old + ofo, 0x93000);
     memcpy(head, nor, sizeof head);
+    memset(nor + 0x97000, 0xA5, 0x2000);
+    memset(nor + 0xFC000, 0x5A, 0x4000);
     put_record();
     rc = ldr_session();
     printf("  rc %d, %u requests, %u sector erases\n", rc, requests, erases);
@@ -175,6 +177,9 @@ int main(int argc, char **argv)
     bad += check("finish asked (0xF0000000)", f0_asked >= 1);
     bad += check("update record cleared (RAM + flash)", record_cleared && nor[0xE4F06] == 0xFF);
     bad += check("no write outside the allowed windows", bad_range == 0);
+    for (unsigned i=0x97000; i<0x99000; i++) if(nor[i]!=0xA5) { bad++; break; }
+    for (unsigned i=0xFC000; i<0x100000; i++) if(nor[i]!=0x5A) { bad++; break; }
+    bad += check("project banks and calibration/global/tail preserved", bad == 0);
     /* same package again: nothing to erase */
     erases = 0; requests = 0;
     rc = ldr_session();
@@ -234,5 +239,6 @@ int main(int argc, char **argv)
         flash_unknown = 0;
     }
     printf("%s\n", bad ? "LOADER TEST FAILED" : "loader test passed");
+    free(old);free(logical);
     return bad != 0;
 }

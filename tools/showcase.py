@@ -5,8 +5,8 @@ import array, hashlib, json, subprocess, sys, wave
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 (root/'docs/audio').mkdir(parents=True,exist_ok=True)
-subprocess.run(['make','showcase','render'],cwd=root,check=True)
-items=[('la-showcase.wav','la-showcase.wav'),('303-showcase.wav','303-showcase.wav'),('808-showcase.wav','808-showcase.wav'),('demo.wav','full-mix-preview.wav')]
+subprocess.run(['make','showcase','render','trance'],cwd=root,check=True)
+items=[('la-showcase.wav','la-showcase.wav'),('303-showcase.wav','303-showcase.wav'),('808-showcase.wav','808-showcase.wav'),('demo.wav','full-mix-preview.wav'),('neon-spiral.wav','neon-spiral.wav')]
 report=[]
 for source,dest in items:
     with wave.open(str(root/'build'/source)) as f: params=f.getparams(); data=array.array('h',f.readframes(f.getnframes()))
@@ -20,4 +20,4 @@ for source,dest in items:
     with wave.open(str(path),'wb') as f: f.setparams(params);f.writeframes(out.tobytes())
     report.append({'file':dest,'frames':len(data)//2,'raw_peak':peak,'audition_gain':round(gain,6),'normalized_peak':23170,'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
 (root/'docs/showcase-report.json').write_text(json.dumps({'method':'Shared C DSP, peak-only normalization to -3.01 dBFS for audition. Not a device recording or a relative-loudness comparison.','files':report},indent=2)+'\n')
-print('PASS: four 16-second listening examples; peak gain only, no clipping')
+print('PASS: five listening examples; peak gain only, no clipping')
