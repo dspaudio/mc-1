@@ -268,7 +268,8 @@ static void green_feedback(void) {
 }
 static void strip_equivalence(void) {
     init();e.playing=1;
-    for(unsigned part=0;part<3;part++) {
+    for(unsigned page=0;page<10;page++)for(unsigned part=0;part<4;part++) {
+        u.page=(uint8_t)page;
         e.selected=(uint8_t)part;
         for(unsigned step=0;step<16;step++) {
             e.step=(uint8_t)step;
@@ -277,6 +278,6 @@ static void strip_equivalence(void) {
             assert(!memcmp(first,second,sizeof first));
         }
     }
-    puts("PASS: 1행과 8행 분할 렌더의 픽셀 일치, 3파트 및 16개 재생 위치");
+    puts("PASS: 1행과 8행 분할 렌더의 픽셀 일치, 10페이지·4파트·16개 재생 위치");
 }
 int main(void) { acceleration();small_ranges();metronome_ui();song_midi_ui();patterns64();popup();performance_ui();green_feedback();strip_equivalence();return 0; }

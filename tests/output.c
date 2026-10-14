@@ -30,6 +30,24 @@ static void limiter(void) {
     assert(a.limiter_gain==(1u<<24)&&!a.limiter_hits);
     puts("Output transparency, linked stereo ratio, 50 ms recovery, extreme inputs, reset and silence: PASS");
 }
+static void rounding(void) {
+    static const int32_t input[]={-4095,-1023,-61,-1,0,1,61,1023,4095};
+    static const uint32_t master[]={1,32767,32768,65535,MC_MASTER_MAX};
+    static const uint32_t gain[]={1,8388609,16777215,16777216};
+    for(unsigned i=0;i<sizeof input/sizeof *input;i++)
+        for(unsigned m=0;m<sizeof master/sizeof *master;m++)
+            for(unsigned g=0;g<sizeof gain/sizeof *gain;g++) {
+                mc_init(&a);a.master=master[m];a.limiter_gain=gain[g];
+                int32_t l=input[i],r=-input[i]/3;
+                uint32_t next=gain[g]+((1u<<24)-gain[g]+2204)/2205;
+                int64_t expected_l=((int64_t)l*master[m]/32768)*next/(1u<<24);
+                int64_t expected_r=((int64_t)r*master[m]/32768)*next/(1u<<24);
+                mc_output(&a,&l,&r);
+                assert(l==expected_l&&r==expected_r&&a.limiter_gain==next);
+                assert(!a.limiter_hits&&!a.clips);
+            }
+    puts("Signed master/limiter fractions match legacy division and gain recovery: PASS");
+}
 static void hot(void) {
     mc_init(&a);a.master=MC_MASTER_MAX;
     for(unsigned t=0;t<4;t++) {
@@ -67,4 +85,4 @@ static void demos(void) {
     }
     puts("Both demos default loudness versus explicit legacy master=28000: PASS");
 }
-int main(void) { limiter();hot();demos();puts("output: PASS"); }
+int main(void) { limiter();rounding();hot();demos();puts("output: PASS"); }

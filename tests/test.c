@@ -490,7 +490,25 @@ static void recorded_mix_transitions(void) {
     }
     puts("PASS: PCM-only/live mix changes preserve oscillator/sample phase, pitch bend, loop/end and release");
 }
+static void q15_truncation(void) {
+    static const int32_t state[]={-24000,-61,-31,-1,0,1,31,61,24000};
+    static const uint8_t cutoff[]={0,1,63,127};
+    for(unsigned c=0;c<sizeof cutoff;c++)for(unsigned i=0;i<sizeof state/sizeof *state;i++) {
+        mc_init(&e);mc_note(&e,0,60,100,0,0);
+        McVoice *v=&e.voice[0];
+        v->patch.engine=MC_LA;v->patch.wave=2;v->patch.pcm=0;v->patch.pcm_mix=0;
+        v->patch.cutoff=cutoff[c];v->patch.resonance=0;
+        v->phase=v->phase2=v->increment=v->target=0;
+        v->filter[0]=state[i];v->filter[1]=-state[i];
+        int32_t coefficient=250+cutoff[c]*cutoff[c]/2;
+        int32_t first=state[i]+(-state[i]*coefficient)/32768;
+        int32_t second=-state[i]+((first+state[i])*coefficient)/32768;
+        mc_render(&e,x,1);
+        assert(v->filter[0]==first&&v->filter[1]==second);
+    }
+    puts("PASS: Q15 filter products preserve zero-directed truncation for both signs");
+}
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35478&&MC_PROJECT_BYTES==35094);
-    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();recorded_mix_transitions();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();recorded_mix_transitions();q15_truncation();stress();puts("ALL TESTS PASSED");return 0;
 }

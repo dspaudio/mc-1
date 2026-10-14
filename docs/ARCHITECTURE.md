@@ -125,7 +125,7 @@ RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack u
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 490,740-byte app, 50,036-byte globals,
+The [target report](target-report.json) records a 490,772-byte app, 50,036-byte globals,
 5,568-byte RAM code and 304,708-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 

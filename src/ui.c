@@ -241,6 +241,7 @@ static void rect(Canvas *c,int x,int y,int w,int h,uint16_t color) {
         for(int px=x;px<x+w;px++) if(px>=0&&px<240) c->p[(unsigned)(py-(int)c->y)*240+(unsigned)px]=color;
 }
 static void text(Canvas *c,int x,int y,const char *s,uint16_t color,int scale) {
+    if(y+7*scale<=(int)c->y||y>=(int)(c->y+c->h))return;
     while(*s) {
         unsigned ch=(unsigned char)*s++; int index=ch>='0'&&ch<='9'?(int)ch-'0':ch>='A'&&ch<='Z'?(int)ch-'A'+10:ch>='a'&&ch<='z'?(int)ch-'a'+40:ch=='-'?36:ch=='/'?37:ch==':'?38:ch=='+'?39:ch=='*'?66:-1;
         if(index>=0) for(int row=0;row<7;row++) for(int col=0;col<5;col++)

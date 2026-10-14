@@ -29,7 +29,10 @@ static const DrumKit kits[MC_KITS]={
 };
 static int32_t clamp(int32_t x,int32_t lo,int32_t hi) { return x<lo?lo:x>hi?hi:x; }
 static void zero(void *p,unsigned n) { uint8_t *b=p; while(n--) *b++=0; }
-static int32_t mul(int32_t x,int32_t y) { return (x*y)/32768; }
+static int32_t mul(int32_t x,int32_t y) {
+    int32_t product=x*y;
+    return (product+(product<0?32767:0))>>15;
+}
 static uint32_t random32(McEngine *e) {
     uint32_t r=e->random; r^=r<<13; r^=r>>17; r^=r<<5; return e->random=r;
 }
@@ -546,17 +549,19 @@ static uint32_t limiter_target(int64_t peak) {
 void mc_output(McEngine *e,int32_t *left,int32_t *right) {
     const uint32_t unity=1u<<24;
     uint32_t master=e->master>MC_MASTER_MAX?MC_MASTER_MAX:e->master;
-    int64_t l=(int64_t)*left*master/32768,r=(int64_t)*right*master/32768;
+    int64_t l=(int64_t)*left*master,r=(int64_t)*right*master;
+    l=(l+(l<0?32767:0))>>15;r=(r+(r<0?32767:0))>>15;
     int64_t al=l<0?-l:l,ar=r<0?-r:r,peak=al>ar?al:ar;
     uint32_t needed=peak>MC_OUTPUT_CEILING?limiter_target(peak):unity;
     if(needed<unity)e->limiter_hits++;
     if(needed<e->limiter_gain)e->limiter_gain=needed;
-    else {
+    else if(e->limiter_gain<unity) {
         e->limiter_gain+=(unity-e->limiter_gain+2204)/2205;
         if(e->limiter_gain>needed)e->limiter_gain=needed;
     }
     if(e->limiter_gain!=unity) {
-        l=l*e->limiter_gain/unity;r=r*e->limiter_gain/unity;
+        l*=e->limiter_gain;r*=e->limiter_gain;
+        l=(l+(l<0?16777215:0))>>24;r=(r+(r<0?16777215:0))>>24;
     }
     if(l>32767||l< -32767||r>32767||r< -32767)e->clips++;
     al=l<0?-l:l;ar=r<0?-r:r;
