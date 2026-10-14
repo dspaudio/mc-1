@@ -1,0 +1,19 @@
+{
+  "status": "Package format and host loader simulation only; NOT device installed or tested",
+  "package_bytes": 610019,
+  "sha256": "49f30e2b9a5e06ee20f7f0de0bea5bb81a542f8e71b17007e5f73f76206ae002",
+  "app_sha256": "3db0ff24ac7b29e80142d9dda36f160cc0523bf79bb9ef59c6eb9fa286042e47",
+  "loader_bytes": 8140,
+  "loader_load": "0x01c0a800",
+  "loader_bss_end": "01c0f3a0",
+  "sdk_commit": "d179b4484759423312073f5fbb232501aa491047",
+  "sdk_sha256": {
+    "uboot.boot": "4e3b4c220dc96641cb5a723f41e68ce41d5261ae9434bb33fbd7f2c59976ded4",
+    "cfg_tool.bin": "276579954f076886a6a7694f65dc71c034a63a2c204b76749065c0ac7b010d1b",
+    "cfg/eq_cfg_hw.bin": "41167491bffed4651750719c973d2758adeb9021a5670d02d6a53c85ed80ea7d"
+  },
+  "identity": "FM-1_900",
+  "app_write_range": "0x4000..0x92fff",
+  "record_cleanup_range": "0x93000..0xfbfff (only valid update-record sectors)",
+  "app_persistence_range": "0x97000..0x98fff"
+}

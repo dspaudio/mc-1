@@ -10,7 +10,9 @@
 - Part mute, transport stop, project range validation, serialization round trip and corruption rejection.
 - A/B flash model: 6,228 interrupted erase/program positions retain the previous valid project;
   corrupted newest record falls back; sequence rollover is handled.
-- UI drum sound/step/hit/level actions, save confirmation and all strip output bounds.
+- UI drum sound/step/hit/level, GLO and melodic step controls, save confirmation and all strip bounds.
+- LA/acid performance and envelope controls change PCM; LA resonance feedback regression fixed.
+- Failed-bank read fallback; save refuses unreadable banks and verifies complete encoded readback.
 - Native HTTP integration: PNG display, real PCM stream, project export/import and invalid requests.
 - All 13 PCM render hashes and audio metrics match macOS and Linux byte for byte.
 - AddressSanitizer and UndefinedBehaviorSanitizer test run, with abort on first error: pass.
@@ -28,29 +30,42 @@ The official JieLi compiler archive was downloaded and hashed. Local Docker star
 in Created state, including bare `uname` probes on both architectures; unrelated containers
 were left untouched. The native Linux target CI job is the build authority. Its successful
 artifact, when available, includes ELF, raw app, symbols, disassembly and exact memory report.
-**Verified:** [CI run 38508943962](https://github.com/dspaudio/mcfm-1/actions/runs/38508943962)
-passed both host and target jobs at `a73fb154bffba7b4a67b98c947717183bcd5b186`.
+**Verified:** [CI run 38510903402](https://github.com/dspaudio/mcfm-1/actions/runs/38510903402)
+passed both host and target jobs at `953107a14f56b6af777aa944f2775feca7b772f5`.
 The first CI attempt exposed GCC narrowing warnings; explicit bounded casts fixed them.
 No compiler checks were disabled.
 
 | Measured target region | Used | Bound | Remaining |
 |---|---:|---:|---:|
-| App image (including load images) | 34,364 B | 581,564 B | 547,200 B |
+| App image (including load images) | 34,484 B | 581,564 B | 547,080 B |
 | `.data + .bss` | 14,336 B | 98,304 B | 83,968 B |
 | `.ram_text` | 2,784 B | 24,576 B | 21,792 B |
 | `.pool` | 0 B | 344,064 B | 344,064 B |
 
 The ELF is `ELF32-pi32v2`, `_start=0x02000120`, `_bss_end=0x01C0B800` and
 `_rt_end=0x01C00AE0`. Flash-off RAM routines contain no calls. The raw image hash is
-`2cfff00c9cadaee9922f66792d93ed4a78fb128be65ac8f61b71f639f0fbe499`.
+`3db0ff24ac7b29e80142d9dda36f160cc0523bf79bb9ef59c6eb9fa286042e47`.
 See [machine-readable report](target-report.json). These bounds exclude stack high-water
 measurements and do not prove a real-time deadline. Downloadable CI artifacts are explicitly
-named `experimental-raw-app-NOT-INSTALLER`.
+named `experimental-target-NOT-DEVICE-TESTED`.
+
+## Experimental package
+
+The 610,019-byte `.fwsc` contains the 8,140-byte RAM loader (BSS end
+`0x01C0F3A0`) and the current app with pinned Apache-2.0 SDK assets.
+SHA-256: `49f30e2b9a5e06ee20f7f0de0bea5bb81a542f8e71b17007e5f73f76206ae002`.
+See [package report](package-report.json), [delivery audit](AUDIT.md) and
+[installation/recovery boundaries](../BUILDING.md#experimental-fwsc-package).
+The ASan/UBSan host simulation passes install/identical image/wrong key/CRC retry/
+corruption/no-finish/unknown chip tests and preserves project/calibration sentinels.
+An inherited host-test allocation leak was corrected; sanitizer checks remain enabled.
+The current compiler/package/audio reports are checked against regeneration in CI.
 
 ## Not verified
 
 No hardware has been flashed or accessed by this task. Boot, codec audio, keyboard mapping,
 encoder directions, real flash saves, power-failure behavior, UBOOT recovery, battery/master ADC,
 CPU clock, stack high-water, worst-case ISR deadline and long-duration stability are untested.
-No installable update package or hardware-tested release is provided. Host audio and screenshots
+The package format is generated and simulated, but real installation and recovery remain
+unverified. No hardware-tested release is provided. Host audio and screenshots
 must not be described as recordings or photographs of a real FM-1.
