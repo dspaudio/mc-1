@@ -60,6 +60,8 @@ RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack u
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Six original attack tables occupy 6,144 bytes of XIP, not a sample-memory allocation.
 
+Measured pi32v2 static footprint: **34,364-byte app**, **14,336-byte globals**, **2,784-byte RAM code**, **zero pool**. See [target report](target-report.json) for the build and hash.
+
 ## Persistence and safety
 
 Four 16-step patterns fit one portable 2,132-byte project record. Serialization is explicit

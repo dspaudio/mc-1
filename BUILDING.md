@@ -51,4 +51,4 @@ calibration verification and real-time measurement remain separate work requirin
 
 The development Mac's Docker daemon left new ARM and x86 containers in Created state,
 even for `uname`; existing unrelated containers were not restarted. CI on native Linux
-provides the independent target compilation path. See the validation record for results.
+provides the independent target compilation path. Both host and pi32v2 CI jobs have passed; see the validation record for the exact commit, image hash and section sizes.

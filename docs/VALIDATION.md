@@ -11,6 +11,8 @@
 - A/B flash model: 6,228 interrupted erase/program positions retain the previous valid project;
   corrupted newest record falls back; sequence rollover is handled.
 - UI drum sound/step/hit/level actions, save confirmation and all strip output bounds.
+- Native HTTP integration: PNG display, real PCM stream, project export/import and invalid requests.
+- All 13 PCM render hashes and audio metrics match macOS and Linux byte for byte.
 - AddressSanitizer and UndefinedBehaviorSanitizer test run, with abort on first error: pass.
 - In-app browser: actual C drum screen displayed; audio enable, transport and pause controls worked;
   no console warnings/errors were reported during that interaction.
@@ -26,7 +28,24 @@ The official JieLi compiler archive was downloaded and hashed. Local Docker star
 in Created state, including bare `uname` probes on both architectures; unrelated containers
 were left untouched. The native Linux target CI job is the build authority. Its successful
 artifact, when available, includes ELF, raw app, symbols, disassembly and exact memory report.
-This record will be updated after the first CI result; target compilation is not yet claimed here.
+**Verified:** [CI run 38508943962](https://github.com/dspaudio/mcfm-1/actions/runs/38508943962)
+passed both host and target jobs at `a73fb154bffba7b4a67b98c947717183bcd5b186`.
+The first CI attempt exposed GCC narrowing warnings; explicit bounded casts fixed them.
+No compiler checks were disabled.
+
+| Measured target region | Used | Bound | Remaining |
+|---|---:|---:|---:|
+| App image (including load images) | 34,364 B | 581,564 B | 547,200 B |
+| `.data + .bss` | 14,336 B | 98,304 B | 83,968 B |
+| `.ram_text` | 2,784 B | 24,576 B | 21,792 B |
+| `.pool` | 0 B | 344,064 B | 344,064 B |
+
+The ELF is `ELF32-pi32v2`, `_start=0x02000120`, `_bss_end=0x01C0B800` and
+`_rt_end=0x01C00AE0`. Flash-off RAM routines contain no calls. The raw image hash is
+`2cfff00c9cadaee9922f66792d93ed4a78fb128be65ac8f61b71f639f0fbe499`.
+See [machine-readable report](target-report.json). These bounds exclude stack high-water
+measurements and do not prove a real-time deadline. Downloadable CI artifacts are explicitly
+named `experimental-raw-app-NOT-INSTALLER`.
 
 ## Not verified
 

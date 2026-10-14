@@ -6,7 +6,7 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MCFM-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1:** the native host engine, sequencer, display and storage tests work. Target compilation is checked separately in CI. No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. No installable update package is provided. A raw target app, if the target job passes, is a development artifact—not an installer.
+> **Experimental 0.1:** the native host engine, sequencer, display and storage tests work. The pi32v2 target build and Linux/macOS host checks pass; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. No installable update package is provided. The compiled raw target app is a development artifact—not an installer.
 
 ![Actual shared C drum screen](docs/drums.png)
 
