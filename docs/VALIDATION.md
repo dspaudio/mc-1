@@ -1,6 +1,6 @@
-# MC-1 0.1.2 validation record
+# MC-1 0.1.3 validation record
 
-Host tests pass on the development Mac: 64 distinct presets, eight kits with 128 distinct lane renders,
+Host tests pass on the development Mac: 128 distinct presets, eight kits with 128 distinct lane renders,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,
 UI and screen bounds, LA resonance/control regressions, version 1 migration and
 version 2 migration, version 3 kit/track FX round trips, and 6,252 interrupted storage operations. Unreadable
@@ -43,31 +43,39 @@ Mixer checks cover independent
 part levels, clamps, audible output, mute indicators, the mixed-case
 `SELECT-ARP to mute` hint, project serialization and
 the mixer → groove → demo page cycle. The clean ASan/UBSan binary, host render,
-native HTTP checks, all 65 audio renders, pi32v2 memory guards, package build and
+native HTTP checks, all 129 audio renders, pi32v2 memory guards, package build and
 sanitized installer simulation passed. No hardware timing result is implied.
 Compiler installation paths differ between local Docker and CI; the checked-in
 target report retains the CI compiler path.
 
 | Target region | Used | Bound | Remaining |
 |---|---:|---:|---:|
-| App load image | 59,772 B | 581,564 B | 521,792 B |
+| App load image | 62,340 B | 581,564 B | 519,224 B |
 | Data + BSS | 11,472 B | 98,304 B | 86,832 B |
 | RAM code | 2,784 B | 24,576 B | 21,792 B |
 | Pool | 269,352 B | 344,064 B | 74,712 B |
 
-The app SHA-256 is `7de88201fe5d6bfb796586b0551ce408ed0e89b5c4b1f5792aa0586038e9c2b7`.
+The app SHA-256 is `4a6c93e6d6e3b859f590b947937e122708e6dc4da1f95bcc155cd18af1fa2e8c`.
 The experimental package is 610,019 B, SHA-256
-`6a0ce8c18a75e3039946e6edce4abdb31ea231aa5559468f6b9dd583a07d4b62`.
+`d8d2456000c49d4c6cb05cb92196fbdb2140eabe6db82416ba73e95ed25b642a`.
 The RAM loader is 8,140 B, BSS end `0x01C0F3A0`. Static app RAM above sums to
 283,608 B excluding stacks/reservations; no measured stack high-water is claimed.
 
 Each kit passes all 16 non-silent, distinct-output, decay and hat-choke checks;
 changing the selected kit leaves existing drum voices unchanged. The 64-second
 [kit audition](audio/kit-showcase.wav) plays eight seconds per kit in list order.
-Original 48 preset PCM hashes, factory demo and five existing listening files are
-byte-identical to the previous revision. The new short RATCHET PLUCK was adjusted
-after its initial RMS fell below the existing audio threshold; the final 65 renders
-pass the unchanged energy, DC, clipping and release checks.
+All 64 presets from 0.1.2 retain their names, parameters and PCM hashes after matching
+by name across the reordered bank. Factory demo output and all six existing listening
+WAVs, including NEON SPIRAL and the kit comparison, are byte-identical to 0.1.2.
+Independent frozen fixtures check the old 64 patch/PCM results and both built-in
+demo project records. All 129 current renders pass the unchanged energy, DC,
+clipping and release checks.
+
+The generator validates 128 unique names, patches and symbolic IDs, and 14 contiguous
+category ranges. Tests browse all 128 sounds on each melodic part, wrap in both
+directions and resume from the actual patch after project loading. Actual C frame
+captures cover the first preset, Acid boundary, Mallet/Bell, long Hit/Percussion
+category, last preset 128 and both demos; labels and number fit above the grid.
 
 Track effects are tested across all 16 part/effect combinations for changed output,
 isolation from other parts, muted-tail suppression and clearing buffers on dry bypass.

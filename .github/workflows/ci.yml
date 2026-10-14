@@ -12,7 +12,7 @@ jobs:
         run: |
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
           build/test-sanitized
-      - run: python3 tools/gen_assets.py && python3 tools/gen_presets.py && git diff --exit-code src/tables.h src/factory.c host/index.html README.md docs/PRESETS.md
+      - run: python3 tools/gen_assets.py && python3 tools/gen_presets.py && git diff --exit-code src/tables.h src/presets.h src/factory.c host/index.html README.md docs/PRESETS.md
       - run: python3 tests/host_http.py
       - run: python3 tools/verify_audio.py
       - run: python3 tools/showcase.py

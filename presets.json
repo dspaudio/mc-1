@@ -1,23 +1,5 @@
 [
   {
-    "name": "VECTOR LEAD",
-    "family": "Lead",
-    "patch": [
-      0,
-      0,
-      0,
-      75,
-      85,
-      20,
-      1,
-      40,
-      90,
-      25,
-      0,
-      95
-    ]
-  },
-  {
     "name": "ROUND BASS",
     "family": "Bass",
     "patch": [
@@ -33,187 +15,8 @@
       15,
       0,
       105
-    ]
-  },
-  {
-    "name": "SILK PAD",
-    "family": "Pad",
-    "patch": [
-      0,
-      0,
-      2,
-      25,
-      55,
-      15,
-      90,
-      80,
-      95,
-      100,
-      0,
-      85
-    ]
-  },
-  {
-    "name": "GLASS BELL",
-    "family": "Bell",
-    "patch": [
-      0,
-      2,
-      1,
-      105,
-      100,
-      8,
-      1,
-      100,
-      15,
-      90,
-      0,
-      100
-    ]
-  },
-  {
-    "name": "NYLON PLUCK",
-    "family": "Pluck",
-    "patch": [
-      0,
-      1,
-      0,
-      95,
-      70,
-      12,
-      1,
-      50,
-      25,
-      25,
-      0,
-      110
-    ]
-  },
-  {
-    "name": "ORBITAL MT",
-    "family": "Texture",
-    "patch": [
-      0,
-      2,
-      3,
-      90,
-      78,
-      25,
-      15,
-      100,
-      65,
-      90,
-      0,
-      90
-    ]
-  },
-  {
-    "name": "ACID SAW",
-    "family": "Bass / lead",
-    "patch": [
-      1,
-      0,
-      0,
-      0,
-      48,
-      90,
-      1,
-      55,
-      45,
-      10,
-      55,
-      100
-    ]
-  },
-  {
-    "name": "SQUARE RUBBER",
-    "family": "Bass / lead",
-    "patch": [
-      1,
-      1,
-      0,
-      0,
-      38,
-      70,
-      1,
-      70,
-      70,
-      15,
-      70,
-      100
-    ]
-  },
-  {
-    "name": "HIGH VOLTAGE",
-    "family": "Lead",
-    "patch": [
-      1,
-      0,
-      0,
-      0,
-      80,
-      110,
-      1,
-      40,
-      35,
-      8,
-      40,
-      90
-    ]
-  },
-  {
-    "name": "SOFT STEP",
-    "family": "Lead",
-    "patch": [
-      1,
-      1,
-      0,
-      0,
-      50,
-      35,
-      2,
-      85,
-      85,
-      25,
-      85,
-      100
-    ]
-  },
-  {
-    "name": "REED STACK",
-    "family": "Reed",
-    "patch": [
-      0,
-      1,
-      4,
-      60,
-      68,
-      20,
-      8,
-      50,
-      90,
-      40,
-      0,
-      90
-    ]
-  },
-  {
-    "name": "METAL RAIN",
-    "family": "Texture",
-    "patch": [
-      0,
-      2,
-      5,
-      110,
-      90,
-      35,
-      1,
-      110,
-      15,
-      90,
-      0,
-      100
-    ]
+    ],
+    "category": "Bass"
   },
   {
     "name": "DEEP CELL",
@@ -231,7 +34,8 @@
       22,
       0,
       115
-    ]
+    ],
+    "category": "Bass"
   },
   {
     "name": "CLUB PULSE",
@@ -249,7 +53,8 @@
       12,
       0,
       103
-    ]
+    ],
+    "category": "Bass"
   },
   {
     "name": "CLICK FLOOR",
@@ -267,7 +72,8 @@
       10,
       0,
       103
-    ]
+    ],
+    "category": "Bass"
   },
   {
     "name": "WIRE PICK",
@@ -285,7 +91,8 @@
       24,
       0,
       104
-    ]
+    ],
+    "category": "Bass"
   },
   {
     "name": "DUB CHAMBER",
@@ -303,7 +110,198 @@
       50,
       0,
       109
-    ]
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "SUB ANCHOR",
+    "family": "Bass",
+    "patch": [
+      0,
+      2,
+      4,
+      20,
+      18,
+      8,
+      2,
+      85,
+      110,
+      24,
+      0,
+      116
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "PLUSH OCTAVE",
+    "family": "Bass",
+    "patch": [
+      0,
+      1,
+      12,
+      45,
+      34,
+      12,
+      3,
+      68,
+      95,
+      30,
+      0,
+      106
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "GRIT PULSE",
+    "family": "Bass",
+    "patch": [
+      0,
+      1,
+      23,
+      85,
+      49,
+      46,
+      1,
+      48,
+      62,
+      18,
+      0,
+      101
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "PLUCKED SUB",
+    "family": "Bass",
+    "patch": [
+      0,
+      2,
+      14,
+      88,
+      32,
+      14,
+      1,
+      58,
+      28,
+      22,
+      0,
+      118
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "GLASS FLOOR",
+    "family": "Bass",
+    "patch": [
+      0,
+      2,
+      15,
+      72,
+      58,
+      8,
+      1,
+      75,
+      54,
+      32,
+      0,
+      108
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "HOLLOW ROOT",
+    "family": "Bass",
+    "patch": [
+      0,
+      1,
+      16,
+      62,
+      39,
+      32,
+      4,
+      84,
+      88,
+      38,
+      0,
+      104
+    ],
+    "category": "Bass"
+  },
+  {
+    "name": "ACID SAW",
+    "family": "Bass / lead",
+    "patch": [
+      1,
+      0,
+      0,
+      0,
+      48,
+      90,
+      1,
+      55,
+      45,
+      10,
+      55,
+      100
+    ],
+    "category": "Acid"
+  },
+  {
+    "name": "SQUARE RUBBER",
+    "family": "Bass / lead",
+    "patch": [
+      1,
+      1,
+      0,
+      0,
+      38,
+      70,
+      1,
+      70,
+      70,
+      15,
+      70,
+      100
+    ],
+    "category": "Acid"
+  },
+  {
+    "name": "HIGH VOLTAGE",
+    "family": "Lead",
+    "patch": [
+      1,
+      0,
+      0,
+      0,
+      80,
+      110,
+      1,
+      40,
+      35,
+      8,
+      40,
+      90
+    ],
+    "category": "Acid"
+  },
+  {
+    "name": "SOFT STEP",
+    "family": "Lead",
+    "patch": [
+      1,
+      1,
+      0,
+      0,
+      50,
+      35,
+      2,
+      85,
+      85,
+      25,
+      85,
+      100
+    ],
+    "category": "Acid"
   },
   {
     "name": "RESONA BASS",
@@ -321,7 +319,8 @@
       12,
       55,
       94
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "LIQUID STEP",
@@ -339,7 +338,8 @@
       18,
       75,
       94
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "BRIGHT COIL",
@@ -357,7 +357,8 @@
       25,
       24,
       90
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "HOLLOW REED",
@@ -375,7 +376,8 @@
       30,
       38,
       93
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "NEEDLE LINE",
@@ -393,7 +395,8 @@
       8,
       20,
       85
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "BUBBLE RUN",
@@ -411,7 +414,8 @@
       8,
       62,
       100
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "VELVET MONO",
@@ -429,7 +433,8 @@
       40,
       85,
       98
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "RAZOR MONO",
@@ -447,637 +452,8 @@
       16,
       15,
       82
-    ]
-  },
-  {
-    "name": "WIDE SAW",
-    "family": "Lead",
-    "patch": [
-      0,
-      0,
-      10,
-      18,
-      102,
-      15,
-      5,
-      48,
-      100,
-      28,
-      0,
-      91
-    ]
-  },
-  {
-    "name": "SOFT PIPE",
-    "family": "Lead",
-    "patch": [
-      0,
-      2,
-      9,
-      38,
-      64,
-      8,
-      9,
-      75,
-      105,
-      38,
-      0,
-      100
-    ]
-  },
-  {
-    "name": "SEQUENCE KEY",
-    "family": "Sequence",
-    "patch": [
-      0,
-      1,
-      0,
-      68,
-      75,
-      44,
-      1,
-      30,
-      20,
-      14,
-      0,
-      100
-    ]
-  },
-  {
-    "name": "POLY CHROME",
-    "family": "Poly synth",
-    "patch": [
-      0,
-      0,
-      8,
-      34,
-      72,
-      30,
-      5,
-      55,
-      90,
-      40,
-      0,
-      89
-    ]
-  },
-  {
-    "name": "BRASS BLOCK",
-    "family": "Brass",
-    "patch": [
-      0,
-      0,
-      10,
-      72,
-      77,
-      21,
-      9,
-      45,
-      85,
-      22,
-      0,
-      92
-    ]
-  },
-  {
-    "name": "SOFT HORNS",
-    "family": "Brass",
-    "patch": [
-      0,
-      0,
-      10,
-      28,
-      46,
-      10,
-      20,
-      60,
-      95,
-      42,
-      0,
-      91
-    ]
-  },
-  {
-    "name": "STRING VEIL",
-    "family": "Strings",
-    "patch": [
-      0,
-      0,
-      9,
-      24,
-      60,
-      11,
-      70,
-      100,
-      102,
-      88,
-      0,
-      82
-    ]
-  },
-  {
-    "name": "SLOW HALO",
-    "family": "Pad",
-    "patch": [
-      0,
-      0,
-      2,
-      12,
-      40,
-      30,
-      115,
-      100,
-      104,
-      120,
-      0,
-      86
-    ]
-  },
-  {
-    "name": "BELL CLOUD",
-    "family": "Pad",
-    "patch": [
-      0,
-      2,
-      1,
-      60,
-      88,
-      12,
-      45,
-      100,
-      80,
-      110,
-      0,
-      93
-    ]
-  },
-  {
-    "name": "DUSK SCREEN",
-    "family": "Pad",
-    "patch": [
-      0,
-      1,
-      3,
-      42,
-      49,
-      32,
-      82,
-      65,
-      90,
-      104,
-      0,
-      85
-    ]
-  },
-  {
-    "name": "AIR CHAMBER",
-    "family": "Pad",
-    "patch": [
-      0,
-      2,
-      9,
-      65,
-      69,
-      15,
-      100,
-      110,
-      85,
-      120,
-      0,
-      98
-    ]
-  },
-  {
-    "name": "HAMMER KEY",
-    "family": "Keys",
-    "patch": [
-      0,
-      2,
-      6,
-      114,
-      94,
-      5,
-      1,
-      86,
-      25,
-      45,
-      0,
-      108
-    ]
-  },
-  {
-    "name": "SOFT TINES",
-    "family": "Keys",
-    "patch": [
-      0,
-      2,
-      11,
-      76,
-      78,
-      7,
-      1,
-      100,
-      45,
-      65,
-      0,
-      105
-    ]
-  },
-  {
-    "name": "CLAVI CLICK",
-    "family": "Keys",
-    "patch": [
-      0,
-      1,
-      7,
-      114,
-      83,
-      18,
-      1,
-      28,
-      20,
-      15,
-      0,
-      103
-    ]
-  },
-  {
-    "name": "DRAWBAR KEY",
-    "family": "Organ",
-    "patch": [
-      0,
-      1,
-      8,
-      16,
-      60,
-      3,
-      2,
-      12,
-      117,
-      12,
-      0,
-      93
-    ]
-  },
-  {
-    "name": "PERC ORGAN",
-    "family": "Organ",
-    "patch": [
-      0,
-      2,
-      8,
-      90,
-      83,
-      4,
-      1,
-      30,
-      105,
-      15,
-      0,
-      99
-    ]
-  },
-  {
-    "name": "WOOD MALLET",
-    "family": "Mallet",
-    "patch": [
-      0,
-      2,
-      7,
-      105,
-      67,
-      4,
-      1,
-      45,
-      10,
-      28,
-      0,
-      113
-    ]
-  },
-  {
-    "name": "GLASS TINES",
-    "family": "Mallet",
-    "patch": [
-      0,
-      2,
-      11,
-      116,
-      111,
-      6,
-      1,
-      80,
-      8,
-      66,
-      0,
-      102
-    ]
-  },
-  {
-    "name": "THUMB PLUCK",
-    "family": "Pluck",
-    "patch": [
-      0,
-      2,
-      7,
-      86,
-      58,
-      11,
-      1,
-      36,
-      15,
-      25,
-      0,
-      113
-    ]
-  },
-  {
-    "name": "WIRE ZITHER",
-    "family": "Pluck",
-    "patch": [
-      0,
-      0,
-      7,
-      108,
-      66,
-      23,
-      1,
-      50,
-      12,
-      38,
-      0,
-      106
-    ]
-  },
-  {
-    "name": "CHORD STAB",
-    "family": "Stab",
-    "patch": [
-      0,
-      0,
-      10,
-      65,
-      86,
-      30,
-      1,
-      25,
-      5,
-      20,
-      0,
-      100
-    ]
-  },
-  {
-    "name": "SPACE SHARD",
-    "family": "Texture",
-    "patch": [
-      0,
-      2,
-      3,
-      122,
-      112,
-      54,
-      1,
-      116,
-      10,
-      116,
-      0,
-      98
-    ]
-  },
-  {
-    "name": "DIGITAL MIST",
-    "family": "Texture",
-    "patch": [
-      0,
-      1,
-      5,
-      100,
-      65,
-      45,
-      64,
-      100,
-      70,
-      112,
-      0,
-      89
-    ]
-  },
-  {
-    "name": "CELLAR ORGAN",
-    "family": "House organ",
-    "patch": [
-      0,
-      1,
-      12,
-      110,
-      64,
-      5,
-      1,
-      38,
-      98,
-      16,
-      0,
-      97
-    ]
-  },
-  {
-    "name": "VELVET CHORD",
-    "family": "House keys",
-    "patch": [
-      0,
-      2,
-      13,
-      105,
-      72,
-      10,
-      1,
-      56,
-      40,
-      32,
-      0,
-      105
-    ]
-  },
-  {
-    "name": "AMBER PIANO",
-    "family": "Keys",
-    "patch": [
-      0,
-      2,
-      14,
-      118,
-      88,
-      5,
-      1,
-      95,
-      23,
-      52,
-      0,
-      106
-    ]
-  },
-  {
-    "name": "PRISM KEY",
-    "family": "Keys",
-    "patch": [
-      0,
-      2,
-      15,
-      120,
-      103,
-      12,
-      1,
-      78,
-      18,
-      58,
-      0,
-      101
-    ]
-  },
-  {
-    "name": "VOWEL CHIME",
-    "family": "Voice-like",
-    "patch": [
-      0,
-      1,
-      16,
-      122,
-      57,
-      35,
-      2,
-      64,
-      52,
-      46,
-      0,
-      94
-    ]
-  },
-  {
-    "name": "BREATH STACK",
-    "family": "Voice-like",
-    "patch": [
-      0,
-      0,
-      17,
-      117,
-      62,
-      25,
-      3,
-      82,
-      76,
-      65,
-      0,
-      88
-    ]
-  },
-  {
-    "name": "CHOIR FLICK",
-    "family": "Voice-like",
-    "patch": [
-      0,
-      2,
-      18,
-      124,
-      81,
-      18,
-      4,
-      72,
-      35,
-      77,
-      0,
-      101
-    ]
-  },
-  {
-    "name": "BRASS IMPACT",
-    "family": "Hit",
-    "patch": [
-      0,
-      0,
-      19,
-      123,
-      92,
-      28,
-      1,
-      23,
-      0,
-      26,
-      0,
-      97
-    ]
-  },
-  {
-    "name": "TIMBER HIT",
-    "family": "Percussion",
-    "patch": [
-      0,
-      2,
-      20,
-      127,
-      76,
-      9,
-      1,
-      20,
-      0,
-      18,
-      0,
-      113
-    ]
-  },
-  {
-    "name": "TUBE STRIKE",
-    "family": "Percussion",
-    "patch": [
-      0,
-      2,
-      21,
-      125,
-      99,
-      15,
-      1,
-      46,
-      0,
-      38,
-      0,
-      106
-    ]
-  },
-  {
-    "name": "SPARK SEQ",
-    "family": "Sequence",
-    "patch": [
-      0,
-      1,
-      22,
-      120,
-      90,
-      48,
-      1,
-      18,
-      8,
-      12,
-      0,
-      98
-    ]
-  },
-  {
-    "name": "RATCHET PLUCK",
-    "family": "Sequence",
-    "patch": [
-      0,
-      0,
-      23,
-      124,
-      69,
-      32,
-      1,
-      32,
-      0,
-      9,
-      0,
-      104
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "ACID RIBBON",
@@ -1095,7 +471,8 @@
       11,
       93,
       89
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "COIL WALK",
@@ -1113,7 +490,8 @@
       7,
       34,
       98
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "SQUELCH GRID",
@@ -1131,7 +509,8 @@
       6,
       48,
       84
-    ]
+    ],
+    "category": "Acid"
   },
   {
     "name": "RUBBER CHASE",
@@ -1149,6 +528,1907 @@
       14,
       102,
       94
-    ]
+    ],
+    "category": "Acid"
+  },
+  {
+    "name": "VECTOR LEAD",
+    "family": "Lead",
+    "patch": [
+      0,
+      0,
+      0,
+      75,
+      85,
+      20,
+      1,
+      40,
+      90,
+      25,
+      0,
+      95
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "WIDE SAW",
+    "family": "Lead",
+    "patch": [
+      0,
+      0,
+      10,
+      18,
+      102,
+      15,
+      5,
+      48,
+      100,
+      28,
+      0,
+      91
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "SOFT PIPE",
+    "family": "Lead",
+    "patch": [
+      0,
+      2,
+      9,
+      38,
+      64,
+      8,
+      9,
+      75,
+      105,
+      38,
+      0,
+      100
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "POLY CHROME",
+    "family": "Poly synth",
+    "patch": [
+      0,
+      0,
+      8,
+      34,
+      72,
+      30,
+      5,
+      55,
+      90,
+      40,
+      0,
+      89
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "COPPER EDGE",
+    "family": "Lead",
+    "patch": [
+      0,
+      0,
+      19,
+      60,
+      100,
+      32,
+      2,
+      52,
+      104,
+      28,
+      0,
+      90
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "SOLO ARC",
+    "family": "Lead",
+    "patch": [
+      0,
+      1,
+      10,
+      42,
+      78,
+      19,
+      5,
+      80,
+      110,
+      42,
+      0,
+      94
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "NEON FLUTE",
+    "family": "Lead",
+    "patch": [
+      0,
+      2,
+      17,
+      70,
+      83,
+      11,
+      8,
+      86,
+      104,
+      45,
+      0,
+      108
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "SAW CANOPY",
+    "family": "Lead",
+    "patch": [
+      0,
+      0,
+      9,
+      26,
+      68,
+      25,
+      12,
+      90,
+      116,
+      58,
+      0,
+      88
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "PULSE TORCH",
+    "family": "Lead",
+    "patch": [
+      0,
+      1,
+      22,
+      65,
+      108,
+      42,
+      1,
+      42,
+      95,
+      24,
+      0,
+      87
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "GLASS REED",
+    "family": "Lead",
+    "patch": [
+      0,
+      2,
+      16,
+      94,
+      95,
+      28,
+      2,
+      76,
+      85,
+      52,
+      0,
+      103
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "SOFT COMET",
+    "family": "Lead",
+    "patch": [
+      0,
+      2,
+      18,
+      55,
+      61,
+      15,
+      18,
+      95,
+      112,
+      67,
+      0,
+      107
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "BRIGHT VECTOR",
+    "family": "Lead",
+    "patch": [
+      0,
+      0,
+      0,
+      93,
+      116,
+      24,
+      1,
+      48,
+      90,
+      30,
+      0,
+      86
+    ],
+    "category": "Lead"
+  },
+  {
+    "name": "SEQUENCE KEY",
+    "family": "Sequence",
+    "patch": [
+      0,
+      1,
+      0,
+      68,
+      75,
+      44,
+      1,
+      30,
+      20,
+      14,
+      0,
+      100
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "SPARK SEQ",
+    "family": "Sequence",
+    "patch": [
+      0,
+      1,
+      22,
+      120,
+      90,
+      48,
+      1,
+      18,
+      8,
+      12,
+      0,
+      98
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "RATCHET PLUCK",
+    "family": "Sequence",
+    "patch": [
+      0,
+      0,
+      23,
+      124,
+      69,
+      32,
+      1,
+      32,
+      0,
+      9,
+      0,
+      104
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "CLOCK BLOOM",
+    "family": "Sequence",
+    "patch": [
+      0,
+      1,
+      12,
+      95,
+      72,
+      26,
+      1,
+      42,
+      22,
+      20,
+      0,
+      106
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "PINWHEEL",
+    "family": "Sequence",
+    "patch": [
+      0,
+      0,
+      22,
+      110,
+      96,
+      50,
+      1,
+      38,
+      12,
+      17,
+      0,
+      99
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "CRYSTAL GATE",
+    "family": "Sequence",
+    "patch": [
+      0,
+      2,
+      15,
+      115,
+      109,
+      18,
+      1,
+      56,
+      18,
+      26,
+      0,
+      110
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "WOODEN STEP",
+    "family": "Sequence",
+    "patch": [
+      0,
+      2,
+      20,
+      117,
+      64,
+      12,
+      1,
+      45,
+      12,
+      20,
+      0,
+      120
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "LANTERN RUN",
+    "family": "Sequence",
+    "patch": [
+      0,
+      1,
+      16,
+      100,
+      56,
+      38,
+      2,
+      52,
+      32,
+      28,
+      0,
+      107
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "SILVER TICK",
+    "family": "Sequence",
+    "patch": [
+      0,
+      0,
+      21,
+      105,
+      87,
+      30,
+      1,
+      43,
+      16,
+      22,
+      0,
+      104
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "POCKET PULSE",
+    "family": "Sequence",
+    "patch": [
+      0,
+      1,
+      23,
+      94,
+      45,
+      52,
+      1,
+      48,
+      35,
+      20,
+      0,
+      110
+    ],
+    "category": "Sequence"
+  },
+  {
+    "name": "HAMMER KEY",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      6,
+      114,
+      94,
+      5,
+      1,
+      86,
+      25,
+      45,
+      0,
+      108
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "SOFT TINES",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      11,
+      76,
+      78,
+      7,
+      1,
+      100,
+      45,
+      65,
+      0,
+      105
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "CLAVI CLICK",
+    "family": "Keys",
+    "patch": [
+      0,
+      1,
+      7,
+      114,
+      83,
+      18,
+      1,
+      28,
+      20,
+      15,
+      0,
+      103
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "VELVET CHORD",
+    "family": "House keys",
+    "patch": [
+      0,
+      2,
+      13,
+      105,
+      72,
+      10,
+      1,
+      56,
+      40,
+      32,
+      0,
+      105
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "AMBER PIANO",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      14,
+      118,
+      88,
+      5,
+      1,
+      95,
+      23,
+      52,
+      0,
+      106
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "PRISM KEY",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      15,
+      120,
+      103,
+      12,
+      1,
+      78,
+      18,
+      58,
+      0,
+      101
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "FELT GLOW",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      14,
+      92,
+      60,
+      4,
+      2,
+      108,
+      43,
+      66,
+      0,
+      114
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "DIGITAL IVORY",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      6,
+      124,
+      103,
+      8,
+      1,
+      94,
+      34,
+      53,
+      0,
+      111
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "CHORDED TINE",
+    "family": "Keys",
+    "patch": [
+      0,
+      1,
+      11,
+      103,
+      86,
+      11,
+      1,
+      83,
+      56,
+      48,
+      0,
+      99
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "SOFT HAMMER",
+    "family": "Keys",
+    "patch": [
+      0,
+      2,
+      13,
+      106,
+      68,
+      7,
+      2,
+      88,
+      38,
+      42,
+      0,
+      116
+    ],
+    "category": "Keys"
+  },
+  {
+    "name": "DRAWBAR KEY",
+    "family": "Organ",
+    "patch": [
+      0,
+      1,
+      8,
+      16,
+      60,
+      3,
+      2,
+      12,
+      117,
+      12,
+      0,
+      93
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "PERC ORGAN",
+    "family": "Organ",
+    "patch": [
+      0,
+      2,
+      8,
+      90,
+      83,
+      4,
+      1,
+      30,
+      105,
+      15,
+      0,
+      99
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "CELLAR ORGAN",
+    "family": "House organ",
+    "patch": [
+      0,
+      1,
+      12,
+      110,
+      64,
+      5,
+      1,
+      38,
+      98,
+      16,
+      0,
+      97
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "DUSK DRAWBAR",
+    "family": "Organ",
+    "patch": [
+      0,
+      1,
+      12,
+      25,
+      42,
+      4,
+      3,
+      30,
+      121,
+      18,
+      0,
+      99
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "CHAPEL PULSE",
+    "family": "Organ",
+    "patch": [
+      0,
+      1,
+      8,
+      48,
+      74,
+      8,
+      10,
+      60,
+      116,
+      52,
+      0,
+      94
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "CLICK REED",
+    "family": "Organ",
+    "patch": [
+      0,
+      1,
+      7,
+      110,
+      89,
+      13,
+      1,
+      28,
+      108,
+      14,
+      0,
+      98
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "SOUL REGISTER",
+    "family": "Organ",
+    "patch": [
+      0,
+      2,
+      12,
+      96,
+      77,
+      4,
+      1,
+      55,
+      114,
+      23,
+      0,
+      111
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "BRIGHT MANUAL",
+    "family": "Organ",
+    "patch": [
+      0,
+      1,
+      13,
+      72,
+      104,
+      6,
+      1,
+      25,
+      118,
+      18,
+      0,
+      88
+    ],
+    "category": "Organ"
+  },
+  {
+    "name": "REED STACK",
+    "family": "Reed",
+    "patch": [
+      0,
+      1,
+      4,
+      60,
+      68,
+      20,
+      8,
+      50,
+      90,
+      40,
+      0,
+      90
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "BRASS BLOCK",
+    "family": "Brass",
+    "patch": [
+      0,
+      0,
+      10,
+      72,
+      77,
+      21,
+      9,
+      45,
+      85,
+      22,
+      0,
+      92
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "SOFT HORNS",
+    "family": "Brass",
+    "patch": [
+      0,
+      0,
+      10,
+      28,
+      46,
+      10,
+      20,
+      60,
+      95,
+      42,
+      0,
+      91
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "COPPER SECTION",
+    "family": "Brass/Reed",
+    "patch": [
+      0,
+      0,
+      19,
+      86,
+      84,
+      20,
+      12,
+      60,
+      98,
+      34,
+      0,
+      94
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "MELLOW STACK",
+    "family": "Brass/Reed",
+    "patch": [
+      0,
+      0,
+      10,
+      48,
+      53,
+      15,
+      24,
+      84,
+      107,
+      55,
+      0,
+      96
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "REED CHAMBER",
+    "family": "Brass/Reed",
+    "patch": [
+      0,
+      1,
+      17,
+      78,
+      73,
+      23,
+      10,
+      70,
+      102,
+      42,
+      0,
+      96
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "SHARP FANFARE",
+    "family": "Brass/Reed",
+    "patch": [
+      0,
+      0,
+      19,
+      108,
+      106,
+      34,
+      3,
+      47,
+      81,
+      30,
+      0,
+      91
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "LOW HORN",
+    "family": "Brass/Reed",
+    "patch": [
+      0,
+      2,
+      10,
+      60,
+      45,
+      14,
+      18,
+      91,
+      110,
+      54,
+      0,
+      113
+    ],
+    "category": "Brass/Reed"
+  },
+  {
+    "name": "STRING VEIL",
+    "family": "Strings",
+    "patch": [
+      0,
+      0,
+      9,
+      24,
+      60,
+      11,
+      70,
+      100,
+      102,
+      88,
+      0,
+      82
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "ROSIN VEIL",
+    "family": "Strings",
+    "patch": [
+      0,
+      0,
+      9,
+      52,
+      75,
+      13,
+      62,
+      95,
+      106,
+      92,
+      0,
+      88
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "CHAMBER LINE",
+    "family": "Strings",
+    "patch": [
+      0,
+      1,
+      17,
+      30,
+      54,
+      15,
+      44,
+      90,
+      111,
+      74,
+      0,
+      91
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "LOW ENSEMBLE",
+    "family": "Strings",
+    "patch": [
+      0,
+      0,
+      14,
+      20,
+      38,
+      11,
+      84,
+      112,
+      117,
+      100,
+      0,
+      96
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "SILVER BOW",
+    "family": "Strings",
+    "patch": [
+      0,
+      0,
+      18,
+      42,
+      94,
+      19,
+      50,
+      86,
+      102,
+      83,
+      0,
+      85
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "WARM OCTAVES",
+    "family": "Strings",
+    "patch": [
+      0,
+      1,
+      13,
+      25,
+      62,
+      8,
+      74,
+      108,
+      113,
+      94,
+      0,
+      89
+    ],
+    "category": "Strings"
+  },
+  {
+    "name": "SILK PAD",
+    "family": "Pad",
+    "patch": [
+      0,
+      0,
+      2,
+      25,
+      55,
+      15,
+      90,
+      80,
+      95,
+      100,
+      0,
+      85
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "SLOW HALO",
+    "family": "Pad",
+    "patch": [
+      0,
+      0,
+      2,
+      12,
+      40,
+      30,
+      115,
+      100,
+      104,
+      120,
+      0,
+      86
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "BELL CLOUD",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      1,
+      60,
+      88,
+      12,
+      45,
+      100,
+      80,
+      110,
+      0,
+      93
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "DUSK SCREEN",
+    "family": "Pad",
+    "patch": [
+      0,
+      1,
+      3,
+      42,
+      49,
+      32,
+      82,
+      65,
+      90,
+      104,
+      0,
+      85
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "AIR CHAMBER",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      9,
+      65,
+      69,
+      15,
+      100,
+      110,
+      85,
+      120,
+      0,
+      98
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "CLOUD ATRIUM",
+    "family": "Pad",
+    "patch": [
+      0,
+      0,
+      2,
+      35,
+      52,
+      22,
+      96,
+      110,
+      114,
+      121,
+      0,
+      91
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "WARM HORIZON",
+    "family": "Pad",
+    "patch": [
+      0,
+      1,
+      12,
+      20,
+      36,
+      12,
+      108,
+      114,
+      119,
+      120,
+      0,
+      98
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "LUNAR GLASS",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      15,
+      85,
+      94,
+      16,
+      58,
+      108,
+      94,
+      117,
+      0,
+      112
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "VELVET AIR",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      17,
+      74,
+      59,
+      24,
+      84,
+      100,
+      105,
+      113,
+      0,
+      116
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "SUNSET CHOIR",
+    "family": "Pad",
+    "patch": [
+      0,
+      1,
+      18,
+      57,
+      65,
+      21,
+      72,
+      112,
+      100,
+      109,
+      0,
+      94
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "FAINT AURORA",
+    "family": "Pad",
+    "patch": [
+      0,
+      0,
+      5,
+      42,
+      82,
+      41,
+      101,
+      120,
+      91,
+      124,
+      0,
+      89
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "SLOW CURRENT",
+    "family": "Pad",
+    "patch": [
+      0,
+      2,
+      3,
+      66,
+      47,
+      33,
+      117,
+      114,
+      116,
+      126,
+      0,
+      119
+    ],
+    "category": "Pad"
+  },
+  {
+    "name": "NYLON PLUCK",
+    "family": "Pluck",
+    "patch": [
+      0,
+      1,
+      0,
+      95,
+      70,
+      12,
+      1,
+      50,
+      25,
+      25,
+      0,
+      110
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "THUMB PLUCK",
+    "family": "Pluck",
+    "patch": [
+      0,
+      2,
+      7,
+      86,
+      58,
+      11,
+      1,
+      36,
+      15,
+      25,
+      0,
+      113
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "WIRE ZITHER",
+    "family": "Pluck",
+    "patch": [
+      0,
+      0,
+      7,
+      108,
+      66,
+      23,
+      1,
+      50,
+      12,
+      38,
+      0,
+      106
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "COPPER STRING",
+    "family": "Pluck",
+    "patch": [
+      0,
+      0,
+      7,
+      118,
+      87,
+      18,
+      1,
+      60,
+      18,
+      38,
+      0,
+      107
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "RAIN PICK",
+    "family": "Pluck",
+    "patch": [
+      0,
+      2,
+      15,
+      125,
+      106,
+      8,
+      1,
+      68,
+      10,
+      45,
+      0,
+      113
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "NYLON DUSK",
+    "family": "Pluck",
+    "patch": [
+      0,
+      1,
+      0,
+      104,
+      48,
+      9,
+      1,
+      64,
+      24,
+      35,
+      0,
+      112
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "CRYSTAL THREAD",
+    "family": "Pluck",
+    "patch": [
+      0,
+      2,
+      21,
+      122,
+      94,
+      22,
+      1,
+      74,
+      16,
+      54,
+      0,
+      111
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "WOODEN THUMB",
+    "family": "Pluck",
+    "patch": [
+      0,
+      2,
+      20,
+      119,
+      54,
+      6,
+      1,
+      52,
+      20,
+      32,
+      0,
+      121
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "SOFT ZITHER",
+    "family": "Pluck",
+    "patch": [
+      0,
+      1,
+      14,
+      108,
+      61,
+      20,
+      2,
+      72,
+      22,
+      47,
+      0,
+      107
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "SPRUCE SNAP",
+    "family": "Pluck",
+    "patch": [
+      0,
+      0,
+      23,
+      120,
+      79,
+      16,
+      1,
+      48,
+      14,
+      27,
+      0,
+      112
+    ],
+    "category": "Pluck"
+  },
+  {
+    "name": "GLASS BELL",
+    "family": "Bell",
+    "patch": [
+      0,
+      2,
+      1,
+      105,
+      100,
+      8,
+      1,
+      100,
+      15,
+      90,
+      0,
+      100
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "WOOD MALLET",
+    "family": "Mallet",
+    "patch": [
+      0,
+      2,
+      7,
+      105,
+      67,
+      4,
+      1,
+      45,
+      10,
+      28,
+      0,
+      113
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "GLASS TINES",
+    "family": "Mallet",
+    "patch": [
+      0,
+      2,
+      11,
+      116,
+      111,
+      6,
+      1,
+      80,
+      8,
+      66,
+      0,
+      102
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "AMBER BELL",
+    "family": "Mallet/Bell",
+    "patch": [
+      0,
+      2,
+      1,
+      124,
+      82,
+      6,
+      1,
+      110,
+      8,
+      88,
+      0,
+      110
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "HOLLOW BAR",
+    "family": "Mallet/Bell",
+    "patch": [
+      0,
+      2,
+      20,
+      122,
+      71,
+      12,
+      1,
+      66,
+      12,
+      43,
+      0,
+      121
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "CHIME DROPS",
+    "family": "Mallet/Bell",
+    "patch": [
+      0,
+      2,
+      15,
+      126,
+      119,
+      5,
+      1,
+      96,
+      10,
+      72,
+      0,
+      108
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "BRONZE PIN",
+    "family": "Mallet/Bell",
+    "patch": [
+      0,
+      1,
+      21,
+      120,
+      96,
+      27,
+      1,
+      76,
+      14,
+      53,
+      0,
+      101
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "ROUND MARIMBA",
+    "family": "Mallet/Bell",
+    "patch": [
+      0,
+      2,
+      7,
+      115,
+      49,
+      4,
+      1,
+      69,
+      18,
+      37,
+      0,
+      123
+    ],
+    "category": "Mallet/Bell"
+  },
+  {
+    "name": "VOWEL CHIME",
+    "family": "Voice-like",
+    "patch": [
+      0,
+      1,
+      16,
+      122,
+      57,
+      35,
+      2,
+      64,
+      52,
+      46,
+      0,
+      94
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "BREATH STACK",
+    "family": "Voice-like",
+    "patch": [
+      0,
+      0,
+      17,
+      117,
+      62,
+      25,
+      3,
+      82,
+      76,
+      65,
+      0,
+      88
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "CHOIR FLICK",
+    "family": "Voice-like",
+    "patch": [
+      0,
+      2,
+      18,
+      124,
+      81,
+      18,
+      4,
+      72,
+      35,
+      77,
+      0,
+      101
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "OPEN VOWEL",
+    "family": "Voice",
+    "patch": [
+      0,
+      1,
+      16,
+      116,
+      73,
+      43,
+      8,
+      94,
+      84,
+      73,
+      0,
+      101
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "SOFT CHOIR",
+    "family": "Voice",
+    "patch": [
+      0,
+      2,
+      18,
+      108,
+      67,
+      22,
+      19,
+      108,
+      97,
+      91,
+      0,
+      117
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "ROBOT HUM",
+    "family": "Voice",
+    "patch": [
+      0,
+      1,
+      17,
+      123,
+      94,
+      58,
+      2,
+      78,
+      65,
+      46,
+      0,
+      92
+    ],
+    "category": "Voice"
+  },
+  {
+    "name": "CHORD STAB",
+    "family": "Stab",
+    "patch": [
+      0,
+      0,
+      10,
+      65,
+      86,
+      30,
+      1,
+      25,
+      5,
+      20,
+      0,
+      100
+    ],
+    "category": "Hit/Percussion"
+  },
+  {
+    "name": "BRASS IMPACT",
+    "family": "Hit",
+    "patch": [
+      0,
+      0,
+      19,
+      123,
+      92,
+      28,
+      1,
+      23,
+      0,
+      26,
+      0,
+      97
+    ],
+    "category": "Hit/Percussion"
+  },
+  {
+    "name": "TIMBER HIT",
+    "family": "Percussion",
+    "patch": [
+      0,
+      2,
+      20,
+      127,
+      76,
+      9,
+      1,
+      20,
+      0,
+      18,
+      0,
+      113
+    ],
+    "category": "Hit/Percussion"
+  },
+  {
+    "name": "TUBE STRIKE",
+    "family": "Percussion",
+    "patch": [
+      0,
+      2,
+      21,
+      125,
+      99,
+      15,
+      1,
+      46,
+      0,
+      38,
+      0,
+      106
+    ],
+    "category": "Hit/Percussion"
+  },
+  {
+    "name": "GLASS IMPACT",
+    "family": "Hit/Percussion",
+    "patch": [
+      0,
+      2,
+      21,
+      127,
+      112,
+      34,
+      1,
+      62,
+      6,
+      44,
+      0,
+      116
+    ],
+    "category": "Hit/Percussion"
+  },
+  {
+    "name": "ORBITAL MT",
+    "family": "Texture",
+    "patch": [
+      0,
+      2,
+      3,
+      90,
+      78,
+      25,
+      15,
+      100,
+      65,
+      90,
+      0,
+      90
+    ],
+    "category": "Texture"
+  },
+  {
+    "name": "METAL RAIN",
+    "family": "Texture",
+    "patch": [
+      0,
+      2,
+      5,
+      110,
+      90,
+      35,
+      1,
+      110,
+      15,
+      90,
+      0,
+      100
+    ],
+    "category": "Texture"
+  },
+  {
+    "name": "SPACE SHARD",
+    "family": "Texture",
+    "patch": [
+      0,
+      2,
+      3,
+      122,
+      112,
+      54,
+      1,
+      116,
+      10,
+      116,
+      0,
+      98
+    ],
+    "category": "Texture"
+  },
+  {
+    "name": "DIGITAL MIST",
+    "family": "Texture",
+    "patch": [
+      0,
+      1,
+      5,
+      100,
+      65,
+      45,
+      64,
+      100,
+      70,
+      112,
+      0,
+      89
+    ],
+    "category": "Texture"
+  },
+  {
+    "name": "QUARTZ DRIFT",
+    "family": "Texture",
+    "patch": [
+      0,
+      2,
+      5,
+      118,
+      97,
+      56,
+      32,
+      119,
+      64,
+      118,
+      0,
+      109
+    ],
+    "category": "Texture"
   }
 ]

@@ -32,10 +32,10 @@ static int render(const char *path,unsigned kind) {
     const unsigned seconds=16,frames=MC_RATE*seconds;int16_t audio[256*2];
     mc_init(&e);e.project.bpm=120;e.project.swing=12;
     if(kind==0) {
-        mc_preset(&e,0,0);mc_preset(&e,1,2);mc_preset(&e,2,3);e.mute=8;
+        mc_preset(&e,0,MC_PRESET_VECTOR_LEAD);mc_preset(&e,1,MC_PRESET_SILK_PAD);mc_preset(&e,2,MC_PRESET_GLASS_BELL);e.mute=8;
         /* LA lead, pad and bell: same factory notes, no drums. */
     } else if(kind==1) {
-        e.mute=14;mc_preset(&e,0,6);
+        e.mute=14;mc_preset(&e,0,MC_PRESET_ACID_SAW);
         for(unsigned p=0;p<4;p++) for(unsigned s=0;s<16;s++) {
             McStep *st=&e.project.step[p][0][s];
             st->note[0]=(uint8_t)(st->note[0]+(s%4==2?7:0));
@@ -62,9 +62,9 @@ static int render(const char *path,unsigned kind) {
             int cutoff=25+(int)((at%(MC_RATE*4))*90/(MC_RATE*4));
             mc_control(&e,0,0,cutoff-e.project.patch[0].cutoff);
             /* Second half changes from saw to square while preserving the groove. */
-            if(at>=MC_RATE*8&&e.project.patch[0].wave==0) mc_preset(&e,0,7);
+            if(at>=MC_RATE*8&&e.project.patch[0].wave==0) mc_preset(&e,0,MC_PRESET_SQUARE_RUBBER);
         }
-        if(kind==0&&at>=MC_RATE*8&&e.project.patch[2].pcm==1) mc_preset(&e,2,5);
+        if(kind==0&&at>=MC_RATE*8&&e.project.patch[2].pcm==1) mc_preset(&e,2,MC_PRESET_ORBITAL_MT);
         mc_render(&e,audio,n);
         for(unsigned i=0;i<n*2;i++) put16(f,(uint16_t)audio[i]);
         at+=n;

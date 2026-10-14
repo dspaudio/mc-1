@@ -5,7 +5,7 @@ void mc_demo_load(McEngine *e,unsigned demo) {
     if(!demo) { mc_init(e);return; }
     mc_init(e);for(unsigned i=0;i<sizeof e->project.step;i++) ((uint8_t *)e->project.step)[i]=0;
     e->project.bpm=140;e->project.swing=0;
-    mc_preset(e,0,7);mc_preset(e,1,8);mc_preset(e,2,0);
+    mc_preset(e,0,MC_PRESET_SQUARE_RUBBER);mc_preset(e,1,MC_PRESET_HIGH_VOLTAGE);mc_preset(e,2,MC_PRESET_VECTOR_LEAD);
     e->project.patch[0].cutoff=65;e->project.patch[0].resonance=35;e->project.patch[0].decay=30;e->project.patch[0].sustain=45;
     e->project.patch[1].resonance=35;e->project.patch[1].glide=55;
     e->project.patch[2].attack=1;e->project.patch[2].decay=35;e->project.patch[2].sustain=15;e->project.patch[2].release=22;e->project.patch[2].pcm_mix=30;

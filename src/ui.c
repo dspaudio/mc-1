@@ -5,9 +5,17 @@ const char *const mc_drum_names[16]={"KICK","SNARE","CLOSED HAT","OPEN HAT","CLA
 static const char *const labels[16]={"BD","SN","CH","OH","CP","LT","B2","RS","S2","HT","CR","RD","SH","CB","CL","MT"};
 static int limit(int v,int lo,int hi) { return v<lo?lo:v>hi?hi:v; }
 static unsigned wrap(int v,unsigned n) { while(v<0) v+=(int)n; return (unsigned)v%n; }
+static unsigned preset_match(const McPatch *patch) {
+    for(unsigned pr=0;pr<MC_PRESETS;pr++) {
+        unsigned same=1;
+        for(unsigned j=0;j<sizeof *patch;j++) if(((const uint8_t *)patch)[j]!=((const uint8_t *)&mc_presets[pr])[j]) same=0;
+        if(same)return pr;
+    }
+    return MC_PRESETS;
+}
 void mc_ui_init(McUi *u) {
     u->page=u->sound=u->editing=u->save_pending=u->save_request=u->load_request=u->fx_master=0;u->demo_choice=1; u->octave=0; u->message=0;
-    u->preset[0]=6;u->preset[1]=2;u->preset[2]=3;
+    u->preset[0]=MC_PRESET_ACID_SAW;u->preset[1]=MC_PRESET_SILK_PAD;u->preset[2]=MC_PRESET_GLASS_BELL;
 }
 void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     if(button!=UI_SAVE) { u->save_pending=0; u->message=0; }
@@ -42,7 +50,8 @@ void mc_ui_encoder(McEngine *e,McUi *u,unsigned enc,int delta) {
     if(enc==2) {
         if(p==3) e->project.drum_kit=(uint8_t)wrap(e->project.drum_kit+delta,MC_KITS);
         else {
-            unsigned preset=wrap(u->preset[p]+delta,MC_PRESETS);
+            unsigned current=preset_match(&e->project.patch[p]);
+            unsigned preset=wrap((int)(current<MC_PRESETS?current:u->preset[p])+delta,MC_PRESETS);
             u->preset[p]=(uint8_t)preset; mc_preset(e,p,preset);
         } return;
     }
@@ -236,13 +245,12 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         knob(&c,145,"HIT",(e->project.step[e->pattern][3][e->edit_step].drums>>u->sound)&1,DIM);
         knob(&c,205,"LEVEL",e->project.drum_level[u->sound],HIT);
     } else {
-        unsigned match=MC_PRESETS;
-        for(unsigned pr=0;pr<MC_PRESETS;pr++) {
-            unsigned same=1;
-            for(unsigned j=0;j<12;j++) if(((const uint8_t *)&e->project.patch[p])[j]!=((const uint8_t *)&mc_presets[pr])[j]) same=0;
-            if(same) { match=pr;break; }
-        }
+        unsigned match=preset_match(&e->project.patch[p]);
         text(&c,8,30,match<MC_PRESETS?mc_preset_names[match]:"CUSTOM SOUND",WHITE,2);
+        if(match<MC_PRESETS) {
+            text(&c,8,49,mc_preset_categories[match],DIM,1);
+            number(&c,188,49,match+1,ORANGE);text(&c,207,49,"/128",DIM,1);
+        }
         for(unsigned t=0;t<4;t++) {
             int yy=59+(int)t*27;
             unsigned low=108,high=12;

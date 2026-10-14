@@ -2,17 +2,24 @@
 
 **An original 1990s-style groovebox for the M-VAVE FM-1.**
 
-Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine from 64 presets, plus a **16-lane synthesized drum part with eight kits**. Four patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
+Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine from 128 presets, plus a **16-lane synthesized drum part with eight kits**. Four patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
 
 The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1.2:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.1.3:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
 [Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
 
-## New in 0.1.2
+## New in 0.1.3
+
+- 128 original melodic presets, arranged in 14 contiguous sound families. The full list and category ranges appear below.
+- The previous 64 names and sound parameters are preserved; their display numbers change with the new ordering. Existing saved projects contain the actual patch and keep their sounds.
+- The home screen shows the preset family and number. PRESETS browsing starts from an exact match to the current patch after loading; customized sounds retain the last browser position.
+- Both built-in demos and all existing listening files retain their exact audio. Version 3 project format, 24 attack waveforms and eight drum kits remain unchanged.
+
+## Added in 0.1.2
 
 - 64 melodic presets and 24 original mathematical PCM attacks, adding acid sequences, house organ and keys, voice-like tones and percussion hits. The first 48 preset definitions and first 12 attacks are preserved.
 - Eight original drum kits, each with 16 lanes. BASE 808 retains the original drum recipe; the other kits vary pitch, noise, sweep and decay.
@@ -29,14 +36,14 @@ make render                    # build/demo.wav, actual sequencer and DSP
 python3 host/serve.py           # http://127.0.0.1:8091
 ```
 
-Click **ENABLE AUDIO**, then **PLAY / STOP**. Choose **808** for the drum grid. Turn the four knobs using − / + or the wheel. Export/import `.mcf` projects with the host panel; these files include a version and CRC. Audio is locally buffered by the browser, so preview latency is not device latency. Pause audio before closing the panel. The server binds loopback only and has no hardware access.
+Click **ENABLE AUDIO**, then **PLAY / STOP**. Choose **DRUMS** for the drum grid. Turn the four knobs using − / + or the wheel. Export/import `.mcf` projects with the host panel; these files include a version and CRC. Audio is locally buffered by the browser, so preview latency is not device latency. Pause audio before closing the panel. The server binds loopback only and has no hardware access.
 
 The command-line harness also works without a browser:
 
 ```sh
 make
 build/mc1-host render build/demo.wav 16
-build/mc1-host preset 3 build/glass-bell.wav
+build/mc1-host preset 104 build/glass-bell.wav
 build/mc1-host screen build/drums.ppm 3
 build/mc1-host                 # interactive command help
 ```
@@ -97,7 +104,7 @@ device recordings or relative-loudness comparisons. Rebuild with
 | LA-inspired sound | 24 original 512-sample PCM attacks, dual detuned band-limited sustain oscillators, envelope and filter |
 | 303-inspired sound | Per-part mono saw/square, resonant four-stage filter, accent and continuous pitch slide |
 | Drums | Eight original kits with 16 lanes each: kicks, snares, hats, clap, toms, rim, crash, ride, shaker, cowbell and claves |
-| Factory bank | 64 original presets spanning bass, leads, sequences, pads, keys, organ, brass, strings, mallets, voice-like tones, hits and textures |
+| Factory bank | 128 original presets spanning bass, leads, sequences, pads, keys, organ, brass, strings, mallets, voice-like tones, hits and textures |
 | Sequencer | Four 16-step patterns, three-note melodic steps, 16 drum lanes, 40–240 BPM, swing, gate, accent and slide |
 | Performance | Part mute, queued bar-boundary pattern changes, live keyboard, quantized recording and step entry |
 | Screen | Shared C RGB565 renderer; 240×240 display with a 240×8 strip buffer on device |
@@ -150,76 +157,161 @@ Code and original generated assets: **GPL-3.0-only**. Hardware support is derive
 <!-- BEGIN PRESETS -->
 ## Complete factory preset list
 
-64 original melodic presets: 48 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
+128 original melodic presets: 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
 
 The [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original names, parameters and mathematical attacks; no Roland patches, ROMs or samples are copied.
 
-| # | Sound engine | Preset name | Family |
-|---|---|---|---|
-| 01 | LA-inspired | VECTOR LEAD | Lead |
-| 02 | LA-inspired | ROUND BASS | Bass |
-| 03 | LA-inspired | SILK PAD | Pad |
-| 04 | LA-inspired | GLASS BELL | Bell |
-| 05 | LA-inspired | NYLON PLUCK | Pluck |
-| 06 | LA-inspired | ORBITAL MT | Texture |
-| 07 | 303-inspired | ACID SAW | Bass / lead |
-| 08 | 303-inspired | SQUARE RUBBER | Bass / lead |
-| 09 | 303-inspired | HIGH VOLTAGE | Lead |
-| 10 | 303-inspired | SOFT STEP | Lead |
-| 11 | LA-inspired | REED STACK | Reed |
-| 12 | LA-inspired | METAL RAIN | Texture |
-| 13 | LA-inspired | DEEP CELL | Bass |
-| 14 | LA-inspired | CLUB PULSE | Bass |
-| 15 | LA-inspired | CLICK FLOOR | Bass |
-| 16 | LA-inspired | WIRE PICK | Bass |
-| 17 | LA-inspired | DUB CHAMBER | Bass |
-| 18 | 303-inspired | RESONA BASS | Bass |
-| 19 | 303-inspired | LIQUID STEP | Bass |
-| 20 | 303-inspired | BRIGHT COIL | Lead |
-| 21 | 303-inspired | HOLLOW REED | Lead |
-| 22 | 303-inspired | NEEDLE LINE | Lead |
-| 23 | 303-inspired | BUBBLE RUN | Sequence |
-| 24 | 303-inspired | VELVET MONO | Lead |
-| 25 | 303-inspired | RAZOR MONO | Lead |
-| 26 | LA-inspired | WIDE SAW | Lead |
-| 27 | LA-inspired | SOFT PIPE | Lead |
-| 28 | LA-inspired | SEQUENCE KEY | Sequence |
-| 29 | LA-inspired | POLY CHROME | Poly synth |
-| 30 | LA-inspired | BRASS BLOCK | Brass |
-| 31 | LA-inspired | SOFT HORNS | Brass |
-| 32 | LA-inspired | STRING VEIL | Strings |
-| 33 | LA-inspired | SLOW HALO | Pad |
-| 34 | LA-inspired | BELL CLOUD | Pad |
-| 35 | LA-inspired | DUSK SCREEN | Pad |
-| 36 | LA-inspired | AIR CHAMBER | Pad |
-| 37 | LA-inspired | HAMMER KEY | Keys |
-| 38 | LA-inspired | SOFT TINES | Keys |
-| 39 | LA-inspired | CLAVI CLICK | Keys |
-| 40 | LA-inspired | DRAWBAR KEY | Organ |
-| 41 | LA-inspired | PERC ORGAN | Organ |
-| 42 | LA-inspired | WOOD MALLET | Mallet |
-| 43 | LA-inspired | GLASS TINES | Mallet |
-| 44 | LA-inspired | THUMB PLUCK | Pluck |
-| 45 | LA-inspired | WIRE ZITHER | Pluck |
-| 46 | LA-inspired | CHORD STAB | Stab |
-| 47 | LA-inspired | SPACE SHARD | Texture |
-| 48 | LA-inspired | DIGITAL MIST | Texture |
-| 49 | LA-inspired | CELLAR ORGAN | House organ |
-| 50 | LA-inspired | VELVET CHORD | House keys |
-| 51 | LA-inspired | AMBER PIANO | Keys |
-| 52 | LA-inspired | PRISM KEY | Keys |
-| 53 | LA-inspired | VOWEL CHIME | Voice-like |
-| 54 | LA-inspired | BREATH STACK | Voice-like |
-| 55 | LA-inspired | CHOIR FLICK | Voice-like |
-| 56 | LA-inspired | BRASS IMPACT | Hit |
-| 57 | LA-inspired | TIMBER HIT | Percussion |
-| 58 | LA-inspired | TUBE STRIKE | Percussion |
-| 59 | LA-inspired | SPARK SEQ | Sequence |
-| 60 | LA-inspired | RATCHET PLUCK | Sequence |
-| 61 | 303-inspired | ACID RIBBON | Bass / lead |
-| 62 | 303-inspired | COIL WALK | Acid sequence |
-| 63 | 303-inspired | SQUELCH GRID | Acid sequence |
-| 64 | 303-inspired | RUBBER CHASE | Acid sequence |
+The bank is ordered by category. All 64 previous names, patch values and family descriptions are preserved; their displayed numbers change to fit these groups. The 24 original PCM attacks and eight drum kits are unchanged.
+
+### Category index
+
+| Category | Presets | Count |
+|---|---|---|
+| Bass | 001–012 | 12 |
+| Acid | 013–028 | 16 |
+| Lead | 029–040 | 12 |
+| Sequence | 041–050 | 10 |
+| Keys | 051–060 | 10 |
+| Organ | 061–068 | 8 |
+| Brass/Reed | 069–076 | 8 |
+| Strings | 077–082 | 6 |
+| Pad | 083–094 | 12 |
+| Pluck | 095–104 | 10 |
+| Mallet/Bell | 105–112 | 8 |
+| Voice | 113–118 | 6 |
+| Hit/Percussion | 119–123 | 5 |
+| Texture | 124–128 | 5 |
+
+| # | Category | Sound engine | Preset name | Family |
+|---|---|---|---|---|
+| 001 | Bass | LA-inspired | ROUND BASS | Bass |
+| 002 | Bass | LA-inspired | DEEP CELL | Bass |
+| 003 | Bass | LA-inspired | CLUB PULSE | Bass |
+| 004 | Bass | LA-inspired | CLICK FLOOR | Bass |
+| 005 | Bass | LA-inspired | WIRE PICK | Bass |
+| 006 | Bass | LA-inspired | DUB CHAMBER | Bass |
+| 007 | Bass | LA-inspired | SUB ANCHOR | Bass |
+| 008 | Bass | LA-inspired | PLUSH OCTAVE | Bass |
+| 009 | Bass | LA-inspired | GRIT PULSE | Bass |
+| 010 | Bass | LA-inspired | PLUCKED SUB | Bass |
+| 011 | Bass | LA-inspired | GLASS FLOOR | Bass |
+| 012 | Bass | LA-inspired | HOLLOW ROOT | Bass |
+| 013 | Acid | 303-inspired | ACID SAW | Bass / lead |
+| 014 | Acid | 303-inspired | SQUARE RUBBER | Bass / lead |
+| 015 | Acid | 303-inspired | HIGH VOLTAGE | Lead |
+| 016 | Acid | 303-inspired | SOFT STEP | Lead |
+| 017 | Acid | 303-inspired | RESONA BASS | Bass |
+| 018 | Acid | 303-inspired | LIQUID STEP | Bass |
+| 019 | Acid | 303-inspired | BRIGHT COIL | Lead |
+| 020 | Acid | 303-inspired | HOLLOW REED | Lead |
+| 021 | Acid | 303-inspired | NEEDLE LINE | Lead |
+| 022 | Acid | 303-inspired | BUBBLE RUN | Sequence |
+| 023 | Acid | 303-inspired | VELVET MONO | Lead |
+| 024 | Acid | 303-inspired | RAZOR MONO | Lead |
+| 025 | Acid | 303-inspired | ACID RIBBON | Bass / lead |
+| 026 | Acid | 303-inspired | COIL WALK | Acid sequence |
+| 027 | Acid | 303-inspired | SQUELCH GRID | Acid sequence |
+| 028 | Acid | 303-inspired | RUBBER CHASE | Acid sequence |
+| 029 | Lead | LA-inspired | VECTOR LEAD | Lead |
+| 030 | Lead | LA-inspired | WIDE SAW | Lead |
+| 031 | Lead | LA-inspired | SOFT PIPE | Lead |
+| 032 | Lead | LA-inspired | POLY CHROME | Poly synth |
+| 033 | Lead | LA-inspired | COPPER EDGE | Lead |
+| 034 | Lead | LA-inspired | SOLO ARC | Lead |
+| 035 | Lead | LA-inspired | NEON FLUTE | Lead |
+| 036 | Lead | LA-inspired | SAW CANOPY | Lead |
+| 037 | Lead | LA-inspired | PULSE TORCH | Lead |
+| 038 | Lead | LA-inspired | GLASS REED | Lead |
+| 039 | Lead | LA-inspired | SOFT COMET | Lead |
+| 040 | Lead | LA-inspired | BRIGHT VECTOR | Lead |
+| 041 | Sequence | LA-inspired | SEQUENCE KEY | Sequence |
+| 042 | Sequence | LA-inspired | SPARK SEQ | Sequence |
+| 043 | Sequence | LA-inspired | RATCHET PLUCK | Sequence |
+| 044 | Sequence | LA-inspired | CLOCK BLOOM | Sequence |
+| 045 | Sequence | LA-inspired | PINWHEEL | Sequence |
+| 046 | Sequence | LA-inspired | CRYSTAL GATE | Sequence |
+| 047 | Sequence | LA-inspired | WOODEN STEP | Sequence |
+| 048 | Sequence | LA-inspired | LANTERN RUN | Sequence |
+| 049 | Sequence | LA-inspired | SILVER TICK | Sequence |
+| 050 | Sequence | LA-inspired | POCKET PULSE | Sequence |
+| 051 | Keys | LA-inspired | HAMMER KEY | Keys |
+| 052 | Keys | LA-inspired | SOFT TINES | Keys |
+| 053 | Keys | LA-inspired | CLAVI CLICK | Keys |
+| 054 | Keys | LA-inspired | VELVET CHORD | House keys |
+| 055 | Keys | LA-inspired | AMBER PIANO | Keys |
+| 056 | Keys | LA-inspired | PRISM KEY | Keys |
+| 057 | Keys | LA-inspired | FELT GLOW | Keys |
+| 058 | Keys | LA-inspired | DIGITAL IVORY | Keys |
+| 059 | Keys | LA-inspired | CHORDED TINE | Keys |
+| 060 | Keys | LA-inspired | SOFT HAMMER | Keys |
+| 061 | Organ | LA-inspired | DRAWBAR KEY | Organ |
+| 062 | Organ | LA-inspired | PERC ORGAN | Organ |
+| 063 | Organ | LA-inspired | CELLAR ORGAN | House organ |
+| 064 | Organ | LA-inspired | DUSK DRAWBAR | Organ |
+| 065 | Organ | LA-inspired | CHAPEL PULSE | Organ |
+| 066 | Organ | LA-inspired | CLICK REED | Organ |
+| 067 | Organ | LA-inspired | SOUL REGISTER | Organ |
+| 068 | Organ | LA-inspired | BRIGHT MANUAL | Organ |
+| 069 | Brass/Reed | LA-inspired | REED STACK | Reed |
+| 070 | Brass/Reed | LA-inspired | BRASS BLOCK | Brass |
+| 071 | Brass/Reed | LA-inspired | SOFT HORNS | Brass |
+| 072 | Brass/Reed | LA-inspired | COPPER SECTION | Brass/Reed |
+| 073 | Brass/Reed | LA-inspired | MELLOW STACK | Brass/Reed |
+| 074 | Brass/Reed | LA-inspired | REED CHAMBER | Brass/Reed |
+| 075 | Brass/Reed | LA-inspired | SHARP FANFARE | Brass/Reed |
+| 076 | Brass/Reed | LA-inspired | LOW HORN | Brass/Reed |
+| 077 | Strings | LA-inspired | STRING VEIL | Strings |
+| 078 | Strings | LA-inspired | ROSIN VEIL | Strings |
+| 079 | Strings | LA-inspired | CHAMBER LINE | Strings |
+| 080 | Strings | LA-inspired | LOW ENSEMBLE | Strings |
+| 081 | Strings | LA-inspired | SILVER BOW | Strings |
+| 082 | Strings | LA-inspired | WARM OCTAVES | Strings |
+| 083 | Pad | LA-inspired | SILK PAD | Pad |
+| 084 | Pad | LA-inspired | SLOW HALO | Pad |
+| 085 | Pad | LA-inspired | BELL CLOUD | Pad |
+| 086 | Pad | LA-inspired | DUSK SCREEN | Pad |
+| 087 | Pad | LA-inspired | AIR CHAMBER | Pad |
+| 088 | Pad | LA-inspired | CLOUD ATRIUM | Pad |
+| 089 | Pad | LA-inspired | WARM HORIZON | Pad |
+| 090 | Pad | LA-inspired | LUNAR GLASS | Pad |
+| 091 | Pad | LA-inspired | VELVET AIR | Pad |
+| 092 | Pad | LA-inspired | SUNSET CHOIR | Pad |
+| 093 | Pad | LA-inspired | FAINT AURORA | Pad |
+| 094 | Pad | LA-inspired | SLOW CURRENT | Pad |
+| 095 | Pluck | LA-inspired | NYLON PLUCK | Pluck |
+| 096 | Pluck | LA-inspired | THUMB PLUCK | Pluck |
+| 097 | Pluck | LA-inspired | WIRE ZITHER | Pluck |
+| 098 | Pluck | LA-inspired | COPPER STRING | Pluck |
+| 099 | Pluck | LA-inspired | RAIN PICK | Pluck |
+| 100 | Pluck | LA-inspired | NYLON DUSK | Pluck |
+| 101 | Pluck | LA-inspired | CRYSTAL THREAD | Pluck |
+| 102 | Pluck | LA-inspired | WOODEN THUMB | Pluck |
+| 103 | Pluck | LA-inspired | SOFT ZITHER | Pluck |
+| 104 | Pluck | LA-inspired | SPRUCE SNAP | Pluck |
+| 105 | Mallet/Bell | LA-inspired | GLASS BELL | Bell |
+| 106 | Mallet/Bell | LA-inspired | WOOD MALLET | Mallet |
+| 107 | Mallet/Bell | LA-inspired | GLASS TINES | Mallet |
+| 108 | Mallet/Bell | LA-inspired | AMBER BELL | Mallet/Bell |
+| 109 | Mallet/Bell | LA-inspired | HOLLOW BAR | Mallet/Bell |
+| 110 | Mallet/Bell | LA-inspired | CHIME DROPS | Mallet/Bell |
+| 111 | Mallet/Bell | LA-inspired | BRONZE PIN | Mallet/Bell |
+| 112 | Mallet/Bell | LA-inspired | ROUND MARIMBA | Mallet/Bell |
+| 113 | Voice | LA-inspired | VOWEL CHIME | Voice-like |
+| 114 | Voice | LA-inspired | BREATH STACK | Voice-like |
+| 115 | Voice | LA-inspired | CHOIR FLICK | Voice-like |
+| 116 | Voice | LA-inspired | OPEN VOWEL | Voice |
+| 117 | Voice | LA-inspired | SOFT CHOIR | Voice |
+| 118 | Voice | LA-inspired | ROBOT HUM | Voice |
+| 119 | Hit/Percussion | LA-inspired | CHORD STAB | Stab |
+| 120 | Hit/Percussion | LA-inspired | BRASS IMPACT | Hit |
+| 121 | Hit/Percussion | LA-inspired | TIMBER HIT | Percussion |
+| 122 | Hit/Percussion | LA-inspired | TUBE STRIKE | Percussion |
+| 123 | Hit/Percussion | LA-inspired | GLASS IMPACT | Hit/Percussion |
+| 124 | Texture | LA-inspired | ORBITAL MT | Texture |
+| 125 | Texture | LA-inspired | METAL RAIN | Texture |
+| 126 | Texture | LA-inspired | SPACE SHARD | Texture |
+| 127 | Texture | LA-inspired | DIGITAL MIST | Texture |
+| 128 | Texture | LA-inspired | QUARTZ DRIFT | Texture |
 
 ### Drum kits
 

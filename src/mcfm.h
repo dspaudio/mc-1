@@ -3,7 +3,8 @@
 #ifndef MCFM_H
 #define MCFM_H
 #include <stdint.h>
-#define MC_VERSION "0.1.2"
+#include "presets.h"
+#define MC_VERSION "0.1.3"
 #define MC_RATE 44100
 #define MC_VOICES 8
 #define MC_DRUMS 16
@@ -11,7 +12,7 @@
 #define MC_PATTERNS 4
 #define MC_STEPS 16
 #define MC_PARTS 4
-#define MC_PRESETS 64
+#define MC_PRESETS 128
 #define MC_PCM_ATTACKS 24
 #define MC_KITS 8
 #define MC_PROJECT_BYTES 2136
@@ -60,6 +61,7 @@ typedef struct {
 } McEngine;
 extern const McPatch mc_presets[MC_PRESETS];
 extern const char *const mc_preset_names[MC_PRESETS];
+extern const char *const mc_preset_categories[MC_PRESETS];
 extern const char *const mc_kit_names[MC_KITS];
 void mc_init(McEngine *e);
 void mc_demo_load(McEngine *e,unsigned demo);

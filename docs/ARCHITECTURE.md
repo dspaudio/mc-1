@@ -14,6 +14,13 @@ legato slide, accent and a bounded original four-stage feedback filter. This is 
 approximation, not a circuit model. Controls are 0–127 macros. Envelopes are quantized linear
 ramps; modulation, effects and fine editor pages can be extended later.
 
+The 128 melodic presets are grouped into 14 contiguous categories. Generated symbolic
+IDs keep factory patterns, demos and showcases tied to the intended named sounds when
+the bank order changes. The UI shows category and number, and resolves an exact patch
+match before browsing from a loaded project. Custom patches use the last browser position.
+Projects serialize patch parameters, not preset indexes, so reordered banks do not
+change saved sounds.
+
 Six shared drum voice structs synthesize 16 lane sounds in each of eight original kits
 from noise, sine/pulse oscillators, pitch sweeps and decays. Immutable kit recipes change
 tuning, envelopes, noise filtering/blends, attack clicks and clap pulse spacing. A voice
@@ -63,7 +70,7 @@ RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack u
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 59,772-byte app, 11,472-byte globals,
+The [target report](target-report.json) records a 62,340-byte app, 11,472-byte globals,
 2,784-byte RAM code and 269,352-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 

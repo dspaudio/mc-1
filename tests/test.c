@@ -3,6 +3,7 @@
 #include "mcfm.h"
 #include "store.h"
 #include "ui.h"
+#include "presets_012.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -61,24 +62,24 @@ static void engines(void) {
     for(unsigned i=0;i<MC_DRUM_VOICES;i++) assert(!e.drum[i].env||e.drum[i].sound!=3);
     /* Acid can run on each melodic part; slide keeps one voice and preserves phase/envelope. */
     for(unsigned part=0;part<3;part++) {
-        mc_init(&e);mc_preset(&e,part,6);mc_note(&e,part,45,100,0,0);mc_render(&e,x,1024);
+        mc_init(&e);mc_preset(&e,part,MC_PRESET_ACID_SAW);mc_note(&e,part,45,100,0,0);mc_render(&e,x,1024);
         int32_t env=e.voice[0].envelope;uint32_t phase=e.voice[0].phase,inc=e.voice[0].increment;
         mc_note(&e,part,57,100,MC_SLIDE,0);assert(e.voice[0].envelope==env&&e.voice[0].phase==phase);
         assert(e.voice[0].increment==inc&&e.voice[0].target>inc);mc_render(&e,x,128);
         assert(e.voice[0].increment>inc&&e.voice[0].increment<e.voice[0].target);
         for(unsigned i=1;i<MC_VOICES;i++) assert(!e.voice[i].active);
     }
-    mc_init(&e);mc_preset(&e,0,0);
+    mc_init(&e);mc_preset(&e,0,MC_PRESET_VECTOR_LEAD);
     for(unsigned i=0;i<30;i++) { mc_note(&e,0,40+i,100,0,0);mc_render(&e,x,1); }
     assert(e.steals==22);
-    puts("PASS: 64 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
+    puts("PASS: 128 distinct presets, 16 drums, release, choke, shared voice cap and per-part acid slides");
 }
 static void knob_audio(void) {
     McUi ua,ub;
     /* Every displayed melodic performance knob must alter rendered sound.
        PCM is tested at note attack; glide requires a legato destination note. */
     for(unsigned engine=0;engine<2;engine++) for(unsigned knob=0;knob<4;knob++) {
-        mc_init(&a);mc_ui_init(&ua);mc_preset(&a,0,engine?6:0);b=a;ub=ua;
+        mc_init(&a);mc_ui_init(&ua);mc_preset(&a,0,engine?MC_PRESET_ACID_SAW:MC_PRESET_VECTOR_LEAD);b=a;ub=ua;
         mc_ui_encoder(&a,&ua,knob+3,-127);mc_ui_encoder(&b,&ub,knob+3,127);
         mc_note(&a,0,48,110,0,0);mc_note(&b,0,48,110,0,0);
         if(engine&&knob==3) {
@@ -93,7 +94,7 @@ static void knob_audio(void) {
     }
     /* LA resonance at maximum remains bounded over the complete keyboard/cutoff range. */
     for(unsigned note=12;note<=108;note+=12) for(unsigned cut=0;cut<=127;cut+=127) {
-        mc_init(&e);mc_preset(&e,0,0);e.project.patch[0].resonance=127;
+        mc_init(&e);mc_preset(&e,0,MC_PRESET_VECTOR_LEAD);e.project.patch[0].resonance=127;
         e.project.patch[0].cutoff=(uint8_t)cut;mc_note(&e,0,note,127,0,4096);
         render_n(&e,MC_RATE*2);assert(!e.clips);
         for(unsigned v=0;v<MC_VOICES;v++) assert(!e.voice[v].active);
@@ -295,7 +296,7 @@ static void effects_demo(void) {
 static void stress(void) {
     clock_t begin=clock();mc_init(&e);e.project.bpm=240;e.project.swing=45;
     for(unsigned fx=0;fx<4;fx++) { e.project.fx[fx]=127;for(unsigned p=0;p<4;p++)e.project.track_fx[p][fx]=127; }
-    for(unsigned p=0;p<3;p++) { mc_preset(&e,p,0);e.project.patch[p].resonance=127;e.project.patch[p].cutoff=127; }
+    for(unsigned p=0;p<3;p++) { mc_preset(&e,p,MC_PRESET_VECTOR_LEAD);e.project.patch[p].resonance=127;e.project.patch[p].cutoff=127; }
     for(unsigned i=0;i<8;i++) mc_note(&e,i%3,84+i*3,127,MC_ACCENT,0);
     for(unsigned i=0;i<16;i++) mc_drum(&e,i,127);
     mc_start(&e);render_n(&e,MC_RATE*10);
@@ -376,7 +377,39 @@ static void kits_and_tracks(void) {
     puts("PASS: 128 audible unique kit lanes, all-kit choke/decay, stable active voices, ALGORITHM patterns/PRESETS sounds");
     puts("PASS: 16 isolated track FX paths, mute tails, dry buffer reset, track/master UI, v2 migration and v3 validation");
 }
+static void sorted_bank(void) {
+    const char *categories[]={"Bass","Acid","Lead","Sequence","Keys","Organ","Brass/Reed","Strings","Pad","Pluck","Mallet/Bell","Voice","Hit/Percussion","Texture"};
+    const unsigned counts[]={12,16,12,10,10,8,8,6,12,10,8,6,5,5};
+    unsigned at=0;for(unsigned c=0;c<14;c++)for(unsigned n=0;n<counts[c];n++,at++) {
+        assert(!strcmp(mc_preset_categories[at],categories[c]));assert(strlen(mc_preset_names[at])<=18);
+    }
+    assert(at==MC_PRESETS);
+    for(unsigned old=0;old<64;old++) {
+        unsigned found=MC_PRESETS;for(unsigned p=0;p<MC_PRESETS;p++)if(!strcmp(presets_012[old].name,mc_preset_names[p]))found=p;
+        assert(found<MC_PRESETS&&!memcmp(&presets_012[old].patch,&mc_presets[found],sizeof(McPatch)));
+        mc_init(&e);mc_preset(&e,0,found);mc_note(&e,0,60,110,0,MC_RATE);mc_render(&e,x,4096);
+        assert(mc_crc(x,sizeof x)==presets_012[old].pcm_crc);
+    }
+    uint8_t record[MC_RECORD_BYTES];for(unsigned demo=0;demo<2;demo++) {
+        mc_demo_load(&e,demo);assert(mc_encode(&e.project,1,record,sizeof record)>0);
+        assert(mc_crc(record,sizeof record)==demo_012_crc[demo]);
+    }
+    McUi u;for(unsigned part=0;part<3;part++) {
+        mc_init(&e);e.selected=(uint8_t)part;mc_preset(&e,part,127);mc_ui_init(&u);
+        McPatch other[3];memcpy(other,e.project.patch,sizeof other);
+        for(unsigned p=0;p<MC_PRESETS;p++) {
+            mc_ui_encoder(&e,&u,2,1);assert(u.preset[part]==p&&!memcmp(&e.project.patch[part],&mc_presets[p],sizeof(McPatch)));
+            for(unsigned t=0;t<3;t++)if(t!=part)assert(!memcmp(&other[t],&e.project.patch[t],sizeof(McPatch)));
+        }
+        mc_ui_encoder(&e,&u,2,1);assert(u.preset[part]==0);mc_ui_encoder(&e,&u,2,-1);assert(u.preset[part]==127);
+        assert(mc_encode(&e.project,1,record,sizeof record)>0);mc_init(&e);uint32_t seq;
+        assert(!mc_decode(&e.project,&seq,record,sizeof record));e.selected=(uint8_t)part;mc_ui_init(&u);
+        mc_ui_encoder(&e,&u,2,1);assert(u.preset[part]==0);
+    }
+    puts("PASS: 128 presets in14 contiguous families, original64 patch/PCM snapshots and both demo project snapshots unchanged");
+    puts("PASS: all128 preset forward/backward wrap on each melodic part and browsing relative to loaded patch");
+}
 int main(void) {
     assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==MC_PROJECT_BYTES);
-    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();stress();puts("ALL TESTS PASSED");return 0;
+    phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();stress();puts("ALL TESTS PASSED");return 0;
 }

@@ -56,10 +56,11 @@ int main(int argc,char **argv) {
     if(argc>1&&!strcmp(argv[1],"preset")) {
         if(argc<4) return 1;
         unsigned p=(unsigned)atoi(argv[2]); if(p>=MC_PRESETS) return 1;
-        mc_preset(&engine,0,p);mc_note(&engine,0,p>=6&&p<=9?45:60,110,0,MC_RATE*2);return wav(argv[3],4,0);
+        unsigned low=p==MC_PRESET_ACID_SAW||p==MC_PRESET_SQUARE_RUBBER||p==MC_PRESET_HIGH_VOLTAGE||p==MC_PRESET_SOFT_STEP;
+        mc_preset(&engine,0,p);mc_note(&engine,0,low?45:60,110,0,MC_RATE*2);return wav(argv[3],4,0);
     }
     puts("MC-1 host console. Shared firmware DSP, sequencer and panel. No device I/O.");
-    puts("Commands: play, stop, part 0..3, pattern 0..3, preset 0..11, knob 0..6 delta, button 0..13,");
+    puts("Commands: play, stop, part 0..3, pattern 0..3, preset 0..127, knob 0..6 delta, button 0..13,");
     puts("key 0..26 down(1/0), render path seconds, screen path.ppm, save path.mcf, load path.mcf, quit");
     char line[512],cmd[32],path[384];int a,b;
     while(fputs("mc1> ",stdout),fflush(stdout),fgets(line,sizeof line,stdin)) {
