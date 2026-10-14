@@ -40,7 +40,8 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_GLO: u->page=u->page==5?2:u->page==2?4:u->page==4?7:5; break;
     case UI_LFO:
         if(u->page==6) { if(e->selected<3) { e->project.arp[e->selected].latch^=1;mc_arp_clear(e,e->selected); } }
-        else e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_ACCENT; break;
+        else { e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_ACCENT; }
+        break;
     case UI_FX:
         if(u->editing) e->project.step[e->pattern][e->selected][e->edit_step].flags^=MC_SLIDE;
         else { if(u->page!=3)u->fx_page=0;u->fx_master=u->page==3?(uint8_t)!u->fx_master:0;u->page=3; } break;
