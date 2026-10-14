@@ -15,12 +15,24 @@ build/test-ui-input: $(CORE) $(HEADERS) tests/ui_input.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/ui_input.c -o $@
 build/test-performance: $(CORE) $(HEADERS) tests/performance.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/performance.c -o $@
+build/test-patterns: $(CORE) $(HEADERS) tests/patterns.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/patterns.c -o $@
+build/test-output: $(CORE) $(HEADERS) tests/output.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/output.c -lm -o $@
+build/test-metronome: $(CORE) $(HEADERS) tests/metronome.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/metronome.c -o $@
+build/test-storage: $(CORE) $(HEADERS) tests/storage.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/storage.c -o $@
 build/test-effects-modes: src/effects.c $(HEADERS) tests/effects_modes.c | build
 	$(CC) $(CFLAGS) -Isrc src/effects.c tests/effects_modes.c -lm -o $@
-test: build/test build/test-ui-input build/test-performance build/test-effects-modes
+test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-storage build/test-effects-modes
 	./build/test
 	./build/test-ui-input
 	./build/test-performance
+	./build/test-patterns
+	./build/test-output
+	./build/test-metronome
+	./build/test-storage
 	./build/test-effects-modes
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16

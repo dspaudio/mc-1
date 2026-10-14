@@ -72,7 +72,7 @@ static void automation(void) {
     assert(!mc_parameter_set(&e,3,MC_PARAM_HPF,80));
     e.recording=0;e.project.patch[0].cutoff=0;e.project.fx_type[1]=0;e.project.track_filter[3][0]=0;
     mc_start(&e);assert(e.project.patch[0].cutoff==99&&e.project.fx_type[1]==3&&e.project.track_filter[3][0]==80);
-    mc_automation_clear(&e,4);e.recording=1;
+    mc_automation_clear(&e,MC_PATTERNS);e.recording=1;
     for(unsigned i=0;i<MC_AUTOMATION;i++) {
         e.pattern=(uint8_t)(i/96);e.step=(uint8_t)((i/6)%16);
         assert(!mc_parameter_set(&e,0,3+i%6,i%128));
@@ -87,12 +87,12 @@ static void automation(void) {
 }
 static void persistence(void) {
     static uint8_t record[MC_RECORD_BYTES],legacy[2156];McProject p;uint32_t sequence=0;
-    assert(sizeof(McProject)==MC_PROJECT_BYTES&&MC_RECORD_BYTES<=4096);
+    assert(MC_RECORD_BYTES<=36*1024);
     e.project.preset[0]=MC_PRESET_VECTOR_LEAD;e.project.patch[0].cutoff=43;
     e.project.arp[0]=(McArp){1,MC_ARP_UPDOWN,1,3,83,1};
-    assert(mc_encode(&e.project,42,record,sizeof record)==MC_RECORD_BYTES&&record[4]==4);
+    assert(mc_encode(&e.project,42,record,sizeof record)==MC_RECORD_BYTES&&record[4]==5);
     assert(!mc_decode(&p,&sequence,record,sizeof record)&&sequence==42&&!memcmp(&p,&e.project,sizeof p));
-    McProject before=p;record[20+2136+3+4]=0;
+    McProject before=p;record[20+72+MC_PATTERNS*4*16*8+16+3+4]=0;
     uint32_t crc=mc_crc(record+20,MC_PROJECT_BYTES);for(unsigned i=0;i<4;i++) record[12+i]=(uint8_t)(crc>>(8*i));
     crc=mc_crc(record,16);for(unsigned i=0;i<4;i++) record[16+i]=(uint8_t)(crc>>(8*i));
     assert(mc_decode(&p,&sequence,record,sizeof record)<0&&!memcmp(&p,&before,sizeof p));
@@ -103,7 +103,7 @@ static void persistence(void) {
     assert(!mc_decode(&p,&sequence,legacy,sizeof legacy));
     assert(p.preset[0]==MC_PRESET_VECTOR_LEAD&&!p.arp[0].enabled&&p.arp[0].gate==75&&!p.automation_count);
     p.arp[0].gate=0;assert(!mc_project_valid(&p));p.arp[0].gate=75;p.automation_count=385;assert(!mc_project_valid(&p));
-    puts("v4 round trip, v3 default migration, preset identity and strict validation: PASS");
+    puts("v5 round trip, v3 default migration, preset identity and strict validation: PASS");
 }
 static void recorded_audio(void) {
     static int16_t live_audio[MC_RATE*4],saved_audio[MC_RATE*4];

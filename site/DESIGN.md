@@ -2,7 +2,7 @@
 
 ## 0. Research log
 
-- Product references: the thirteen actual 240 × 240 shared-C display captures from the 0.1.4 firmware validation run. Preserve their bytes, aspect ratio, and pixel rendering.
+- Product references: the thirteen actual 240 × 240 shared-C display captures from the 0.2.0 firmware validation run, including the 64-pattern counter. The same thirteen states were regenerated with the current C renderer. Preserve their bytes, aspect ratio, and pixel rendering.
 - Embedded references: frontend design-system architecture, industrial-brutalist and image-to-code guidance; use a dark instrument surface, decisive type scale, aligned grids, and large unmodified screenshots. Product imagery takes precedence over generated mockups.
 - Palette sanity check: UI/UX database music/synthesizer color search; the instrument's specified orange and green remain authoritative.
 - Skipped lanes: generated imagery and external design research are unnecessary for these supplied product references. Browser rendering, interaction automation, and Lighthouse are excluded by the user's standing no-browser constraint.

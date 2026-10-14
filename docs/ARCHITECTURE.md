@@ -93,26 +93,30 @@ It is not a 512 KiB free sample pool.
 | `.noinit` | `0x01C7C000..0x01C7FD50` |
 | Boot info/mailbox/vectors | `0x01C7FD50..0x01C80000`, reserved |
 
-Host `sizeof(McEngine)` is 271,708 bytes, including a 3,726-byte project. This is not total device
+Host `sizeof(McEngine)` is 303,212 bytes, including a 35,214-byte project. This is not total device
 RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack usage. The target
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Twenty-four original attack tables occupy 24,576 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records a 469,896-byte app, 14,672-byte globals,
-2,784-byte RAM code and 271,708-byte pool. The engine is placed in `.pool`; startup clears
+The [target report](target-report.json) records a 471,876-byte app, 42,032-byte globals,
+2,784-byte RAM code and 303,212-byte pool. The engine is placed in `.pool`; startup clears
 that section before `mc_init` initializes the engine and before audio interrupts begin.
 
 ## Persistence and safety
 
-Four 16-step patterns fit one portable 3,746-byte version 4 project record. Serialization is explicit
+Sixty-four 16-step patterns fit one portable 34,850-byte version 5 project record. Serialization is explicit
 little endian; it does not dump compiler structs. The header includes magic, version, length,
 sequence, body CRC and header CRC. Decode validates all engine indexes, notes and control ranges
 before modifying the live project. Sequence comparison supports rollover.
 
-Only `0x97000..0x98FFF` is writable: two 4 KiB sectors inherited from project slot 0. A save
-preserves the last valid sector, erases the other, writes payload, then writes the commit header.
+Only `0x99000..0xAAFFF` is writable: two 36 KiB banks, each spanning nine 4 KiB sectors. A save
+preserves the last valid bank, erases the other bank's sectors, writes payload, then writes the commit header.
 No boot-time formatting or autosave occurs. Users explicitly confirm SAVE twice while stopped.
-If another firmware used these sectors, this replaces its project slot 0; the UI says SLOT 0.
+If another firmware used these sectors, confirmed SAVE replaces that data. Earlier development
+flash saves are not migrated; their `0x97000..0x98FFF` sectors are untouched. One encoded-record
+scratch buffer serves both banks, with a 256-byte readback buffer. Serialized validation runs
+before decoding, so invalid input cannot partly overwrite a project and no 35 KiB project copy
+is placed on the device stack. Automation addresses use 16 bits for 64 patterns × five scopes.
 Calibration/global sectors `0xFC000..0xFEFFF`, tail `0xFF000`, bootloader, app/configuration,
 OTA staging and sample regions are excluded by the target driver's allowlist. JEDEC must match
 `0x856014` for persistence. Host fault injection checks every byte interruption; real NOR electrical

@@ -4,12 +4,15 @@
 #define MCFM_H
 #include <stdint.h>
 #include "presets.h"
-#define MC_VERSION "0.1.4"
+#define MC_VERSION "0.2.0"
 #define MC_RATE 44100
+#define MC_MASTER_MAX (6u*32768u)
+#define MC_MASTER_DEFAULT (6u*28000u)
+#define MC_OUTPUT_CEILING 30000
 #define MC_VOICES 8
 #define MC_DRUMS 16
 #define MC_DRUM_VOICES 6
-#define MC_PATTERNS 4
+#define MC_PATTERNS 64
 #define MC_STEPS 16
 #define MC_PARTS 4
 #define MC_PRESETS 128
@@ -19,7 +22,7 @@
 #define MC_KITS 8
 #define MC_AUTOMATION 384
 #define MC_ARP_KEYS 32
-#define MC_PROJECT_BYTES 3726
+#define MC_PROJECT_BYTES 34830
 #define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
 enum { MC_LA, MC_ACID };
 enum { MC_ACCENT=1, MC_SLIDE=2, MC_TIE=4 };
@@ -29,7 +32,7 @@ enum { MC_PARAM_LEVEL=12, MC_PARAM_PAN, MC_PARAM_DELAY, MC_PARAM_REVERB,
     MC_PARAM_DRIVE_TYPE, MC_PARAM_MOD_TYPE, MC_PARAM_HPF, MC_PARAM_LPF, MC_PARAM_DRUM_LEVEL,
     MC_PARAMETERS=MC_PARAM_DRUM_LEVEL+MC_DRUMS };
 typedef struct { uint8_t enabled, mode, rate, octaves, gate, latch; } McArp;
-typedef struct { uint8_t address, step, parameter, value; } McAutomation;
+typedef struct { uint16_t address; uint8_t step, parameter, value; } McAutomation;
 typedef struct {
     uint8_t notes[MC_ARP_KEYS], velocity[MC_ARP_KEYS], held[MC_ARP_KEYS], count, position, direction, sounding[3];
     uint16_t gate_remaining;
@@ -51,7 +54,7 @@ typedef struct {
     uint8_t preset[3];
     McArp arp[3];
     uint8_t fx_type[4], track_fx_type[MC_PARTS][4], filter[2], track_filter[MC_PARTS][2];
-    uint8_t reserved;
+    uint8_t metronome;
     uint16_t automation_count;
     McAutomation automation[MC_AUTOMATION];
 } McProject;
@@ -78,13 +81,16 @@ typedef struct {
     uint32_t random, clock, elapsed, events, steals, peak, clips;
     int32_t dc_in, dc_out;
     uint8_t playing, pattern, queued, step, mute, selected, recording, edit_step;
-    uint16_t master;
+    uint32_t master, limiter_gain, limiter_hits;
     uint32_t demo_frame;
     McEffects effects;
     McEffects track_effects[MC_PARTS];
     uint8_t track_fx_active;
     McArpState arp[3];
     uint8_t automation_full;
+    uint32_t metro_phase;
+    uint16_t metro_left;
+    uint8_t metro_accent;
 } McEngine;
 extern const McPatch mc_presets[MC_PRESETS];
 extern const char *const mc_preset_names[MC_PRESETS];
@@ -105,6 +111,7 @@ void mc_note(McEngine *e, unsigned part, unsigned note, unsigned velocity, unsig
 void mc_off(McEngine *e, unsigned part, unsigned note);
 void mc_drum(McEngine *e, unsigned drum, unsigned velocity);
 void mc_render(McEngine *e, int16_t *stereo, unsigned frames);
+void mc_output(McEngine *e,int32_t *left,int32_t *right);
 void mc_preset(McEngine *e, unsigned part, unsigned preset);
 void mc_control(McEngine *e, unsigned part, unsigned knob, int delta);
 void mc_key(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned on);
@@ -117,6 +124,7 @@ int mc_project_valid(const McProject *p);
 uint32_t mc_crc(const void *data, unsigned n);
 int mc_encode(const McProject *p, uint32_t sequence, uint8_t *out, unsigned n);
 int mc_decode(McProject *p, uint32_t *sequence, const uint8_t *in, unsigned n);
+int mc_record_valid(const uint8_t *in,unsigned n,uint32_t *sequence);
 /* Decode both committed records; corruption never modifies the destination. */
 int mc_recover(McProject *p, uint32_t *sequence, const uint8_t *a, const uint8_t *b);
 #endif

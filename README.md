@@ -2,23 +2,32 @@
 
 **An original 1990s-style groovebox for the M-VAVE FM-1.**
 
-Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine from 128 presets, plus a **16-lane synthesized drum part with eight kits**. Four patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
+Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine from 128 presets, plus a **16-lane synthesized drum part with eight kits**. Sixty-four 16-step patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
 
 The compact dark panel, orange selections, bright-green playback indicators and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.1.4:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.2.0:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 
 [Explore MC-1](https://dspaudio.github.io/mc-1/) · [Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
 
-## New in 0.1.4
+## New in 0.2.0
+
+- Every project supports **64 patterns × 4 parts × 16 steps**. ALGORITHM selects 1–64 and queues changes at the next bar during playback; fast turns accelerate pattern browsing.
+- Patterns 5–64 start empty. Both built-in demos keep their original four-pattern arrangements, sounds and relative mix.
+- Recording and the shared 384-event automation pool address all 64 patterns, including track and master FX on pattern 64.
+- Project format 5 stores the full bank. Device saves use two 36 KiB banks in `0x99000..0xAAFFF`; the previous development version's flash saves are not automatically migrated.
+- Final output gain is six times the previous level (+15.56 dB) with a stereo-linked peak limiter. The web master starts at full level. Gain is applied after the effects, preserving their input levels and the track balance.
+- GLO → GROOVE exposes **METRO OFF / ON** on knob 4. When enabled, a quarter-note click with an accented downbeat plays only during PLAY + REC; the setting is saved in the project.
+
+## Added in 0.1.4
 
 - Four delay types, four reverb types, four drive types and three modulation types, plus independent HPF/LPF on every track and the master.
 - Six arpeggiator modes with rate, octave, gate and latch controls; PLAY + REC writes the generated notes into the sequencer.
 - PLAY + REC also records sound, level and FX knob motion as step automation (384 events per project). Modified patches retain their original preset name with `*`.
 - Bright green shows active playback and enabled ARP; orange remains the selection color.
-- Turn encoders slowly for single steps; rapid same-direction turns accelerate larger parameter ranges. Parts, patterns, kits and other small choices remain precise.
+- Turn encoders slowly for single steps; rapid same-direction turns accelerate larger parameter ranges. Parts, kits and other small choices remain precise.
 - Turning **PRESETS** opens a seven-row sound or drum-kit list. The sound changes immediately; the list closes 500 ms after the last turn or when another control is used.
 
 ## Added in 0.1.3
@@ -58,7 +67,7 @@ build/mc1-host screen build/drums.ppm 3
 build/mc1-host                 # interactive command help
 ```
 
-[Listen to NIGHT CIRCUIT](docs/audio/night-circuit.wav): an original host-rendered four-pattern demo at 118 BPM. It is not a recording of an FM-1 or Roland device.
+[Listen to NIGHT CIRCUIT](docs/audio/full-mix-preview.wav): an original host-rendered four-pattern demo at 118 BPM, with peak normalization for audition. It is not a recording of an FM-1 or Roland device.
 
 ## Built-in demo and effects
 
@@ -85,7 +94,7 @@ removes more low frequencies; increasing LPF removes more high frequencies.
 Amounts are 0–127 and zero is dry. These are compact original fixed-point effects,
 not models of specific hardware. Type changes reset the changed effect family's state.
 The original zero-type, filter-bypassed configuration preserves all earlier demos.
-Project version 4 saves types, filters, ARP settings, preset origins and automation,
+Project version 5 saves 64 patterns, types, filters, ARP settings, preset origins and automation,
 as well as earlier settings. Version 1–3 imports keep their original sounds and
 receive disabled ARP, empty automation, original effect types and bypassed filters.
 Earlier firmware rejects version 4 files. Hardware deadline stability remains unverified.
@@ -173,7 +182,7 @@ device recordings or relative-loudness comparisons. Rebuild with
 | Control | Action |
 |---|---|
 | SELECT / SEL | Select part 1–3 or drums |
-| ALGORITHM | Queue pattern 1–4 on every part; switches at the next bar while playing |
+| ALGORITHM | Queue pattern 1–64 on every part; switches at the next bar while playing |
 | PRESETS | Browse melodic presets (both engines), or select one of eight kits on drums |
 | PLAY / REC | Start or stop / toggle quantized recording |
 | ARP | Open/close arpeggiator; in GLOBAL MIXER, mute selected part |
@@ -183,14 +192,14 @@ device recordings or relative-loudness comparisons. Rebuild with
 | GLO | Cycle GLOBAL MIXER → GROOVE → DEMO LIBRARY → KNOB AUTOMATION |
 | LFO / FX | Accent (LATCH on ARP page) / effects; FX alternates track and master, or toggles slide in step entry |
 | OCT− / OCT+ | Keyboard octave; hold both five seconds while stopped to enter UBOOT |
-| SAVE twice, stopped | Explicitly save project to the A/B project sectors |
+| SAVE twice, stopped | Explicitly save project to the A/B project banks |
 
 On the **drum screen**, the knobs address **SOUND / STEP / HIT / LEVEL**; GLO and FX open their own controls. Turn **PRESETS** to select the kit shown in the header. HIT clockwise sets the selected hit, counterclockwise removes it. LEVEL changes that sound's kit level. Playing keys select/audition the 16 sounds; in step-entry or recording mode they toggle hits. Melodic step entry writes one note; factory chords remain playable but chord entry is not yet exposed by the panel. Record is quantized to the current step, with fixed default velocity and gate.
 
-**Storage warning:** the first confirmed device save uses `0x97000` and `0x98000`, which are the previous firmware's project slot 0 sectors. Back up that project before using MC-1 save. Boot never formats flash, there is no autosave, and the flash driver is restricted to those two sectors. Existing calibration/global settings, samples and bootloader regions are not written. The stock/default panel mapping is used; calibration import is not implemented.
+**Development storage layout:** confirmed device saves use `0x99000..0xAAFFF`, two 36 KiB banks dedicated to MC-1. Data left there by another firmware can be overwritten by SAVE. Boot never formats flash and there is no autosave. The previous MC-1 sectors `0x97000..0x98FFF`, calibration/global settings, sample regions and bootloader are outside the write allowlist. The stock/default panel mapping is used; calibration import is not implemented.
 
 The home grid includes pitch marks for up to three notes per melodic step. Higher
-marks mean higher notes, using a shared range across each part's four patterns, so
+marks mean higher notes, using a shared range across each part's 64 patterns, so
 phrase changes remain visible even when their rhythms match. The drum row shows hits.
 Above the home-screen knobs, **PATTERN** shows the playing pattern and **NEXT**
 shows a queued pattern until the next bar begins. Save/load messages take priority.

@@ -12,8 +12,8 @@ jobs:
         run: |
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
           build/test-sanitized
-          for suite in ui_input performance; do
-            cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/$suite.c -o build/test-$suite-sanitized
+          for suite in ui_input performance patterns storage output metronome; do
+            cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/factory.c src/project.c src/store.c src/ui.c tests/$suite.c -lm -o build/test-$suite-sanitized
             build/test-$suite-sanitized
           done
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c tests/effects_modes.c -lm -o build/test-effects-modes-sanitized

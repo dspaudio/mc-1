@@ -81,7 +81,8 @@ is inherited; this is not an official vendor release or verified version check.
 The loader writes app/config `0x4000..0x92FFF`, never boot head `0..0x3FFF`.
 It scans `0x93000..0xFBFFF` for valid update records and erases only matching record
 sectors. It leaves calibration/global/tail `0xFC000..0xFFFFF` untouched. This is a
-separate installer policy; the audio app still writes only `0x97000..0x98FFF`.
+separate installer policy; the audio app writes only its two 36 KiB project banks
+in `0x99000..0xAAFFF`.
 Host simulation covers CRC failure/retry, wrong key, unknown chip, interrupted host
 completion, identical-image skip and persistent-region sentinels. It is not an
 actual electrical power-loss or USB test. Never install `previous-test-only.fwsc`.

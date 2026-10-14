@@ -31,6 +31,7 @@ const uint16_t *host_screen(void) {
     for(unsigned y=0;y<240;y+=8) mc_ui_strip(&engine,&ui,y,8,screen+y*240);
     return screen;
 }
+unsigned host_project_bytes(void) { return MC_RECORD_BYTES; }
 int host_export(uint8_t *out) { return mc_encode(&engine.project,1,out,MC_RECORD_BYTES); }
 int host_import(const uint8_t *in,unsigned n) {
     uint32_t seq;McProject p;

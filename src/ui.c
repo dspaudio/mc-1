@@ -50,7 +50,7 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_SAVE:
         if(e->playing) { u->message="STOP BEFORE SAVE";break; }
         if(u->save_pending) { u->save_request=1;u->save_pending=0; }
-        else { u->save_pending=1;u->message="SAVE AGAIN: SLOT 0"; } break;
+        else { u->save_pending=1;u->message="SAVE AGAIN: PROJECT"; } break;
     default: break;
     }
 }
@@ -73,7 +73,7 @@ static void encoder_apply(McEngine *e,McUi *u,unsigned enc,int delta) {
             u->preset[p]=(uint8_t)preset; mc_preset(e,p,preset);
         } return;
     }
-    if(enc==1) { mc_queue(e,wrap((e->queued<4?e->queued:e->pattern)+delta,4)); return; }
+    if(enc==1) { mc_queue(e,wrap((e->queued<MC_PATTERNS?e->queued:e->pattern)+delta,MC_PATTERNS)); return; }
     unsigned k=enc-3;
     if(u->page==6) {
         if(p==3)return;
@@ -103,8 +103,8 @@ static void encoder_apply(McEngine *e,McUi *u,unsigned enc,int delta) {
     } else if(u->page==2) {
         if(k==0) e->project.bpm=(uint16_t)limit(e->project.bpm+delta,40,240);
         if(k==1) e->project.swing=(uint8_t)limit(e->project.swing+delta,0,45);
-        if(k==2) mc_queue(e,wrap((e->queued<4?e->queued:e->pattern)+delta,4));
-        if(k==3)parameter_delta(e,u,p,MC_PARAM_LEVEL,delta);
+        if(k==2) mc_queue(e,wrap((e->queued<MC_PATTERNS?e->queued:e->pattern)+delta,MC_PATTERNS));
+        if(k==3)e->project.metronome=(uint8_t)(delta>0);
     } else if(p==3) {
         if(k==0) u->sound=(uint8_t)wrap(u->sound+delta,16);
         if(k==1) e->edit_step=(uint8_t)wrap(e->edit_step+delta,16);
@@ -132,7 +132,8 @@ void mc_ui_encoder(McEngine *e,McUi *u,unsigned enc,int delta) {
     input_reset(u);encoder_apply(e,u,enc,delta);
 }
 static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
-    if(enc==0||enc==1)return 4;
+    if(enc==0)return MC_PARTS;
+    if(enc==1)return MC_PATTERNS;
     if(enc==2)return e->selected==3?MC_KITS:MC_PRESETS;
     unsigned k=enc-3;
     if(u->page==6)return e->selected==3?0:k==0?7:k<3?3:100;
@@ -140,7 +141,7 @@ static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
     if(u->page==3)return u->fx_page==0?128:u->fx_page==1?(k==3?3:4):k<2?128:0;
     if(u->page==5)return 128;
     if(u->page==4)return 2;
-    if(u->page==2)return k==0?201:k==1?46:k==2?4:128;
+    if(u->page==2)return k==0?201:k==1?46:k==2?MC_PATTERNS:2;
     if(e->selected==3)return k<2?16:k==2?2:128;
     if(u->page==1)return 128;
     if(u->editing)return k==0?16:k==1?128:k==2?100:4;
@@ -148,7 +149,7 @@ static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
 }
 void mc_ui_encoder_at(McEngine *e,McUi *u,unsigned enc,int delta,uint32_t now_ms) {
     if(!delta||enc>6)return;
-    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)u->editing<<5)|((uint32_t)u->fx_master<<6)|((uint32_t)u->fx_page<<18);
+    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)u->editing<<5)|((uint32_t)u->fx_master<<6)|((uint32_t)u->fx_page<<22);
     if(enc>=3) {
         if(e->selected==3)context|=(uint32_t)u->sound<<7;
         else context|=(uint32_t)e->project.patch[e->selected].engine<<11;
@@ -269,9 +270,9 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     unsigned p=e->selected;
     text(&c,3,4,p==3?"DRUMS":"MC-1",ORANGE,1);
     text(&c,63,4,p==3?mc_drum_names[u->sound]:e->project.patch[p].engine?"303":e->project.patch[p].pcm>=MC_PCM_ATTACKS?"PCM":"LA",WHITE,1);
-    number(&c,163,4,e->pattern+1,WHITE);text(&c,169,4,"/4",DIM,1);
+    number(&c,151,4,e->pattern+1,WHITE);text(&c,163,4,"/",DIM,1);number(&c,169,4,MC_PATTERNS,DIM);
     text(&c,191,4,e->playing?"+":"-",e->playing?GREEN:WHITE,1);number(&c,211,4,e->project.bpm,WHITE);
-    if(e->queued<4) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }
+    if(e->queued<MC_PATTERNS) { text(&c,163,14,"NEXT",ORANGE,1);number(&c,196,14,e->queued+1,ORANGE); }
     if(p==3) text(&c,3,14,mc_kit_names[e->project.drum_kit],WHITE,1);
     if(u->preset_popup) { preset_popup(&c,e,u);return; }
     if(u->page==5) {
@@ -348,12 +349,14 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         text(&c,14,173,"EDIT: CLEAR PATTERN",WHITE,1);
     } else if(u->page==2) {
         text(&c,14,42,"GROOVE CONTROL",WHITE,2);
-        text(&c,14,75,"FOUR PATTERNS / FOUR PARTS",DIM,1);
+        text(&c,14,75,"64 PATTERNS / FOUR PARTS",DIM,1);
         text(&c,14,99,"ALGORITHM: QUEUE PATTERN",WHITE,1);
         text(&c,14,116,"ARP: ARPEGGIATOR PAGE",WHITE,1);
-        text(&c,14,140,"HOST AND HARDWARE CORE",DIM,1);
+        text(&c,14,140,e->project.metronome?"METRONOME ON":"METRONOME OFF",e->project.metronome?GREEN:WHITE,1);
+        text(&c,14,157,"PLAY + REC ONLY",DIM,1);
         knob_scaled(&c,26,"TEMPO",e->project.bpm,240,0x3317);knob(&c,85,"SWING",e->project.swing,0x3d48);
-        knob(&c,145,"PATT",e->pattern+1,DIM);knob(&c,205,"LEVEL",e->project.level[p],HIT);
+        knob_scaled(&c,145,"PATT",e->pattern+1,MC_PATTERNS,DIM);
+        knob_scaled(&c,205,"METRO",e->project.metronome,1,e->project.metronome?GREEN:DIM);
     } else if(p==3) {
         for(unsigned row=0;row<16;row++) {
             int yy=24+(int)row*9;
@@ -387,7 +390,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         for(unsigned t=0;t<4;t++) {
             int yy=59+(int)t*27;
             unsigned low=108,high=12;
-            if(t<3) for(unsigned pattern=0;pattern<4;pattern++) for(unsigned step=0;step<16;step++) {
+            if(t<3) for(unsigned pattern=0;pattern<MC_PATTERNS;pattern++) for(unsigned step=0;step<16;step++) {
                 const McStep *st=&e->project.step[pattern][t][step];
                 if(st->velocity) for(unsigned note=0;note<3;note++) if(st->note[note]) {
                     if(st->note[note]<low) low=st->note[note];
@@ -416,8 +419,8 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         } else { knob(&c,26,"CUT",s->cutoff,0x3317);knob(&c,85,"RES",s->resonance,0x3d48);knob(&c,145,"DEC",s->decay,DIM);knob(&c,205,s->engine?"GLIDE":"PCM",s->engine?s->glide:s->pcm_mix,HIT); }
     }
     if(!u->message&&u->page<2) {
-        text(&c,4,173,"PATTERN",DIM,1);number(&c,52,173,e->pattern+1,WHITE);text(&c,58,173,"/4",DIM,1);
-        if(e->queued<4) { text(&c,94,173,"NEXT",DIM,1);number(&c,124,173,e->queued+1,ORANGE); }
+        text(&c,4,173,"PATTERN",DIM,1);number(&c,52,173,e->pattern+1,WHITE);text(&c,64,173,"/",DIM,1);number(&c,70,173,MC_PATTERNS,DIM);
+        if(e->queued<MC_PATTERNS) { text(&c,94,173,"NEXT",DIM,1);number(&c,124,173,e->queued+1,ORANGE); }
     }
     if(u->message) { rect(&c,0,171,240,12,BG);text(&c,4,173,u->message,ORANGE,1); }
     else if(e->recording) text(&c,p==3?112:3,14,"REC",ORANGE,1);

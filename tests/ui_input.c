@@ -37,7 +37,6 @@ static void acceleration(void) {
 }
 static void small_ranges(void) {
     init();timed(0,1,1);timed(0,1,2);assert(e.selected==2);
-    init();timed(1,1,1);timed(1,1,2);assert(e.pattern==2);
     init();e.selected=3;timed(2,1,1);timed(2,1,2);assert(e.project.drum_kit==2);
     timed(3,1,3);timed(3,1,4);assert(u.sound==2);
     timed(4,1,5);timed(4,1,6);assert(e.edit_step==2);
@@ -45,7 +44,92 @@ static void small_ranges(void) {
     unsigned flags=e.project.step[0][0][2].flags;timed(6,1,3);timed(6,1,4);
     assert(e.project.step[0][0][2].flags==(flags+2)%4);
     init();u.page=4;timed(3,1,1);timed(3,1,2);assert(u.demo_choice==1);
-    puts("PASS: parts/patterns/kits/lanes/steps/flags/demo choices never accelerate");
+    puts("PASS: parts/kits/lanes/steps/flags/demo choices never accelerate");
+}
+static void metronome_ui(void) {
+    init();assert(!e.project.metronome);
+    mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==2);
+    uint8_t levels[MC_PARTS];memcpy(levels,e.project.level,sizeof levels);draw(first);
+    timed(6,1,100);assert(e.project.metronome&&!memcmp(levels,e.project.level,sizeof levels));
+    draw(second);assert(memcmp(first+140*240,second+140*240,7*240*sizeof(uint16_t)));
+    assert(first[140*240+14]==0xdefbu&&second[140*240+14]==0x67e8u);
+    timed(6,1,101);assert(e.project.metronome==1);
+    timed(6,-1,102);assert(!e.project.metronome);
+    timed(6,-1,103);assert(!e.project.metronome);
+    mc_ui_encoder(&e,&u,6,127);assert(e.project.metronome==1);
+    mc_ui_encoder(&e,&u,6,-127);assert(!e.project.metronome);
+    e.playing=e.recording=1;
+    for(unsigned part=0;part<MC_PARTS;part++) {
+        e.selected=(uint8_t)part;mc_ui_encoder(&e,&u,6,1);assert(e.project.metronome);
+        mc_ui_encoder(&e,&u,6,-1);assert(!e.project.metronome);
+    }
+    assert(!e.project.automation_count&&!memcmp(levels,e.project.level,sizeof levels));
+    mc_ui_encoder(&e,&u,6,1);mc_ui_button(&e,&u,UI_HOME);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);
+    mc_ui_encoder(&e,&u,6,1);assert(e.project.level[3]==levels[3]+1&&e.project.metronome);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==2&&e.project.metronome);
+    puts("PASS: GLO/GROOVE METRO default-off, directional0/1 clamp, rapid turns, visible greenON, all-part global setting, no automation, mixer level retained");
+}
+static void render_frames(unsigned frames) {
+    int16_t audio[256];
+    while(frames) { unsigned n=frames>128?128:frames;mc_render(&e,audio,n);frames-=n; }
+}
+static void digit(unsigned x,unsigned y,const uint8_t rows[7],uint16_t color) {
+    for(unsigned row=0;row<7;row++)for(unsigned col=0;col<5;col++)
+        assert((first[(y+row)*240+x+col]==color)==((rows[row]&(1u<<(4-col)))!=0));
+}
+static void patterns64(void) {
+    static const uint8_t six[7]={14,16,16,30,17,17,14},four[7]={2,6,10,18,31,2,2};
+    assert(MC_PATTERNS==64);
+    for(unsigned part=0;part<MC_PARTS;part++) {
+        init();e.selected=(uint8_t)part;
+        mc_ui_encoder(&e,&u,1,-1);assert(e.pattern==63);
+        mc_ui_encoder(&e,&u,1,1);assert(e.pattern==0);
+        mc_ui_encoder(&e,&u,1,63);assert(e.pattern==63);
+        mc_ui_encoder(&e,&u,1,1);assert(e.pattern==0);
+        u.page=2;mc_ui_encoder(&e,&u,5,-1);assert(e.pattern==63);
+        mc_ui_encoder(&e,&u,5,1);assert(e.pattern==0);
+    }
+    init();timed(1,1,100);assert(e.pattern==1);
+    timed(1,1,159);assert(e.pattern==4);
+    timed(1,1,219);assert(e.pattern==5);
+    timed(1,-1,220);assert(e.pattern==4);
+    timed(1,-1,221);assert(e.pattern==1);
+    mc_ui_encoder(&e,&u,1,-1);timed(1,-1,222);assert(e.pattern==63);
+    timed(1,-1,223);assert(e.pattern==60);
+    mc_ui_button(&e,&u,UI_HOME);timed(1,1,224);assert(e.pattern==61);
+    timed(1,1,225);assert(e.pattern==0);
+    init();u.page=2;timed(5,-1,1);assert(e.pattern==63);
+    timed(5,-1,2);assert(e.pattern==60);
+    timed(5,1,3);assert(e.pattern==61);
+    timed(5,1,4);assert(e.pattern==0);
+    init();u.editing=1;u.fx_page=1;e.pattern=4;
+    unsigned before=e.project.step[4][0][0].velocity;timed(4,1,1);
+    assert(e.project.step[4][0][0].velocity==before+1);
+    e.pattern=0;before=e.project.step[0][0][0].velocity;timed(4,1,2);
+    assert(e.project.step[0][0][0].velocity==before+1);
+    init();e.project.bpm=120;e.project.swing=0;mc_start(&e);
+    mc_ui_encoder(&e,&u,1,-1);assert(e.pattern==0&&e.queued==63);
+    draw(first);digit(196,14,six,0xfb20u);digit(202,14,four,0xfb20u);
+    mc_ui_encoder(&e,&u,1,1);assert(e.queued==0);
+    mc_ui_encoder(&e,&u,1,-1);assert(e.queued==63);
+    render_frames(MC_RATE*2-1);assert(e.pattern==0&&e.step==15);
+    render_frames(1);assert(e.pattern==63&&e.step==0&&e.queued==255);
+    draw(first);digit(151,4,six,0xdefbu);digit(157,4,four,0xdefbu);
+    digit(169,4,six,0x4208u);digit(175,4,four,0x4208u);
+    digit(52,173,six,0xdefbu);digit(58,173,four,0xdefbu);
+    mc_ui_encoder(&e,&u,1,1);assert(e.pattern==63&&e.queued==0);
+    render_frames(MC_RATE*2);assert(e.pattern==0&&e.step==0&&e.queued==255);
+    init();mc_start(&e);e.recording=1;mc_ui_encoder(&e,&u,3,1);
+    e.pattern=63;mc_ui_encoder(&e,&u,3,1);assert(e.project.automation_count==2);
+    for(unsigned n=0;n<4;n++)mc_ui_button(&e,&u,UI_GLO);
+    draw(first);digit(68,100,six,0xdefbu);digit(74,100,four,0xdefbu);
+    mc_ui_button(&e,&u,UI_EDIT);assert(e.project.automation_count==1);
+    assert(e.project.automation[0].address/5==0);
+    init();memset(e.project.step,0,sizeof e.project.step);e.pattern=63;
+    e.project.step[63][0][0]=(McStep){.note={48,60,72},.velocity=100};
+    draw(first);assert(first[61*240+32]==0x0841&&first[69*240+32]==0x0841&&first[76*240+32]==0x0841);
+    puts("PASS: all-part 1/64 wraps, pattern3x/59/60ms/reversal/reset, queued bar 1/64, two-digit LCD, high-pattern context/pitch/automation clear");
 }
 static void popup(void) {
     init();timed(2,1,100);draw(first);assert(first[135*240+10]==0xfb20u);
@@ -119,4 +203,4 @@ static void green_feedback(void) {
     e.project.step[0][3][0].velocity=100;e.mute=8;draw(first);assert(first[26*240+29]!=0x67e8u);
     puts("PASS: green cursor only on active unmuted melodic/drum hits; silent steps remain dark");
 }
-int main(void) { acceleration();small_ranges();popup();performance_ui();green_feedback();return 0; }
+int main(void) { acceleration();small_ranges();metronome_ui();patterns64();popup();performance_ui();green_feedback();return 0; }

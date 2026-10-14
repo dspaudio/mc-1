@@ -1,8 +1,8 @@
 {
   "status": "Package format and host loader simulation only; NOT device installed or tested",
   "package_bytes": 610019,
-  "sha256": "976db107928f37ae2b10abb379ccb2c3020b90f115a8d3de58c527846d2be168",
-  "app_sha256": "f85711197fdc6ceff0288e54198f09ba8e8087bd54aa870976f38ae163e660b0",
+  "sha256": "570b5dec50ba7f7edaf16b92d23b5b2abda3b66d2cfff363262b45d26f8406fb",
+  "app_sha256": "a4308232c659cbd6a3da70c9cbbd5b9db62eb248ffe165ea356c55567a9ca4f3",
   "loader_bytes": 8140,
   "loader_load": "0x01c0a800",
   "loader_bss_end": "01c0f3a0",
@@ -15,5 +15,5 @@
   "identity": "FM-1_900",
   "app_write_range": "0x4000..0x92fff",
   "record_cleanup_range": "0x93000..0xfbfff (only valid update-record sectors)",
-  "app_persistence_range": "0x97000..0x98fff"
+  "app_persistence_range": "0x99000..0xaafff"
 }

@@ -2,9 +2,11 @@
 #ifndef MC_STORE_H
 #define MC_STORE_H
 #include "mcfm.h"
-#define MC_STORE_A 0x97000u
-#define MC_STORE_B 0x98000u
 #define MC_SECTOR 4096u
+#define MC_STORE_A 0x99000u
+#define MC_STORE_B 0xa2000u
+#define MC_STORE_BYTES (9u * MC_SECTOR)
+#define MC_STORE_END (MC_STORE_B + MC_STORE_BYTES)
 typedef struct {
     int (*read)(uint32_t,void *,unsigned);
     int (*erase)(uint32_t);

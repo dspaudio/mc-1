@@ -13,6 +13,8 @@ dsp=C.CDLL(str(lib));dsp.host_init()
 dsp.host_audio.restype=C.POINTER(C.c_int16);dsp.host_screen.restype=C.POINTER(C.c_uint16)
 dsp.host_tick.argtypes=[C.c_uint32]
 dsp.host_action.argtypes=[C.c_uint,C.c_int,C.c_int];dsp.host_import.argtypes=[C.c_void_p,C.c_uint]
+dsp.host_project_bytes.restype=C.c_uint
+project_bytes: int=dsp.host_project_bytes()
 lock=threading.Lock()
 def png():
     pixels=dsp.host_screen();raw=bytearray()
@@ -34,7 +36,7 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/screen.png': return self.send(png(),'image/png')
             if self.path=='/audio': return self.send(C.string_at(dsp.host_audio(),4410*4),'application/octet-stream')
             if self.path=='/project':
-                blob=C.create_string_buffer(4096);n=dsp.host_export(blob)
+                blob=C.create_string_buffer(project_bytes);n=dsp.host_export(blob)
                 return self.send(blob.raw[:n],'application/octet-stream')
         self.send(b'Not found',status=404)
     def do_POST(self):
@@ -44,7 +46,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(b'Origin rejected',status=403)
         try: size=int(self.headers.get('Content-Length','0'))
         except ValueError: return self.send(b'Bad length',status=400)
-        if size<0 or size>4096: return self.send(b'Too large',status=413)
+        if size<0 or size>(project_bytes if self.path=='/project' else 4096): return self.send(b'Too large',status=413)
         data=self.rfile.read(size)
         with lock:
             dsp.host_tick((time.monotonic_ns()//1000000)&0xffffffff)

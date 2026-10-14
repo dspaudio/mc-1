@@ -12,7 +12,7 @@
 #include "fm1_adc.h"
 #include "fm1_lcd_hw.h"
 /* No write can reach calibration, bootloader, OTA, samples or global settings. */
-#define FL_RANGE_OK(off,n) ((uint32_t)(off)>=0x97000u && (uint32_t)(off)<=0x99000u && (uint32_t)(n)<=0x99000u-(uint32_t)(off))
+#define FL_RANGE_OK(off,n) ((uint32_t)(off)>=0x99000u && (uint32_t)(off)<=0xab000u && (uint32_t)(n)<=0xab000u-(uint32_t)(off))
 #include "fm1_flash.h"
 #include "libc.c"
 #include "lcd.c"
@@ -61,7 +61,7 @@ static int read_flash(uint32_t off,void *out,unsigned n) {
         p+=k;off+=k;n-=k;
     } return 0;
 }
-static int erase_flash(uint32_t off) { uint32_t took;return fl_erase4k(off,&took); }
+static int erase_flash(uint32_t off) { uint32_t took;fm1_wdt_feed();return fl_erase4k(off,&took); }
 static int program_flash(uint32_t off,const void *data,unsigned n) { return fl_write(off,data,n); }
 static const McStorage storage={read_flash,erase_flash,program_flash};
 static void draw(void) {
@@ -119,7 +119,10 @@ void fm1_cstart(void) {
             if(now-both_since>=5000) { fm1_audio_stop();fm1_guard_unlock_top();fm1_enter_uboot(); }
         } else both_since=0;
         int volume=fm1_adc_read(FM1_ADC_MASTER);
-        if(volume>=0) engine.master=(uint16_t)((unsigned)volume*(unsigned)volume/32);
+        if(volume>=0) {
+            unsigned value=(unsigned)limit(volume,0,1023);
+            engine.master=(uint32_t)((uint64_t)value*value*MC_MASTER_MAX/(1023u*1023u));
+        }
         if(ui.load_request) {
             unsigned demo=ui.load_request-1;ui.load_request=0;
             if(!engine.playing) {

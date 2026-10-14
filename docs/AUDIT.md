@@ -22,13 +22,13 @@ This is source inspection and executable host/target-build evidence, not hardwar
 
 ## Persistence and installer boundaries
 
-- App read/erase/program hooks keep the unchanged `0x97000..0x98FFF` allowlist,
+- App read/erase/program hooks use the 0.2.0 `0x99000..0xAAFFF` allowlist,
   with the known `0x856014` JEDEC gate. No auto-save or boot-time format.
 - Load now recovers a valid other bank when one read hook fails. Save refuses
   any unreadable bank before erase: inability to read is not proof a bank is empty.
 - The new record payload precedes its commit header. Full readback must match
   every encoded byte; CRC/semantic decoding is also checked. Tests retain the old
-  bank through all 6,236 modeled interrupted erase/program byte positions.
+  bank through modeled erase, page-program and commit-header interruption boundaries.
 - First save replaces the previous firmware's project slot 0. All other app
   regions are outside the write allowlist. No calibration import is implemented.
 - The installer writes only `0x4000..0x92FFF`, plus valid update-record cleanup

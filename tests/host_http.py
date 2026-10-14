@@ -19,7 +19,14 @@ try:
             time.sleep(.05)
     else: raise RuntimeError('Host startup timeout')
     assert b'MC-1' in html
-    original=request('/project');assert len(original)==3746 and original[4]==4
+    original=request('/project');assert len(original)==34850 and original[4]==5
+    request('/action',json.dumps({'kind':5,'a':63}).encode())
+    request('/action',json.dumps({'kind':0,'a':4}).encode())
+    request('/action',json.dumps({'kind':2,'a':0,'b':1}).encode())
+    edited=request('/project')
+    assert edited[92+63*512:92+64*512]!=original[92+63*512:92+64*512], 'Pattern 64 must be editable'
+    request('/project',edited);assert request('/project')==edited
+    request('/project',original)
     assert request('/screen.png').startswith(b'\x89PNG\r\n\x1a\n')
     request('/action',json.dumps({'kind':4,'a':0}).encode())
     request('/action',json.dumps({'kind':1,'a':2,'b':1}).encode())
@@ -34,7 +41,7 @@ try:
     request('/action',json.dumps({'kind':1,'a':6,'b':5}).encode())
     assert request('/project')!=original
     request('/project',original);assert request('/project')==original
-    for path,data,origin,code in [('/project',b'bad',None,400),('/action',b'{}',None,400),('/action',b'[]',None,400),('/action',b'{}','https://example.com',403)]:
+    for path,data,origin,code in [('/project',b'bad',None,400),('/project',bytes(34851),None,413),('/action',b'{}',None,400),('/action',b'[]',None,400),('/action',b'{}','https://example.com',403)]:
         try: request(path,data,origin)
         except urllib.error.HTTPError as e: assert e.code==code
         else: raise AssertionError('Invalid request accepted')

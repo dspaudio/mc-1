@@ -4,6 +4,6 @@
   "bitrate_kbps": 320,
   "source": "Actual shared C built-in demo, all four native effects enabled; host render, not device recording",
   "bytes": 2356244,
-  "sha256": "986c43a2bedf8ceccc51afb2f5593ec0954b8a99991c52fa2b2a1cf810cc0b7b",
-  "wav_sha256": "b0e181fdd9e39fe57239f132a814066a133086c3c87589d2371fea98dd879b58"
+  "sha256": "3f21e735985dc39635a2750386dedab55641f2dc7f3c6edb582ae4a83e561560",
+  "wav_sha256": "41802304c620ce29b1a30dd6b3a55317262a92b7b75bff29b06477181a43c911"
 }

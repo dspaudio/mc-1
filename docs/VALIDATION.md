@@ -1,4 +1,49 @@
-# MC-1 0.1.4 validation record
+# MC-1 validation record
+
+## 0.2.0
+
+The project now contains 64 patterns × 4 parts × 16 steps. The version 5 portable
+record is 34,850 bytes; its in-memory project is 35,214 bytes. Tests cover all 64
+queued bar transitions, empty new patterns, recording and automation at pattern 64,
+addresses through 319, malformed final-pattern data and unchanged destinations on
+failed decode. Existing preset/patch snapshots still match at the explicit previous
+master setting; demo arrangements and instrument parameters are unchanged.
+
+Two 36 KiB banks occupy only `0x99000..0xAAFFF`. There is no automatic migration
+of development-version flash saves. Storage tests exercise 460 erase, page-program
+and header-commit interruption points, read failures, verification failures, range
+guards and sequence rollover. A second integration suite checks 280 sampled cuts.
+The installer simulation checks preservation of both the old 8 KiB and new 72 KiB
+regions. No physical flash operation has been performed.
+
+The final output gain is six times the previous setting. A fixed-point stereo-linked
+limiter has a 30,000-sample ceiling, instantaneous attack and approximately 50 ms
+release time constant. Tests cover unity transparency, stereo ratios, extreme inputs,
+silence, reset, block independence and dense polyphony with all track/master effects.
+The hot test reaches the ceiling without clipping. At native default gain, NIGHT
+CIRCUIT measures RMS −21.408 dBFS and NEON SPIRAL −19.943 dBFS, about +15.57 dB
+relative to the prior master setting, with no limiting in either default demo.
+Web master defaults to full scale and shares the firmware's quadratic control map.
+These are PCM measurements, not loudness-weighted LUFS or hardware listening results.
+
+The recording metronome is configured with GROOVE knob 4 and saved in the project.
+Native and WASM tests verify quarter-note timing, first-beat accent, swing, immediate
+stop, and silence unless PLAY, REC and METRO are all enabled. Clicks bypass track
+mute/effects and do not write notes or automation. ON/OFF project round trips,
+invalid serialized settings and variable audio block sizes are covered.
+
+The final pi32v2 build uses 471,876 bytes of the 581,564-byte app slot (109,688 free).
+Static RAM sections total 348,028 bytes: 42,032 globals, 303,212 pool and 2,784 RAM
+code. The pool has 40,852 bytes free within its region. Hardware CPU deadlines,
+stack high-water marks and listening remain untested.
+
+Current audio and build measurements are in [audio-report.json](audio-report.json),
+[showcase-report.json](showcase-report.json), [target-report.json](target-report.json)
+and [package-report.json](package-report.json). Listening examples and the MP3 have
+been regenerated; older byte-identical audio claims below describe the 0.1.4 release.
+Browser operation and real-device audio deadlines remain unverified.
+
+## 0.1.4 historical validation
 
 Host tests pass on the development Mac: 128 distinct presets, eight kits with 128 distinct lane renders,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,

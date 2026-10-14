@@ -35,14 +35,14 @@ static uint32_t random32(McEngine *e) {
 }
 void mc_init(McEngine *e) {
     zero(e,sizeof *e); mc_factory(&e->project); e->random=0x4d43464d;
-    e->queued=255; e->master=28000;
+    e->queued=255;e->master=MC_MASTER_DEFAULT;e->limiter_gain=1u<<24;
     for(unsigned p=0;p<3;p++) e->arp[p].random=0x61727031u+p;
 }
 void mc_project_defaults(McProject *p) {
     zero(p->arp,sizeof p->arp); zero(p->fx_type,sizeof p->fx_type);
     zero(p->track_fx_type,sizeof p->track_fx_type); zero(p->filter,sizeof p->filter);
     zero(p->track_filter,sizeof p->track_filter); zero(p->automation,sizeof p->automation);
-    p->automation_count=0; p->reserved=0;
+    p->automation_count=0;p->metronome=0;
     for(unsigned t=0;t<3;t++) {
         p->arp[t].rate=2; p->arp[t].octaves=1; p->arp[t].gate=75; p->preset[t]=255;
         for(unsigned n=0;n<MC_PRESETS;n++) {
@@ -229,19 +229,22 @@ int mc_parameter_set(McEngine *e,unsigned part,unsigned param,unsigned value) {
     if(index==MC_AUTOMATION) { e->automation_full=1;return 1; }
     if(index==e->project.automation_count) e->project.automation_count++;
     McAutomation *a=&e->project.automation[index];
-    a->address=(uint8_t)address;a->step=e->step;a->parameter=(uint8_t)param;a->value=(uint8_t)value;
+    a->address=(uint16_t)address;a->step=e->step;a->parameter=(uint8_t)param;a->value=(uint8_t)value;
     return 0;
 }
 void mc_automation_clear(McEngine *e,unsigned pattern) {
     unsigned count=0;
     for(unsigned i=0;i<e->project.automation_count;i++)
-        if(pattern<4&&e->project.automation[i].address/5!=pattern)
+        if(pattern<MC_PATTERNS&&e->project.automation[i].address/5!=pattern)
             e->project.automation[count++]=e->project.automation[i];
     zero(e->project.automation+count,(MC_AUTOMATION-count)*sizeof(McAutomation));
     e->project.automation_count=(uint16_t)count;e->automation_full=0;
 }
 static void trigger(McEngine *e) {
     uint32_t samples=step_samples(e);
+    if(e->playing&&e->recording&&e->project.metronome&&e->step%4==0) {
+        e->metro_phase=0;e->metro_left=MC_RATE/50;e->metro_accent=e->step==0;
+    }
     for(unsigned i=0;i<e->project.automation_count;i++) {
         const McAutomation *a=&e->project.automation[i];
         if(a->address/5==e->pattern&&a->step==e->step) parameter_apply(e,a->address%5,a->parameter,a->value);
@@ -266,7 +269,7 @@ static void trigger(McEngine *e) {
         } else if(s->velocity) {
             /* Slide belongs to the destination step. Keep the source gate alive to it. */
             unsigned next=(e->step+1)%16;
-            unsigned nextpat=(next==0&&e->queued<4)?e->queued:e->pattern;
+            unsigned nextpat=(next==0&&e->queued<MC_PATTERNS)?e->queued:e->pattern;
             const McStep *n=&e->project.step[nextpat][p][next];
             uint32_t gate=(n->velocity&&(n->flags&(MC_SLIDE|MC_TIE)))?samples+2:samples*s->gate/100;
             for(unsigned c=0;c<3;c++) if(s->note[c]) {
@@ -289,11 +292,12 @@ void mc_start(McEngine *e) {
 }
 void mc_stop(McEngine *e) {
     e->playing=0; e->queued=255;
+    e->metro_left=0;
     for(unsigned p=0;p<3;p++) mc_arp_clear(e,p);
     for(unsigned i=0;i<MC_VOICES;i++) e->voice[i].stage=2;
 }
 void mc_queue(McEngine *e,unsigned p) {
-    if(p>=4) return;
+    if(p>=MC_PATTERNS) return;
     if(e->playing) e->queued=(uint8_t)p; else { e->pattern=(uint8_t)p; e->queued=255; }
 }
 void mc_mute(McEngine *e,unsigned p) {
@@ -434,6 +438,36 @@ static int32_t percussion(McEngine *e,McDrum *d) {
     if(d->env<16) d->env=0;
     return s;
 }
+static uint32_t limiter_target(int64_t peak) {
+    uint32_t ceiling=MC_OUTPUT_CEILING;
+    while(peak>0x7fffffff) { peak=(peak+1)>>1;ceiling>>=1; }
+    uint32_t divisor=(uint32_t)peak,numerator=ceiling<<16;
+    uint32_t gain=numerator/divisor,remainder=numerator%divisor;
+    for(unsigned bit=0;bit<8;bit++) {
+        gain<<=1;remainder<<=1;
+        if(remainder>=divisor) { gain++;remainder-=divisor; }
+    }
+    return gain;
+}
+void mc_output(McEngine *e,int32_t *left,int32_t *right) {
+    const uint32_t unity=1u<<24;
+    uint32_t master=e->master>MC_MASTER_MAX?MC_MASTER_MAX:e->master;
+    int64_t l=(int64_t)*left*master/32768,r=(int64_t)*right*master/32768;
+    int64_t al=l<0?-l:l,ar=r<0?-r:r,peak=al>ar?al:ar;
+    uint32_t needed=peak>MC_OUTPUT_CEILING?limiter_target(peak):unity;
+    if(needed<unity)e->limiter_hits++;
+    if(needed<e->limiter_gain)e->limiter_gain=needed;
+    else {
+        e->limiter_gain+=(unity-e->limiter_gain+2204)/2205;
+        if(e->limiter_gain>needed)e->limiter_gain=needed;
+    }
+    l=l*e->limiter_gain/unity;r=r*e->limiter_gain/unity;
+    if(l>32767||l< -32767||r>32767||r< -32767)e->clips++;
+    al=l<0?-l:l;ar=r<0?-r:r;
+    if((uint32_t)al>e->peak)e->peak=(uint32_t)al;
+    if((uint32_t)ar>e->peak)e->peak=(uint32_t)ar;
+    *left=clamp((int32_t)l,-32767,32767);*right=clamp((int32_t)r,-32767,32767);
+}
 void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
     for(unsigned f=0;f<frames;f++) {
         for(unsigned p=0;p<3;p++) if(!e->playing&&e->project.arp[p].enabled&&e->arp[p].count) {
@@ -450,7 +484,7 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
             if(e->clock>=MC_RATE*60u*swing) {
                 e->clock-=MC_RATE*60u*swing;
                 e->step=(uint8_t)((e->step+1)%16);
-                if(!e->step&&e->queued<4) { e->pattern=e->queued; e->queued=255; }
+                if(!e->step&&e->queued<MC_PATTERNS) { e->pattern=e->queued; e->queued=255; }
                 trigger(e);
             }
         }
@@ -471,14 +505,15 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
             }
             if(!((e->mute>>p)&1)) { l+=pl;r+=pr; }
         }
-        /* Conservative fixed headroom, then a bounded safety clamp; no wrapping. */
         l/=3;r/=3;mc_effects(e,&l,&r);
-        l=(int32_t)((int64_t)l*e->master/32768); r=(int32_t)((int64_t)r*e->master/32768);
-        if(l>32767||l< -32767||r>32767||r< -32767) e->clips++;
-        int32_t al=l<0?-l:l, ar=r<0?-r:r;
-        if((uint32_t)al>e->peak) e->peak=(uint32_t)al;
-        if((uint32_t)ar>e->peak) e->peak=(uint32_t)ar;
-        l=clamp(l,-32767,32767); r=clamp(r,-32767,32767);
+        if(!e->playing||!e->recording||!e->project.metronome)e->metro_left=0;
+        if(e->metro_left) {
+            e->metro_phase+=(e->metro_accent?1760u:1320u)*97392u;
+            int32_t click=mc_sine[e->metro_phase>>22]*(e->metro_accent?1600:1200)/32768;
+            click=click*e->metro_left/(MC_RATE/50);e->metro_left--;
+            l+=click;r+=click;
+        }
+        mc_output(e,&l,&r);
         stereo[f*2]=(int16_t)l; stereo[f*2+1]=(int16_t)r; e->elapsed++;
     }
 }
