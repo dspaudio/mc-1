@@ -1,12 +1,12 @@
 {
   "status": "pi32v2 compiled; NOT hardware tested; raw app, NOT an installer",
-  "app_bytes": 34484,
+  "app_bytes": 37628,
   "app_limit": 581564,
-  "data_bss_bytes": 14336,
+  "data_bss_bytes": 67648,
   "data_bss_limit": 98304,
   "pool_bytes": 0,
   "pool_limit": 344064,
   "ram_text_bytes": 2784,
-  "sha256": "3db0ff24ac7b29e80142d9dda36f160cc0523bf79bb9ef59c6eb9fa286042e47",
+  "sha256": "5e4c74b332378d0aa3e0ce217ed6a4fbd1975c1afeb6afff15101a2471ff3037",
   "compiler": "clang version 4.0.1 () ()\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /tmp/mcfm-toolchain/jieli-linux-toolchains-20260730.1/pi32v2/bin"
 }

@@ -60,8 +60,8 @@ RAM: add storage scratch, DMA, scan state, LCD strip, libc/HAL state and stack u
 link report is authoritative for static sections; stack high-water and IRQ nesting need hardware
 measurement. Six original attack tables occupy 6,144 bytes of XIP, not a sample-memory allocation.
 
-The [target report](target-report.json) records the compiled revision; FX-version memory
-figures are being regenerated. Host engine state is 56,212 B, including fixed effect buffers.
+The [target report](target-report.json) records a 37,628-byte app, 67,648-byte globals,
+2,784-byte RAM code and zero pool. Host engine state is 56,212 B, including fixed effect buffers.
 
 ## Persistence and safety
 

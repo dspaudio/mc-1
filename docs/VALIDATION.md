@@ -1,4 +1,4 @@
-# MC-1 0.2 validation record
+# MC-1 0.1.0 validation record
 
 Host tests pass on the development Mac: 12 distinct presets, 16 drum models,
 release/choke/voice allocation, exact swing and bar timing, block-independent DSP,
@@ -18,8 +18,28 @@ Apple AudioFile inspection recognized the MP3. Its provenance and hashes are in
 [mp3-report.json](mp3-report.json); raw/normalized renders are in
 [showcase-report.json](showcase-report.json). No external musical effects were used.
 
-Target/package reports will be replaced with this FX revision's CI evidence before
-release. Earlier reports are historical and do not establish this revision's size.
+[CI 38512065587](https://github.com/dspaudio/mc-1/actions/runs/38512065587) passed
+host, pi32v2 target, SDK hash checks and sanitized installer simulation at
+`9e166c68396b4b6a5f4990266b66393450f9ea3f`. Subsequent report-only revisions verify
+regenerated reports against these bytes in CI.
+
+| Target region | Used | Bound | Remaining |
+|---|---:|---:|---:|
+| App load image | 37,628 B | 581,564 B | 543,936 B |
+| Data + BSS | 67,648 B | 98,304 B | 30,656 B |
+| RAM code | 2,784 B | 24,576 B | 21,792 B |
+| Pool | 0 B | 344,064 B | 344,064 B |
+
+The app SHA-256 is `5e4c74b332378d0aa3e0ce217ed6a4fbd1975c1afeb6afff15101a2471ff3037`.
+The experimental package is 610,019 B, SHA-256
+`9f80b581d54b1552e59c82c82ca03e705800e396cfdf391ce18ea2dbe3c62d4d`.
+The RAM loader is 8,140 B, BSS end `0x01C0F3A0`. Static app RAM above sums to
+70,432 B excluding stacks/reservations; no measured stack high-water is claimed.
+
+Apple's MP3 decoder produced 44.1 kHz stereo PCM with peak 23,731 and zero saturated
+samples. The public MP3 was fetched and verified against the local SHA-256.
+The in-app browser displayed the real C demo library, loaded NEON SPIRAL and showed
+its four effect defaults (48/35/20/30).
 See [source audit](AUDIT.md) and [build/recovery boundaries](../BUILDING.md).
 
 No FM-1 has been flashed or accessed. Installation, cold/warm boot, physical panel,

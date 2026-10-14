@@ -64,6 +64,6 @@ UBOOT recovery, LCD/keys/encoder/ADC mapping, codec listening, actual NOR saves,
 battery behavior, CPU clock, stack high-water, interrupt timing and long stability.
 No hardware was flashed or accessed during this work.
 
-The 0.2 revision adds four native effects, a built-in demo library, version 1 migration
+The 0.1.0 revision adds four native effects, a built-in demo library, version 1 migration
 and version 2 persistent effect/demo settings. New effect decay, demo completion and
 maximum-effects stress tests pass on host; physical timing remains unverified.

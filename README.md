@@ -6,7 +6,7 @@ Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine
 
 The compact dark panel, orange accents and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
 
-> **Experimental 0.2:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
+> **Experimental 0.1.0:** the native host engine, sequencer, display and storage tests work. Host checks pass; target validation for each revision is recorded separately; see the [validation record](docs/VALIDATION.md). No FM-1 boot, listening, stability, control calibration or audio-deadline test has been performed. An experimental `.fwsc` package build is available; installation on hardware remains unverified. The compiled raw target app is not an installer. See [package boundaries](BUILDING.md#experimental-fwsc-package).
 
 ![Actual shared C drum screen](docs/drums.png)
 

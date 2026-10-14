@@ -3,6 +3,7 @@
 #ifndef MCFM_H
 #define MCFM_H
 #include <stdint.h>
+#define MC_VERSION "0.1.0"
 #define MC_RATE 44100
 #define MC_VOICES 8
 #define MC_DRUMS 16
