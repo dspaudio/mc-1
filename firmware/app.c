@@ -57,28 +57,61 @@ static volatile uint8_t ota_usb_owner;
 static uint32_t ota_poll_tick;
 static volatile uint32_t ota_step;
 static volatile int32_t ota_result_code;
+#if MC_PERF_PROBE == 1
+#define MC_PERF_PUBLISH() RING_PUBLISH()
+#include "perf_probe.h"
+static uint32_t mc_perf_ticks(void) { return fm1_ticks(); }
+static uint32_t mc_perf_lock(void) {
+    uint32_t saved=fm1_icfg();fm1_irq_off();return saved;
+}
+static void mc_perf_unlock(uint32_t saved) { RING_PUBLISH();fm1_icfg_set(saved); }
+static int mc_perf_send(const uint8_t *body,uint32_t n) { return ota_send_msg(0x71,body,n); }
+static void ota_probe_request(const uint8_t *body,uint32_t n) { mc_perf_request(body,n); }
+static void mc_perf_snapshot(McPerfSnapshot *s) {
+    s->deadline=deadline_misses;s->half=audio_half_changes;
+    s->underruns=uac.underruns;s->overruns=uac.overruns;s->stalls=uac.stalls;s->missed=uac.missed;
+    s->timer_con=FM1_T4_CON;s->timer_prd=FM1_T4_PRD;
+    s->clk1=FM1_CLK_CON1;s->clk2=FM1_CLK_CON2;s->alnk_len=FM1_ALNK_LEN;
+    s->bpm=engine.project.bpm;s->playing=engine.playing;s->clock_source=engine.project.clock_source;
+    s->master=engine.master;s->step=engine.step;
+    s->flags=(uint32_t)(uac.alt!=0)|((uint32_t)(uac.go!=0)<<1)|((uint32_t)(uac.feed!=0)<<2);
+}
+#endif
 extern void isr_alnk0(void),isr_timer5(void);
 void fm1_timer5_irq(void) {
+#if MC_PERF_PROBE == 1
+    uint32_t probe_begin=fm1_ticks();
+    unsigned probe_active=mc_perf.state==MC_PERF_ACTIVE;
+#endif
     static uint32_t last,acc,sub,owed;
     fm1_timer5_ack();fm1_input_tick();
     uint32_t now=fm1_ticks();acc+=now-last;last=now;
     while(acc>=24000u) { acc-=24000u;milliseconds++; }
     /* staging 중에는 main만 SIE INDEX와 USB 큐를 소비한다. 시각·패널 스캔은 유지한다. */
-    if(ota_usb_owner) { owed=0;return; }
+    if(ota_usb_owner) { owed=0;goto timer_done; }
     unsigned usb_due=sub%5u==0;
     if(usb_due)owed|=1u;
     if(sub%5u==2u)owed|=2u;
     if(++sub==10u)sub=0;
     /* TIMER5 can preempt audio: only the EP4 consumer runs while rendering.
      * Descriptor/reset and MIDI producers wait until the render is finished. */
-    if(in_audio) { if(usb_due)uac_service();return; }
+    if(in_audio) { if(usb_due)uac_service();goto timer_done; }
     connection_midi_poll(owed);
     owed=0;
+timer_done:
+#if MC_PERF_PROBE == 1
+    mc_perf_timer_end(probe_begin,probe_active);
+#else
+    (void)0;
+#endif
 }
 void fm1_alnk0_irq(void) {
     uint8_t p=fm1_audio_pending();fm1_audio_ack_aux(p);
     if(p&FM1_AUDIO_HALF) {
         uint32_t start=fm1_ticks(),half=fm1_audio_free_half();
+#if MC_PERF_PROBE == 1
+        mc_perf_audio_begin(start);
+#endif
         if(previous_audio_start) {
             uint32_t interval=(start-previous_audio_start)/24;
             if(interval>max_audio_interval_us)max_audio_interval_us=interval;
@@ -89,8 +122,16 @@ void fm1_alnk0_irq(void) {
         uac_render_start();
         uint32_t render_start=fm1_ticks();
         mc_render(&engine,block,FRAMES);
+#if MC_PERF_PROBE == 1
+        uint32_t probe_render_ticks=fm1_ticks()-render_start;
+        uint32_t render_us=probe_render_ticks/24;
+#else
         uint32_t render_us=(fm1_ticks()-render_start)/24;
+#endif
         if(render_us>max_render_us)max_render_us=render_us;
+#if MC_PERF_PROBE == 1
+        mc_perf_render(probe_render_ticks);
+#endif
         for(unsigned i=0;i<FRAMES*2;i++)usb_block[i]=block[i];
         uac_tap(usb_block,FRAMES);
         connection_midi_output(&engine);
@@ -103,6 +144,9 @@ void fm1_alnk0_irq(void) {
         if(us>max_audio_us) max_audio_us=us;
         if(us>=FRAMES*1000000u/MC_RATE||changed) deadline_misses++;
         RING_PUBLISH();in_audio=0;
+#if MC_PERF_PROBE == 1
+        mc_perf_audio_end(start);
+#endif
     }
 }
 static int read_flash(uint32_t off,void *out,unsigned n) {
@@ -125,7 +169,17 @@ static void audio_pause(void) {
     previous_audio_start=0;
     connection_midi_pause(&engine);fm1_irq_on();
 }
+#if MC_PERF_PROBE == 1
+/* 실제 strip 제출 한 번을 센다. 공유 패널 스케줄러는 변경하지 않는다. */
+static void probe_lcd_blit(unsigned x,unsigned y,unsigned w,unsigned h,const uint16_t *p) {
+    lcd_blit(x,y,w,h,p);mc_perf_panel(0);
+}
+#define lcd_blit probe_lcd_blit
+#endif
 #include "panel_refresh.c"
+#if MC_PERF_PROBE == 1
+#undef lcd_blit
+#endif
 static uint32_t ota_now_ms(void) { return milliseconds; }
 static void ota_idle(void) {
     fm1_wdt_feed();
@@ -152,7 +206,14 @@ static void ota_show(uint32_t step,int32_t code) {
 static void ota_commit(const uint8_t *parm) {
     fm1_irq_off();usb_detach();fm1_guard_unlock_top();fm1_enter_update(parm);
 }
+#if MC_PERF_PROBE == 1
+static void probe_audio_pause(void) { mc_perf_invalidate();audio_pause(); }
+#define audio_pause probe_audio_pause
+#endif
 #include "update/ota_app.c"
+#if MC_PERF_PROBE == 1
+#undef audio_pause
+#endif
 #include "update/ota_entry.c"
 static void fm1_fault(const fm1_crash_t *crash) {
     (void)crash;fm1_audio_stop();fm1_guard_unlock_top();fm1_enter_uboot();
@@ -189,6 +250,9 @@ void fm1_cstart(void) {
             for(unsigned i=0;i<7;i++)(void)fm1_enc_take(encoders[i]);
             notes=fm1_in.notes;both_since=0;continue;
         }
+#if MC_PERF_PROBE == 1
+        mc_perf_service();
+#endif
         uint32_t pressed=fm1_input_edges(0),current=fm1_in.notes;
         for(unsigned i=0;i<14;i++) if(pressed&(1u<<buttons[i])) {
             fm1_irq_off();mc_ui_button(&engine,&ui,i);fm1_irq_on();
@@ -240,6 +304,9 @@ void fm1_cstart(void) {
         if(led_playing!=engine.playing||led_step!=engine.step) {
             led_playing=engine.playing;led_step=engine.step;
             mc_panel_step_leds(led_playing,led_step,fm1_led_key);
+#if MC_PERF_PROBE == 1
+            mc_perf_panel(1);
+#endif
         }
         panel_draw_service(milliseconds);
     }

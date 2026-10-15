@@ -10,6 +10,9 @@ out=root/'build';out.mkdir(exist_ok=True)
 tc=Path(os.environ.get('JIELI_TOOLCHAIN',str(Path.home()/'.jieli/toolchain'))).resolve()
 if not (tc/'pi32v2/bin/clang').exists(): raise SystemExit('Set JIELI_TOOLCHAIN to the official JieLi Linux toolchain. No target image was built.')
 docker=platform.system()!='Linux' or platform.machine() not in ('x86_64','AMD64')
+probe=os.environ.get('MC_PERF_PROBE','0')
+if probe not in ('0','1'): raise SystemExit('MC_PERF_PROBE must be 0 or 1.')
+probe_flags=['-DMC_PERF_PROBE=1'] if probe=='1' else []
 def run(tool,*args):
     command=[str(tc/tool),*map(str,args)]
     if docker:
@@ -18,7 +21,7 @@ def run(tool,*args):
 try:
     version=run('pi32v2/bin/clang','--version')
     for source,name in [('firmware/crt0.S','crt0'),('firmware/hal/fm1_vec.S','vec'),('firmware/hal/fm1_isr.S','isr'),('firmware/app.c','app'),('firmware/update/ota_flash.c','ota_flash')]:
-        print(run('pi32v2/bin/clang','-target','pi32v2','-Os','-ffunction-sections','-fno-builtin','-Wall','-Werror','-Wno-unused-function','-Ifirmware/hal','-Isrc','-c',source,'-o',f'build/{name}.o'),end='')
+        print(run('pi32v2/bin/clang','-target','pi32v2','-Os','-ffunction-sections','-fno-builtin','-Wall','-Werror','-Wno-unused-function',*(probe_flags if name=='app' else []),'-Ifirmware/hal','-Isrc','-c',source,'-o',f'build/{name}.o'),end='')
     print(run('pi32v2/bin/ld','-T','firmware/app.ld','build/crt0.o','build/vec.o','build/isr.o','build/app.o','build/ota_flash.o','-o','build/mc-1.elf'),end='')
     symbols=run('common/bin/objdump','-t','build/mc-1.elf')
     dis=run('common/bin/objdump','-d','build/mc-1.elf')

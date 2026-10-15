@@ -45,10 +45,12 @@ build/test-panel-refresh: firmware/panel_refresh.c tests/panel_refresh.c | build
 	$(CC) $(CFLAGS) tests/panel_refresh.c -o $@
 build/test-connections-ota: firmware/update/usb.c tests/connections.c | build
 	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function -DFELUCCA_OTA=1 tests/connections.c -o $@
+build/test-perf-probe: firmware/perf_probe.h firmware/update/ota.c tests/perf_probe.c | build
+	$(CC) $(CFLAGS) -Wno-unused-function tests/perf_probe.c -o $@
 test-ota: build/test-ota build/ldr-test
 	./build/test-ota build/mc-1-EXPERIMENTAL.fwsc
 	./build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
-test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota
+test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota build/test-perf-probe
 	./build/test
 	./build/test-ui-input
 	./build/test-performance
@@ -65,6 +67,8 @@ test: build/test build/test-ui-input build/test-performance build/test-patterns 
 	./build/test-ota-entry
 	./build/test-panel-refresh
 	./build/test-connections-ota
+	./build/test-perf-probe
+	python3 -B tests/perf_capture_test.py
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16
 assets:

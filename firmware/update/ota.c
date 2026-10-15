@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
+#include <stdint.h>
 /* M-UPGRADE update entry.
  *
  * The updater talks SysEx (F0 pack7(00 59 cmd len24 body chk) F7):
@@ -162,11 +163,18 @@ static uint32_t ota_take(void)
 }
 
 /* main loop, outside a session: answer handshakes */
+#if MC_PERF_PROBE == 1
+static void ota_probe_request(const uint8_t *body, uint32_t n);
+#endif
 static void ota_service(void)
 {
     uint32_t d = ota_take();
     if (d == 7u && ota_dec[2] == 0x11)
         ota_reply_identity();
+#if MC_PERF_PROBE == 1
+    if (d && ota_dec[2] == 0x70)
+        ota_probe_request(ota_dec + 6, d - 7u);
+#endif
 }
 
 /* one read request (3 tries x 5 s); data -> dst */
