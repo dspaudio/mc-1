@@ -4,6 +4,6 @@
   "bitrate_kbps": 320,
   "source": "Actual shared C built-in demo with both shared FX banks; host render, not device recording",
   "bytes": 2356244,
-  "sha256": "2d88ad47e927076254e7a267c269e964cb1ed19ecdef2779e5f460dbd769933e",
-  "wav_sha256": "5669943414b7c2dbad971a07459f6d3ffbe433e6b0c146841a3491a6d68adb21"
+  "sha256": "f5fc281a96aafd7d9c77db2c9694073dac09f8e9abf6ea97b3e1b4b29bb25555",
+  "wav_sha256": "f75089731a213fd6f70abab4c91f3de2b0f91ef521f7b595840c37765a7e6db2"
 }
