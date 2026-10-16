@@ -72,7 +72,8 @@ static void reset(void) {
     mc_init(&engine); memset(&ui, 0, sizeof ui); memset(dma, 0x7f, sizeof dma);
     usb.config = usb.up = 1;
     mi_r = mi_w = mo_r = mo_w = 0;
-    ota_usb_owner = paused = restarted = panel_restarts = probes = sessions = cleanups = 0;
+    ota_usb_owner = 0;
+    paused = restarted = panel_restarts = probes = sessions = cleanups = 0;
     ota_result_code = 0;
     known = flash_ok = 1; store_ready = irq_on = 1;
     session_rc = -13; cleanup_rc = 0; commit = 0;
@@ -134,7 +135,7 @@ int main(void) {
     assert(probes == 1 && !cleanups && !restarted);
     reset(); cleanup_rc = -16; mc_ota_boot_service();
     assert(cleanups == 1 && ota_result_code == -16 && !paused);
-    reset(); usb.ota_req = commit = 1;
+    reset(); usb.ota_req = 1; commit = 1;
     if (!setjmp(reboot)) {
         (void)mc_ota_entry_service();
         assert(0);
