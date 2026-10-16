@@ -1,239 +1,337 @@
-# MC-1
+# MC-1 1.0.0
 
-**An original 1990s-style groovebox for the M-VAVE FM-1.**
+**An original four-part groovebox for the M-VAVE FM-1.**
 
-Three melodic parts, each choosing an **LA-inspired** or **303-inspired** engine from 128 presets, plus a **16-lane synthesized drum part with eight kits**. Sixty-four 16-step patterns, live playing, step editing, recording, accent, slide, part mute, queued pattern changes and hands-on controls.
+Build a pattern, play a chord and shape it with the panel. MC-1 combines three
+melodic parts with a sixteen-lane drum part, 128 melodic presets, eight drum
+kits, song arrangement, arpeggiation and recorded knob movement. Its sound,
+sequencer, display and project format come from the same C core on the device,
+native host and browser emulator.
 
-The compact dark panel, orange selections, bright-green playback indicators and drum grid take inspiration from the Roland MC-series workflow. MC-1 is **not a Roland emulation**, is not affiliated with Roland or M-VAVE, and does not use Roland ROMs, samples, patches, logos or compatibility formats.
+[Explore MC-1](https://dspaudio.github.io/mc-1/) ·
+[Install firmware on an FM-1](https://dspaudio.github.io/mc-1/install.html) ·
+[Play the web emulator](https://dspaudio.github.io/mc-1-web/)
 
-> **Experimental 0.3.0:** 검증 범위는 [validation record](docs/VALIDATION.md)에 기록한다. 이전 실험 설치에서는 USB 재연결을 확인했지만 소리 깨짐과 재업데이트 진입 기능 누락이 보고됐고, 기기는 순정 V15로 복구됐다. 현재 소스는 USB 업데이트 진입과 실패 복귀를 구현하지만 수정본의 실기기 설치·재업데이트·전원 차단 복구·오디오 기한은 미검증이다. `.app.bin`은 설치 패키지가 아니다. [패키지 경계](BUILDING.md#experimental-fwsc-package)를 확인한다.
+MC-1 takes workflow inspiration from 1990s grooveboxes. It is not a Roland
+emulation and is not affiliated with Roland or M-VAVE. No Roland ROMs, samples,
+patches, logos or compatibility formats are included.
 
-![Actual shared C drum screen](docs/drums.png)
+## See the instrument
 
-[Explore MC-1](https://dspaudio.github.io/mc-1/) · [Play the FM-1 web emulator](https://dspaudio.github.io/mc-1-web/) · [Emulator source](https://github.com/dspaudio/mc-1-web)
+These are fresh renders of the actual shared C display, not interface mockups
+or photographs of hardware. Orange marks selection; green follows playback.
 
-## New in 0.3.0
+<p>
+<img src="site/assets/screens/v1-home.png" width="240" height="240" alt="MC-1 home: four pattern rows, note pitches and playback cursor">
+<img src="site/assets/screens/v1-drums.png" width="240" height="240" alt="MC-1 drum grid with the selected kit, lane and hits">
+</p>
 
-- Separate PATTERN and SONG screens. Arrange up to 128 song entries, each selecting one of 64 patterns and 1–16 repeats, with optional whole-song looping.
-- Song order, repeats, loop and MIDI channel/clock settings are saved with the project.
-- USB MIDI input/output and TRS MIDI input connect external notes, controllers and transport to the shared engine. The web emulator provides Web MIDI input/output port selection.
-- Stereo USB Audio output sends the final master mix to a computer at 44.1 kHz, 16-bit, alongside USB MIDI. It follows the master volume; computer-to-device audio and USB host mode are not implemented.
-- FM-1 BLE radio support is **not implemented**. The official SDK requires Bluetooth controller/host, RTOS and RF integration absent from this bare-metal firmware. An OS-connected BLE MIDI port may be usable through the web emulator's ordinary Web MIDI selector; that does not enable the FM-1 radio.
+**Pattern and drums.** Follow all four parts from HOME, then edit individual
+hits and lane levels in the sixteen-lane drum grid.
 
-See [MIDI messages, connections and BLE integration limits](docs/MIDI.md).
+<p>
+<img src="site/assets/screens/v1-presets.png" width="240" height="240" alt="MC-1 preset browser with sound names and category">
+<img src="site/assets/screens/v1-mixer.png" width="240" height="240" alt="MC-1 global mixer with four part levels">
+</p>
 
-To arrange a song, press **SEQ**, then **EDIT**. The four knobs select **POS / PATT /
-REPT / LEN**. Set LEN above zero, choose a pattern and repeat count for each entry,
-then press PLAY. **LFO** toggles whole-song looping; without looping, playback stops
-after the last entry. **SEQ** returns to pattern mode and stops transport. Song
-arrangement does not duplicate pattern notes: editing a pattern updates every song
-entry that references it. Melodic **HOME → ENV** still exposes ATK / DEC / SUS / REL.
+**Sounds and balance.** PRESETS browses the sound bank or drum kits; GLOBAL
+MIXER keeps all four part levels together.
 
-## Added in 0.2.0
+<p>
+<img src="site/assets/screens/v1-fx-sends.png" width="240" height="240" alt="MC-1 FX SENDS page with independent R/D and C/F sends">
+<img src="site/assets/screens/v1-fx-types.png" width="240" height="240" alt="MC-1 FX TYPES page selecting the two shared bank algorithms">
+</p>
 
-- Every project supports **64 patterns × 4 parts × 16 steps**. ALGORITHM selects 1–64 and queues changes at the next bar during playback; fast turns accelerate pattern browsing.
-- Patterns 5–64 start empty. Both built-in demos keep their original four-pattern arrangements, sounds and relative mix.
-- Recording and the shared 384-event automation pool address all 64 patterns, including track and master FX on pattern 64.
-- Project format 5 stores the full bank. Device saves use two 36 KiB banks in `0x99000..0xAAFFF`; the previous development version's flash saves are not automatically migrated.
-- Final output gain is six times the previous level (+15.56 dB) with a stereo-linked peak limiter. The web master starts at full level. Gain is applied after the effects, preserving their input levels and the track balance.
-- GLO → GROOVE exposes **METRO OFF / ON** on knob 4. When enabled, a quarter-note click with an accented downbeat plays only during PLAY + REC; the setting is saved in the project.
+**Shared effects.** Each part sends independently to the R/D and C/F banks.
+ENV switches between the selected part's sends and the two global FX types.
 
-## Added in 0.1.4
+<p>
+<img src="site/assets/screens/v1-arp.png" width="240" height="240" alt="MC-1 arpeggiator mode, rate, octave and gate controls">
+<img src="site/assets/screens/v1-song.png" width="240" height="240" alt="MC-1 song arrangement with position, pattern, repeat and length">
+</p>
 
-- Four delay types, four reverb types, four drive types and three modulation types, plus independent HPF/LPF on every track and the master.
-- Six arpeggiator modes with rate, octave, gate and latch controls; PLAY + REC writes the generated notes into the sequencer.
-- PLAY + REC also records sound, level and FX knob motion as step automation (384 events per project). Modified patches retain their original preset name with `*`.
-- Bright green shows active playback and enabled ARP; orange remains the selection color.
-- Turn encoders slowly for single steps; rapid same-direction turns accelerate larger parameter ranges. Parts, kits and other small choices remain precise.
-- Turning **PRESETS** opens a seven-row sound or drum-kit list. The sound changes immediately; the list closes 500 ms after the last turn or when another control is used.
+**Performance and arrangement.** Turn held chords into phrases, record them,
+and arrange patterns into a song.
 
-## Added in 0.1.3
+<p>
+<img src="site/assets/screens/v1-automation.png" width="240" height="240" alt="MC-1 knob automation page with event capacity and recording state">
+<img src="site/assets/screens/v1-midi.png" width="240" height="240" alt="MC-1 MIDI page with channels, clock source and connection status">
+</p>
 
-- 128 melodic presets in 14 contiguous families: the previous 64 original synthesis patches plus 64 patches using 16 real instrument recordings from CC0 VSCO 2 Community Edition. The full list and source of each sound appear below.
-- The previous 64 names and sound parameters are preserved; their display numbers change with the new ordering. Existing saved projects contain the actual patch and keep their sounds.
-- The home screen shows the preset family and number. PRESETS browsing starts from an exact match to the current patch after loading; customized sounds retain the last browser position.
-- Both built-in demos and all existing listening files retain their exact audio. Version 3 project format, 24 original attack waveforms and eight drum kits remain unchanged. New recorded patches use PCM mix 127 by default; lowering it blends in the oscillator.
-- Earlier saved projects retain their sounds. Projects using new PCM IDs 24–39 cannot load in older firmware, whose validator rejects those IDs.
+**Movement and connections.** Keep knob automation with the project and route
+notes, controllers and clock through the supported MIDI connections.
 
-## Added in 0.1.2
+## What is included
 
-- 64 melodic presets and 24 original mathematical PCM attacks, adding acid sequences, house organ and keys, voice-like tones and percussion hits. The first 48 preset definitions and first 12 attacks are preserved.
-- Eight original drum kits, each with 16 lanes. BASE 808 retains the original drum recipe; the other kits vary pitch, noise, sweep and decay.
-- Independent **DELAY / REVERB / DRIVE / CHORUS** amounts for each melodic part and the drum track, alongside the master effects.
-- **ALGORITHM** selects patterns on every part; **PRESETS** selects melodic sounds or drum kits. Project version 3 saves kits and track effects while importing version 1 and 2 projects.
+| Area | MC-1 1.0.0 |
+|---|---|
+| Melodic sound | LA-inspired dual oscillators with PCM attacks/recordings, or a monophonic 303-inspired saw/square engine with accent and slide |
+| Presets | 64 original synthesis patches and 64 presets from 16 CC0 instrument recordings, in 14 families |
+| Drums | Eight synthesized kits, each with 16 common lane roles |
+| Patterns | 64 patterns, 16 steps and four parts; three-note melodic steps; 40-240 BPM, swing, gate, accent and slide |
+| Songs | Up to 128 ordered pattern/repeat entries, 1-16 repeats each, with end stop or looping |
+| Performance | Live playing, queued pattern changes, part mute, six ARP modes, note recording and 384 step-quantized automation events |
+| Effects | Two global eight-type banks, independent R/D and C/F sends on every part; master volume and stereo-linked limiter |
+| Connections | USB MIDI input/output, TRS MIDI input and stereo USB Audio output at 44.1 kHz/16-bit |
+| Display | Shared 240x240 RGB565 renderer; device rendering uses a 240x8 strip buffer |
+| Storage | Version 7 project format with CRC and commit-last A/B storage in two 36 KiB banks; explicit SAVE only |
 
-## Try it on your computer
+Eight melodic voices are shared across the three melodic parts, with oldest-voice
+stealing. Six drum voices are shared across the sixteen lanes. Each Acid part
+is monophonic. Sixteen FX types means two banks with eight choices each, not
+sixteen effects running in series.
 
-Requires a C11 compiler, Make and Python 3. Normal builds use checked-in PCM tables. Regenerating recorded PCM requires Python 3.11+ (`python3.11 tools/gen_recorded_pcm.py`). No Python packages, SDK or audio plugins are required.
+No sample streaming, SD support, flash expansion, onboard BLE MIDI, TRS MIDI
+output, computer-to-device USB audio or USB host mode is implemented. The
+browser can use BLE MIDI ports already exposed by its operating system; this
+does not enable the FM-1's radio. See [MIDI and connection limits](docs/MIDI.md).
+
+## Install on an FM-1
+
+The [firmware web installer](https://dspaudio.github.io/mc-1/install.html) belongs
+to this repository's GitHub Pages site. **mc-1-web is only the emulator.**
+
+1. Connect the FM-1 directly by USB and stop playback. Close other MIDI applications.
+2. Open the installer in a secure browser with Web MIDI SysEx support, such as
+   desktop Chrome or Edge. Choose **Connect FM-1** to discover the instrument
+   automatically and read its identity; no MIDI port selection is needed.
+3. Check the identified device and verified release, then choose **Install firmware**.
+   Keep the page, USB and power connected until restart verification finishes.
+
+The page verifies the pinned package's SHA256, CRCs, product identity and update
+loader before installation. It handles the loader and application stages and
+checks the restarted protocol identity. `FM-1_900` identifies the update protocol,
+not the MC-1 version. If interrupted during writing, reconnect the update-loader
+ports and retry the same package. The release also provides a desktop installer
+path for browsers without Web MIDI SysEx.
+
+A raw `.app.bin` is not an installer. Updating does not reformat MC-1's project
+banks, but it is not a backup or a saved-data verification protocol. Electrical
+power-loss recovery remains unverified. See [the package boundary](BUILDING.md#experimental-fwsc-package).
+
+## Measured device performance
+
+The accepted package keeps **eight melodic voices plus six drums and both full
+shared FX banks**, including actual USB Audio cold PLAY and STOP/PLAY tests.
+
+| Workload | Measured maximum | Limit |
+|---|---|---|
+| FX-only PLATE + FLANGER, frozen-valid repeats | 17,621 TIMER4 ticks | Approximately 21,900 ticks |
+| Eight LA voices + six drums + PLATE/FLANGER with real USB Audio | 66,718 TIMER4 ticks | 69,648 ticks per 128-frame block |
+
+All 21 final captures record zero deadline misses and zero DMA-half changes.
+All six USB captures contain real nonzero stereo PCM and zero USB underruns.
+Ten master-ADC-changing records remain excluded from formal paired performance
+comparisons; they have not been relabeled as frozen-valid measurements.
+
+Exact fixed-point division and bounded voice preparation reduce cost without
+removing voices, effects or processing rate. Native differential checks match
+PCM, MIDI and all 77,168 engine-state bytes over 17,614,272 frames. Host execution
+time is not evidence of device timing. The tested hash, workloads, exclusions,
+raw evidence and remaining limits are in [VALIDATION.md](docs/VALIDATION.md).
+
+## Try it without hardware
+
+The [web emulator](https://dspaudio.github.io/mc-1-web/) runs the shared C engine
+in an AudioWorklet with its own IndexedDB project storage. It does not install
+firmware or emulate the FM-1 CPU, USB Audio device or hardware timing.
+
+For the native host, use a C11 compiler, Make and Python 3. Checked-in PCM tables
+make ordinary builds independent of the SDK, plugins and Python packages.
 
 ```sh
 make test
-make render                    # build/demo.wav, actual sequencer and DSP
+make render                    # Actual sequencer and DSP -> build/demo.wav
 python3 host/serve.py           # http://127.0.0.1:8091
 ```
 
-Click **ENABLE AUDIO**, then **PLAY / STOP**. Choose **DRUMS** for the drum grid. Turn the four knobs using − / + or the wheel. Export/import `.mcf` projects with the host panel; these files include a version and CRC. Audio is locally buffered by the browser, so preview latency is not device latency. Pause audio before closing the panel. The server binds loopback only and has no hardware access.
-
-The command-line harness also works without a browser:
+Choose ENABLE AUDIO and PLAY / STOP, then use the panel, mouse wheel or minus/plus
+controls. The host panel can export/import versioned, CRC-protected `.mcf`
+projects. It binds loopback only and has no hardware access. Browser buffering
+means preview latency is not device latency; pause audio before closing it.
 
 ```sh
 make
 build/mc1-host render build/demo.wav 16
 build/mc1-host preset 104 build/glass-bell.wav
 build/mc1-host screen build/drums.ppm 3
-build/mc1-host                 # interactive command help
+build/mc1-host                 # Interactive command help
 ```
 
-[Listen to NIGHT CIRCUIT](docs/audio/full-mix-preview.wav): an original host-rendered four-pattern demo at 118 BPM, with peak normalization for audition. It is not a recording of an FM-1 or Roland device.
-
-## Built-in demo and effects
-
-While stopped, press **GLO three times**, select **NEON SPIRAL** with knob 1, turn
-**LOAD** (knob 4) clockwise, then press **PLAY**. Loading replaces the current
-project in RAM; save/export your work first. No flash write happens until SAVE
-is explicitly confirmed. NIGHT CIRCUIT reloads the original dry pattern bank.
-NEON SPIRAL plays 32 bars with automatic mutes, pattern changes and cutoff/resonance
-sweeps, then stops with effect tails. Loading it again restores the original mix.
-
-Press **HOME**, then **FX** for the selected track's effects. Press **FX** again to
-switch between track and master. **ENV** cycles **AMOUNTS → TYPES → FILTERS**.
-The four amount/type knobs follow **DELAY / REVERB / DRIVE / MOD**. Filter knob 1
-controls HPF and knob 2 controls LPF; zero bypasses each filter. Increasing HPF
-removes more low frequencies; increasing LPF removes more high frequencies.
-
-| Family | Types |
-|---|---|
-| Delay | DIGITAL, TAPE, PINGPONG, MULTITAP |
-| Reverb | ROOM, HALL, PLATE, SPRING |
-| Drive | SOFT, HARD, FOLD, FUZZ |
-| Modulation | CHORUS, PHASER, FLANGER |
-
-Amounts are 0–127 and zero is dry. These are compact original fixed-point effects,
-not models of specific hardware. Type changes reset the changed effect family's state.
-The original zero-type, filter-bypassed configuration preserves all earlier demos.
-Project version 5 saves 64 patterns, types, filters, ARP settings, preset origins and automation,
-as well as earlier settings. Version 1–3 imports keep their original sounds and
-receive disabled ARP, empty automation, original effect types and bypassed filters.
-Earlier firmware rejects version 4 files. Hardware deadline stability remains unverified.
-
-## Arpeggiator and knob recording
-
-Outside GLOBAL MIXER, **ARP** opens the selected melodic part's arpeggiator; press
-it again or HOME to leave. The four knobs select **MODE / RATE / OCT / GATE**.
-MODE cycles OFF, UP, DOWN, UP-DOWN, ORDER, RANDOM and CHORD. Rates are quarter,
-eighth and sixteenth notes; octave range is 1–3 and gate is 1–100%. **LFO** toggles
-latch. Changing mode or latch releases the current arp notes; play the keys again.
-Up to 32 held notes are tracked; CHORD renders up to three notes per step, within
-the existing shared eight-voice and monophonic-acid limits. Drums show an explanatory
-page. In GLOBAL MIXER, ARP keeps its original selected-part mute function.
-
-With **PLAY + REC**, held chords are expanded into generated sequencer notes;
-long gates use continuation steps. Turn REC off and release the keys to hear the
-recorded phrase. Ordinary melodic step entry still writes one note. While PLAY + REC
-is active, sound/envelope, mixer levels, drum-lane levels and FX amount/type/filter
-knobs record their final value at the current sixteenth-note step. Repeated changes
-to the same parameter at that step replace its value. Step edits, tempo/swing and
-ARP setup controls are settings rather than knob automation.
-
-**GLO four times** opens KNOB AUTOMATION, showing the shared **384-event** capacity,
-current-pattern count and REC state. **EDIT** clears only that pattern's automation.
-At capacity, existing events can still be overwritten; new events show AUTOMATION
-FULL and do not overwrite unrelated events. SAVE retains the performance data in a
-3,746-byte version 4 record. HOME shows the stored source preset name followed by
-`*` when its patch differs; imported custom sounds without a known origin retain
-IMPORTED SOUND. Preset browsing continues from the stored origin, even after edits.
-
-[Download community MP3: MC-1 — NEON SPIRAL with FX (320 kbps)](docs/audio/mc-1-neon-spiral-fx.mp3)
-
-## Listening demos
-
-- [NEON SPIRAL — 59-second original psy-trance study](docs/audio/neon-spiral.wav)
-- [LA lead, pad and bell](docs/audio/la-showcase.wav)
-- [303 cutoff and slide](docs/audio/303-showcase.wav)
-- [808 synthesized drums](docs/audio/808-showcase.wav)
-- [All eight drum kits — 64-second comparison](docs/audio/kit-showcase.wav)
-- [Full factory mix](docs/audio/full-mix-preview.wav)
-- [16 recorded instruments — 48-second comparison](docs/audio/recorded-showcase.wav)
-
-The recorded comparison uses one preset per recording at MIDI note 60, three seconds each,
-in manifest order: piano, organ, marimba, glockenspiel, xylophone, harp, violin, viola,
-cello, contrabass, flute, oboe, clarinet, bassoon, trumpet and French horn. These are
-compact mono excerpts with sustain loops, not full multisampled instruments.
-
-The kit comparison follows the [kit table](#drum-kits) order, eight seconds per kit:
-all 16 lanes in the first four seconds, a three-second groove, then one second of tail.
-
-The MC-505 factory demo video's opening chapter is labeled
-[Psy Trance](https://www.youtube.com/watch?v=d9VYCMy6IOc). NEON SPIRAL explores that
-broad style using an original 140 BPM composition: rolling bass, acid sequence,
-LA arpeggio, drum dropout and return, with cutoff and resonance sweeps.
-It does not recreate or claim a listening match to the original demo.
-At 27.4–34.3 seconds the isolated acid line sweeps cutoff and resonance; at 34.3
-seconds drums/bass return, and at 41.1 seconds the LA arpeggio joins.
-The built-in C demo performs its own mutes, pattern changes and filter automation on
-both host and firmware, stops after 32 bars and lets effects decay. All seven listening files use only
-peak gain to −3.01 dBFS, without external instruments or external effects. They are not
-device recordings or relative-loudness comparisons. Rebuild with
-`python3 tools/showcase.py`; [metrics and hashes](docs/showcase-report.json).
-
-## What is implemented
-
-| Area | Implementation |
-|---|---|
-| LA-inspired sound | 24 original 512-sample attacks or 16 recorded PCM sources with pitch-aware anti-aliasing and sustain loops; dual detuned oscillators, envelope and filter |
-| 303-inspired sound | Per-part mono saw/square, resonant four-stage filter, accent and continuous pitch slide |
-| Drums | Eight original kits with 16 lanes each: kicks, snares, hats, clap, toms, rim, crash, ride, shaker, cowbell and claves |
-| Factory bank | 64 original synthesis and 64 recorded-PCM presets spanning bass, leads, sequences, pads, keys, organ, brass, strings, mallets, voice-like tones, hits and textures |
-| Sequencer | 64 sixteen-step patterns, three-note melodic steps, 16 drum lanes, 40–240 BPM, swing, gate, accent and slide |
-| Song | 128 ordered pattern/repeat entries, bar-boundary progression, end stop or loop |
-| Performance | Part mute, queued pattern changes, six-mode ARP with generated-note recording, step entry and 384-event knob automation |
-| Screen | Shared C RGB565 renderer; 240×240 display with a 240×8 strip buffer on device |
-| Persistence | Version 6 project record, CRC and A/B commit-last storage in two 36 KiB banks; explicit save only |
-| Effects | Four delay/reverb/drive types, three modulation types and HPF/LPF; independent track and master amounts |
-| Built-in demo | NEON SPIRAL: original 32-bar psy-trance performance with filter automation and all four effects |
-| Hardware source | Inherited GPL FM-1 startup/HAL, I2S DMA, keypad/encoders, LCD, master ADC, watchdog and guarded flash |
-
-**Resource limits are deliberate:** eight shared melodic voices, with oldest-voice stealing, and six shared drum voices for 16 sounds. Every part can use either melodic engine; each 303 part is monophonic. These are allocator limits, **not verified real-device polyphony**. No sample streaming, SD support, flash expansion, onboard BLE MIDI, TRS MIDI output or original-patch compatibility is implemented in this version.
-
-## FM-1 panel mapping
+## Panel and pattern workflow
 
 | Control | Action |
 |---|---|
-| SELECT / SEL | Select part 1–3 or drums |
-| ALGORITHM | Queue pattern 1–64 on every part; switches at the next bar while playing |
-| PRESETS | Browse melodic presets (both engines), or select one of eight kits on drums |
-| PLAY / REC | Start or stop / toggle quantized recording |
-| ARP | Open/close arpeggiator; in GLOBAL MIXER, mute selected part |
-| SEQ | Switch PATTERN / SONG screens |
-| EDIT | Toggle step entry or song editing; on KNOB AUTOMATION, clear current-pattern events |
+| SELECT / SEL | Select melodic part 1-3 or drums |
+| ALGORITHM | Select pattern 1-64; queue a bar-boundary change while playing |
+| PRESETS | Browse melodic presets or drum kits; the popup closes after 500 ms idle |
+| PLAY / REC | Start/stop transport; toggle quantized recording |
 | HOME | Return to performance controls |
-| ENV | Melodic envelope; on FX, cycle AMOUNTS / TYPES / FILTERS |
-| GLO | Cycle GLOBAL MIXER → GROOVE → DEMO LIBRARY → KNOB AUTOMATION → MIDI |
-| LFO / FX | Accent (LATCH on ARP page) / effects; FX alternates track and master, or toggles slide in step entry |
-| OCT− / OCT+ | Keyboard octave; hold both five seconds while stopped to enter UBOOT |
-| SAVE twice, stopped | Explicitly save project to the A/B project banks |
+| ENV | Edit the melodic envelope; in FX, switch SENDS / TYPES |
+| FX | Open the selected part's FX sends and global type choices |
+| ARP | Open/close the melodic arpeggiator; in GLOBAL MIXER, mute the selected part |
+| LFO | Accent, or LATCH on the ARP page; LOOP in SONG |
+| SEQ / EDIT | Switch PATTERN / SONG; toggle step entry or song editing |
+| GLO | Cycle GLOBAL MIXER, GROOVE, DEMO LIBRARY, KNOB AUTOMATION and MIDI |
+| OCT- / OCT+ | Change keyboard octave; hold both five seconds while stopped for UBOOT |
+| SAVE twice while stopped | Explicitly save the project to the A/B banks |
 
-On the **drum screen**, the knobs address **SOUND / STEP / HIT / LEVEL**; GLO and FX open their own controls. Turn **PRESETS** to select the kit shown in the header. HIT clockwise sets the selected hit, counterclockwise removes it. LEVEL changes that sound's kit level. Playing keys select/audition the 16 sounds; in step-entry or recording mode they toggle hits. Melodic step entry writes one note; factory chords remain playable but chord entry is not yet exposed by the panel. Record is quantized to the current step, with fixed default velocity and gate.
+Slow encoder turns move one step; rapid same-direction turns accelerate larger
+ranges. Small choices such as parts and kits remain precise. To jump across all
+64 patterns, hold OCT- and use the first four black keys to select a bank
+(1-16, 17-32, 33-48 or 49-64), then choose a pattern with the white keys. These
+chords do not play or record notes. A normal OCT- tap lowers the octave on release.
+Leave SONG with SEQ before using this pattern shortcut.
 
-**Development storage layout:** confirmed device saves use `0x99000..0xAAFFF`, two 36 KiB banks dedicated to MC-1. Data left there by another firmware can be overwritten by SAVE. Boot never formats flash and there is no autosave. The previous MC-1 sectors `0x97000..0x98FFF`, calibration/global settings, sample regions and bootloader are outside the write allowlist. The stock/default panel mapping is used; calibration import is not implemented.
+HOME shows note-pitch marks for up to three notes per melodic step, using a
+consistent range across the part's patterns. PATTERN identifies the playing
+pattern; NEXT identifies a queued change. Save/load messages take priority.
+On drums, the knobs select SOUND / STEP / HIT / LEVEL. HIT adds or removes the
+selected hit; LEVEL changes that sound's kit level. Keys audition/select lanes
+and toggle hits during step entry or recording. Melodic panel step entry writes
+one note; factory chords remain playable but chord step entry is not exposed.
+Recording uses fixed default velocity and gate, quantized to the current step.
 
-The home grid includes pitch marks for up to three notes per melodic step. Higher
-marks mean higher notes, using a shared range across each part's 64 patterns, so
-phrase changes remain visible even when their rhythms match. The drum row shows hits.
-Above the home-screen knobs, **PATTERN** shows the playing pattern and **NEXT**
-shows a queued pattern until the next bar begins. Save/load messages take priority.
+Press GLO once for GLOBAL MIXER: its four knobs always control PART1 / PART2 /
+PART3 / DRUMS, regardless of selection. ARP mutes the selected part. Muted bars
+are dimmed and labeled MUTE; levels are saved with the project.
 
-Press **GLO once** for **GLOBAL MIXER**. The four knobs control **PART1 / PART2 /
-PART3 / DRUMS** levels (0–127), regardless of the selected part. Bars show saved
-level settings; muted parts are dimmed and labeled **MUTE**. Select a part and use
-**ARP** to mute it. GLO cycles through mixer, groove, demo library and automation;
-HOME returns to performance. Levels are included when saving a project.
+For Acid sounds, overlap keys for legato glide. HOME's GLIDE knob controls speed;
+zero disables live glide. Releasing the active key returns to the highest remaining
+held key. Overlapping recorded destinations receive SLIDE. PLAY is steadily lit,
+and held-key LEDs coexist with the playback cursor.
 
-## Build and verification
+## Song arrangement
 
-See [BUILDING.md](BUILDING.md), [architecture and memory boundaries](docs/ARCHITECTURE.md), [validation record](docs/VALIDATION.md) and [licensing/provenance](NOTICE.md).
+Press SEQ, then EDIT. The four knobs control POS / PATT / REPT / LEN. Set a length
+above zero, choose patterns and repeats for the entries, then press PLAY. LFO
+switches whole-song looping; without it, playback stops after the final entry.
+SEQ returns to pattern mode and stops transport. Song entries reference patterns,
+so a pattern edit is heard at every position that uses it. HOME -> ENV still
+provides ATK / DEC / SUS / REL for melodic sounds.
 
-Code and original generated assets: **GPL-3.0-only**. The 16 VSCO recordings and converted PCM arrays are **CC0-1.0**; see [provenance](NOTICE.md) and [sample manifest](assets/recorded/manifest.json). Hardware support is derived from [dspaudio/orbit](https://github.com/dspaudio/orbit), tracing to SLOOP/Felucca by Leo Kuroshita and Hügelton Instruments. Restricted upstream artwork and sample packs are excluded.
+## Shared FX
+
+Each part has two independent 0-127 sends: **R/D** for reverb/delay and **C/F** for
+chorus/flanger. From HOME press FX. SENDS edits the selected part; ENV switches
+to TYPES, which selects the two banks globally. Knobs 1 and 2 edit the values;
+knobs 3 and 4 are unused. Zero send is dry. Pressing FX again does not open a
+master-effects page.
+
+| Type | R/D bank | C/F bank |
+|---|---|---|
+| 0 | ROOM1 | CHORUS1 |
+| 1 | ROOM2 | CHORUS2 |
+| 2 | ROOM3 | CHORUS3 |
+| 3 | HALL1 | CHORUS4 |
+| 4 | HALL2 | FB CHORUS |
+| 5 | PLATE | FLANGER |
+| 6 | DELAY | SHORT DLY |
+| 7 | PANNING DLY | FB SHORT DLY |
+
+Both banks return wet signal; dry parts are mixed separately. Changing a type
+resets only that bank. These are original compact fixed-point effects, not
+emulations of Roland algorithms or specific hardware. After the sum, the master
+stage contains only volume and the linked limiter.
+
+## Arpeggiator and knob recording
+
+ARP opens the selected melodic part's MODE / RATE / OCT / GATE controls. Its six
+active modes are UP, DOWN, UP-DOWN, ORDER, RANDOM and CHORD; OFF restores ordinary
+playing. Rates are quarter/eighth/sixteenth notes, octave range 1-3 and gate 1-100%.
+LFO toggles latch. Changing mode or latch releases the ARP notes; play again to
+restart the phrase. Up to 32 held notes are tracked, and CHORD uses up to three
+notes per step within the eight-voice and monophonic-Acid limits. Drums display
+an explanation instead; ARP retains the mute function in GLOBAL MIXER.
+
+PLAY + REC writes generated ARP notes, with continuation steps for long gates.
+Turn REC off and release the keys to audition the recorded phrase. Sound,
+envelope, part levels, drum-lane levels and FX send/type movements are recorded
+at the current sixteenth-note step. Changes to the same parameter on the same
+step replace its value. Note edits, tempo/swing and ARP setup are not knob automation.
+
+GLO four times opens KNOB AUTOMATION, showing the shared 384-event capacity,
+current-pattern usage and REC state. EDIT clears only the current pattern's
+automation. At capacity, existing events can be overwritten, but unrelated data
+is not replaced. Explicit SAVE retains the performance in the version 7 project.
+Edited sounds retain their source preset name with `*`; custom imported sounds
+without a known source display IMPORTED SOUND.
+
+## Projects and compatibility
+
+Version 7 imports project versions 1-6 and migrates their FX to shared sends and
+types. R/D takes each part's larger legacy delay/reverb amount; C/F takes its
+modulation amount. The dominant delay/reverb source selects the mapped R/D type;
+the first modulation source selects C/F. Amount automation migrates to sends,
+and the chosen source part's type automation migrates to the global types.
+Legacy drive, filter and master-FX fields remain inactive compatibility data.
+Projects using newer recorded PCM IDs cannot load in firmware that does not know
+them. Earlier development flash layouts are not automatically migrated.
+
+Device projects occupy two dedicated 36 KiB banks at `0x99000..0xAAFFF`.
+SAVE can overwrite data another firmware left there. Boot never formats flash,
+and there is no autosave. Earlier MC-1 sectors `0x97000..0x98FFF`, calibration,
+global settings, sample regions and bootloader remain outside the application
+write allowlist. Calibration import is not implemented.
+
+## Built-in demos and listening
+
+While stopped, press GLO three times, choose NEON SPIRAL with knob 1, turn LOAD
+(knob 4) clockwise, then PLAY. Loading replaces the current RAM project; export
+work first. Flash changes only after explicit SAVE. NIGHT CIRCUIT restores the
+original pattern bank. Reloading a demo restores its original mix.
+
+NEON SPIRAL is an original 140 BPM, 32-bar psy-trance performance with rolling
+bass, acid, LA arpeggios, mutes, pattern changes and filter movement. It stops
+with FX tails. Its broad style reference is the opening Psy Trance chapter of
+the [MC-505 demo video](https://www.youtube.com/watch?v=d9VYCMy6IOc), not a recreation
+or listening-match claim.
+
+- [NEON SPIRAL with FX, 320 kbps MP3](docs/audio/mc-1-neon-spiral-fx.mp3)
+- [NEON SPIRAL WAV](docs/audio/neon-spiral.wav)
+- [LA lead, pad and bell](docs/audio/la-showcase.wav)
+- [303 cutoff and slide](docs/audio/303-showcase.wav)
+- [Synthesized drums](docs/audio/808-showcase.wav)
+- [Eight kits, 64-second comparison](docs/audio/kit-showcase.wav)
+- [NIGHT CIRCUIT factory mix](docs/audio/full-mix-preview.wav)
+- [Sixteen recordings, 48-second comparison](docs/audio/recorded-showcase.wav)
+
+Listening files are host renders, not device recordings or relative-loudness
+comparisons. WAV examples use peak-only gain to -3.01 dBFS with no external
+instruments or effects. The kit comparison follows the kit table, eight seconds
+each: four seconds of individual lanes, three seconds of groove and one of tail.
+The recording comparison uses note 60 for three seconds per source in manifest
+order. These compact mono excerpts and sustain loops are not full multisamples.
+Rebuild with `python3 tools/showcase.py`; see [metrics and hashes](docs/showcase-report.json).
+
+## Build, validation and licensing
+
+[BUILDING.md](BUILDING.md) covers the official target toolchain and package
+boundary. [ARCHITECTURE.md](docs/ARCHITECTURE.md) describes memory and data flow;
+[VALIDATION.md](docs/VALIDATION.md) records tests and hardware evidence. The
+accepted build uses `-Os` for app/HAL/IRQ and `-O2` for engine/effects; whole-app
+`-O2` is not supported.
+
+The product site's installer files live in `site/`. Its package is pinned by
+`FIRMWARE.json`; `python3 tools/make_site.py --out build/site` retrieves and
+checks that public release and assembles both product and installer pages.
+Use `--package` with the exact same package for offline assembly. Node.js 22+
+is required for the installer checks. Firmware binaries are release assets,
+not source-tree files. Installer checks run without touching hardware:
+
+```sh
+node tests/firmware-ota.mjs
+node tests/firmware-install.mjs
+python3 tests/site_test.py build/site
+```
+
+Code and original generated assets are **GPL-3.0-only**. The sixteen VSCO 2
+Community Edition recordings and their converted PCM are **CC0-1.0**; see
+[NOTICE.md](NOTICE.md), the [sample manifest](assets/recorded/manifest.json) and
+[retained license](LICENSES/CC0-VSCO.txt). Hardware and update support derive from
+[dspaudio/orbit](https://github.com/dspaudio/orbit), tracing to SLOOP/Felucca by
+Leo Kuroshita and Hügelton Instruments. Required attribution is retained;
+restricted upstream artwork and sample packs are excluded.
 
 <!-- BEGIN PRESETS -->
 ## Complete factory preset list
@@ -432,3 +530,58 @@ Each kit keeps the same 16 lane roles below and supplies its own original pitch,
 | 15 | Original drum synthesis | CLAVES |
 | 16 | Original drum synthesis | MID TOM |
 <!-- END PRESETS -->
+
+## Release history
+
+These notes describe earlier releases; 1.0.0 replaces their per-track/master FX
+with the shared banks documented above.
+
+## Added in 0.3.0
+
+- Separate PATTERN and SONG screens. Arrange up to 128 song entries, each selecting one of 64 patterns and 1–16 repeats, with optional whole-song looping.
+- Song order, repeats, loop and MIDI channel/clock settings are saved with the project.
+- USB MIDI input/output and TRS MIDI input connect external notes, controllers and transport to the shared engine. The web emulator provides Web MIDI input/output port selection.
+- Stereo USB Audio output sends the final master mix to a computer at 44.1 kHz, 16-bit, alongside USB MIDI. It follows the master volume; computer-to-device audio and USB host mode are not implemented.
+- FM-1 BLE radio support is **not implemented**. The official SDK requires Bluetooth controller/host, RTOS and RF integration absent from this bare-metal firmware. An OS-connected BLE MIDI port may be usable through the web emulator's ordinary Web MIDI selector; that does not enable the FM-1 radio.
+
+See [MIDI messages, connections and BLE integration limits](docs/MIDI.md).
+
+To arrange a song, press **SEQ**, then **EDIT**. The four knobs select **POS / PATT /
+REPT / LEN**. Set LEN above zero, choose a pattern and repeat count for each entry,
+then press PLAY. **LFO** toggles whole-song looping; without looping, playback stops
+after the last entry. **SEQ** returns to pattern mode and stops transport. Song
+arrangement does not duplicate pattern notes: editing a pattern updates every song
+entry that references it. Melodic **HOME → ENV** still exposes ATK / DEC / SUS / REL.
+
+## Added in 0.2.0
+
+- Every project supports **64 patterns × 4 parts × 16 steps**. ALGORITHM selects 1–64 and queues changes at the next bar during playback; fast turns accelerate pattern browsing.
+- Patterns 5–64 start empty. Both built-in demos keep their original four-pattern arrangements, sounds and relative mix.
+- Recording and the shared 384-event automation pool address all 64 patterns, including track and master FX on pattern 64.
+- Project format 5 stores the full bank. Device saves use two 36 KiB banks in `0x99000..0xAAFFF`; the previous development version's flash saves are not automatically migrated.
+- Final output gain is six times the previous level (+15.56 dB) with a stereo-linked peak limiter. The web master starts at full level. Gain is applied after the effects, preserving their input levels and the track balance.
+- GLO → GROOVE exposes **METRO OFF / ON** on knob 4. When enabled, a quarter-note click with an accented downbeat plays only during PLAY + REC; the setting is saved in the project.
+
+## Added in 0.1.4
+
+- Four delay types, four reverb types, four drive types and three modulation types, plus independent HPF/LPF on every track and the master.
+- Six arpeggiator modes with rate, octave, gate and latch controls; PLAY + REC writes the generated notes into the sequencer.
+- PLAY + REC also records sound, level and FX knob motion as step automation (384 events per project). Modified patches retain their original preset name with `*`.
+- Bright green shows active playback and enabled ARP; orange remains the selection color.
+- Turn encoders slowly for single steps; rapid same-direction turns accelerate larger parameter ranges. Parts, kits and other small choices remain precise.
+- Turning **PRESETS** opens a seven-row sound or drum-kit list. The sound changes immediately; the list closes 500 ms after the last turn or when another control is used.
+
+## Added in 0.1.3
+
+- 128 melodic presets in 14 contiguous families: the previous 64 original synthesis patches plus 64 patches using 16 real instrument recordings from CC0 VSCO 2 Community Edition. The full list and source of each sound appear below.
+- The previous 64 names and sound parameters are preserved; their display numbers change with the new ordering. Existing saved projects contain the actual patch and keep their sounds.
+- The home screen shows the preset family and number. PRESETS browsing starts from an exact match to the current patch after loading; customized sounds retain the last browser position.
+- Both built-in demos and all existing listening files retain their exact audio. Version 3 project format, 24 original attack waveforms and eight drum kits remain unchanged. New recorded patches use PCM mix 127 by default; lowering it blends in the oscillator.
+- Earlier saved projects retain their sounds. Projects using new PCM IDs 24–39 cannot load in older firmware, whose validator rejects those IDs.
+
+## Added in 0.1.2
+
+- 64 melodic presets and 24 original mathematical PCM attacks, adding acid sequences, house organ and keys, voice-like tones and percussion hits. The first 48 preset definitions and first 12 attacks are preserved.
+- Eight original drum kits, each with 16 lanes. BASE 808 retains the original drum recipe; the other kits vary pitch, noise, sweep and decay.
+- Independent **DELAY / REVERB / DRIVE / CHORUS** amounts for each melodic part and the drum track, alongside the master effects.
+- **ALGORITHM** selects patterns on every part; **PRESETS** selects melodic sounds or drum kits. Project version 3 saves kits and track effects while importing version 1 and 2 projects.

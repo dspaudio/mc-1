@@ -60,6 +60,8 @@ class Handler(BaseHTTPRequestHandler):
                 except (ValueError,KeyError,TypeError): return self.send(b'Invalid action',status=400)
             else: return self.send(b'Not found',status=404)
         self.send(b'OK')
-print(f'MC-1 native host panel: http://127.0.0.1:{args.port} (no hardware access)',flush=True)
-try: ThreadingHTTPServer(('127.0.0.1',args.port),Handler).serve_forever()
-except KeyboardInterrupt: pass
+with ThreadingHTTPServer(('127.0.0.1',args.port),Handler) as server:
+    args.port=server.server_address[1]
+    print(f'MC-1 native host panel: http://127.0.0.1:{args.port} (no hardware access)',flush=True)
+    try: server.serve_forever()
+    except KeyboardInterrupt: pass

@@ -1,12 +1,15 @@
 {
   "status": "pi32v2 compiled; NOT hardware tested; raw app, NOT an installer",
-  "app_bytes": 490772,
+  "app_bytes": 504396,
   "app_limit": 581564,
-  "data_bss_bytes": 50036,
+  "data_bss_bytes": 50052,
   "data_bss_limit": 98304,
-  "pool_bytes": 304708,
+  "pool_bytes": 77168,
   "pool_limit": 344064,
   "ram_text_bytes": 5568,
-  "sha256": "ac05edae4dbd039689fe4ef5ed70af2548ff7d88340e45c5964febebdf2d03c1",
-  "compiler": "clang version 4.0.1 () ()\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /tmp/mcfm-toolchain/jieli-linux-toolchains-20260730.1/pi32v2/bin"
+  "play_led_pulse": false,
+  "sha256": "e075c7938cafb27c2924c3cc05bd801472459181a91a7fe7f70a2149a302870d",
+  "compiler": "clang version 4.0.1 () ()\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: <toolchain>/pi32v2/bin",
+  "app_optimization": "-Os",
+  "dsp_optimization": "-O2"
 }

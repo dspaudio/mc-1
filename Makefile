@@ -2,7 +2,7 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion
 CORE = src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c
-HEADERS = src/mcfm.h src/midi.h src/presets.h src/recorded_pcm.h src/store.h src/ui.h src/tables.h
+HEADERS = src/mcfm.h src/fixed.h src/midi.h src/presets.h src/recorded_pcm.h src/store.h src/ui.h src/tables.h
 .PHONY: all test test-ota render clean assets target
 all: build/mc1-host
 build:
@@ -13,7 +13,7 @@ build/test: $(CORE) $(HEADERS) tests/test.c tests/presets_012.h | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/test.c -o $@
 build/test-ui-input: $(CORE) $(HEADERS) tests/ui_input.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/ui_input.c -o $@
-build/test-performance: $(CORE) $(HEADERS) tests/performance.c | build
+build/test-performance: $(CORE) $(HEADERS) firmware/perf_fixture.h tests/performance.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/performance.c -o $@
 build/test-patterns: $(CORE) $(HEADERS) tests/patterns.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/patterns.c -o $@
@@ -47,10 +47,24 @@ build/test-connections-ota: firmware/update/usb.c tests/connections.c | build
 	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function -DFELUCCA_OTA=1 tests/connections.c -o $@
 build/test-perf-probe: firmware/perf_probe.h firmware/update/ota.c tests/perf_probe.c | build
 	$(CC) $(CFLAGS) -Wno-unused-function tests/perf_probe.c -o $@
+build/test-fixed: src/fixed.h tests/fixed.c | build
+	$(CC) $(CFLAGS) tests/fixed.c -o $@
+build/test-perf-hardware: firmware/perf_hardware.h tests/perf_hardware.c | build
+	$(CC) $(CFLAGS) tests/perf_hardware.c -o $@
+build/test-panel-modes: $(CORE) $(HEADERS) firmware/panel_modes.h tests/panel_modes.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/panel_modes.c -o $@
+build/test-env-graph: $(CORE) $(HEADERS) tests/env_graph.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/env_graph.c -o $@
+build/test-encoder-input: $(CORE) $(HEADERS) firmware/hal/fm1_input.h tests/encoder_input.c | build
+	$(CC) $(CFLAGS) -Wno-unused-function -Isrc $(CORE) tests/encoder_input.c -o $@
+build/test-pattern-title: $(CORE) $(HEADERS) tests/pattern_title.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/pattern_title.c -o $@
+build/test-pcm-cache: $(CORE) $(HEADERS) tests/pcm_cache.c | build
+	$(CC) $(CFLAGS) -Isrc $(filter-out src/engine.c,$(CORE)) tests/pcm_cache.c -o $@
 test-ota: build/test-ota build/ldr-test
 	./build/test-ota build/mc-1-EXPERIMENTAL.fwsc
 	./build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
-test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota build/test-perf-probe
+test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota build/test-perf-probe build/test-fixed build/test-pcm-cache build/test-perf-hardware build/test-panel-modes build/test-env-graph build/test-encoder-input build/test-pattern-title
 	./build/test
 	./build/test-ui-input
 	./build/test-performance
@@ -68,6 +82,13 @@ test: build/test build/test-ui-input build/test-performance build/test-patterns 
 	./build/test-panel-refresh
 	./build/test-connections-ota
 	./build/test-perf-probe
+	./build/test-fixed
+	./build/test-pcm-cache
+	./build/test-perf-hardware
+	./build/test-panel-modes
+	./build/test-env-graph
+	./build/test-encoder-input
+	./build/test-pattern-title
 	python3 -B tests/perf_capture_test.py
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16

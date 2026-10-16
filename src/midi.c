@@ -2,7 +2,7 @@
  * Copyright (C) 2026 dspaudio */
 #include "mcfm.h"
 const uint8_t mc_midi_drums[16]={36,38,42,46,39,45,35,37,40,50,49,51,70,56,75,47};
-static const uint8_t controls[MC_PARAMETERS]={255,255,255,255,74,71,73,75,70,72,5,255,7,10,94,91,12,93,20,21,22,23,24,25};
+static const uint8_t controls[MC_PARAM_DRUM_LEVEL]={255,255,255,255,74,71,73,75,70,72,5,255,7,10,255,255,255,255,255,255,255,255,255,255};
 void mc_midi_send(McEngine *e,unsigned status,unsigned a,unsigned b,unsigned length) {
     McMidiState *m=&e->midi;
     if(m->receiving) return;
@@ -46,7 +46,11 @@ void mc_midi_release(McEngine *e,unsigned part,unsigned note) {
     mc_midi_note(e,part,note,0);e->midi.receiving=receiving;
 }
 void mc_midi_parameter(McEngine *e,unsigned part,unsigned parameter,unsigned value) {
-    if(part<4&&parameter<MC_PARAM_DRUM_LEVEL&&controls[parameter]!=255)
+    if(part<4&&(parameter==MC_PARAM_RD_SEND||parameter==MC_PARAM_CF_SEND))
+        mc_midi_send(e,0xb0u+e->project.midi_channel[part],parameter==MC_PARAM_RD_SEND?91u:93u,value,3);
+    else if(part==4&&(parameter==MC_PARAM_RD_TYPE||parameter==MC_PARAM_CF_TYPE))
+        mc_midi_send(e,0xb0u+e->project.midi_channel[0],parameter==MC_PARAM_RD_TYPE?20u:23u,value,3);
+    else if(part<4&&parameter<MC_PARAM_DRUM_LEVEL&&controls[parameter]!=255)
         mc_midi_send(e,0xb0u+e->project.midi_channel[part],controls[parameter],value,3);
 }
 void mc_midi_all_off(McEngine *e,unsigned part) {
@@ -86,7 +90,7 @@ static void key(McEngine *e,unsigned part,unsigned note,unsigned velocity) {
             if(e->playing&&e->recording&&!e->project.arp[part].enabled&&note>=12&&note<=108) {
                 McStep *s=&e->project.step[e->pattern][part][e->step];
                 for(unsigned i=0;i<3;i++) if(!s->note[i]||s->note[i]==note) { s->note[i]=(uint8_t)note;break; }
-                s->velocity=(uint8_t)velocity;s->gate=75;s->flags=0;
+                s->velocity=(uint8_t)velocity;s->gate=75;s->flags=e->key_slide[part]?MC_SLIDE:0;
             }
         }
     } else {
@@ -103,11 +107,17 @@ static void dispatch(McEngine *e,unsigned status,unsigned a,unsigned b) {
         case 0xc0:if(part<3) mc_preset(e,part,a);else if(a<MC_KITS) e->project.drum_kit=(uint8_t)a;break;
         case 0xe0:e->midi.bend[part]=(int16_t)((int)(a|(b<<7))-8192);break;
         case 0xb0:
+            if(a==91||a==94) { (void)mc_parameter_set(e,part,MC_PARAM_RD_SEND,b);break; }
+            if(a==93) { (void)mc_parameter_set(e,part,MC_PARAM_CF_SEND,b);break; }
+            if(a==20||a==23) { (void)mc_parameter_set(e,MC_PARTS,a==20?MC_PARAM_RD_TYPE:MC_PARAM_CF_TYPE,b);break; }
             if(a==120||a==123) {
                 mc_midi_all_off(e,part);
                 if(a==120) for(unsigned i=0;i<MC_VOICES;i++) if(e->voice[i].part==part) e->voice[i].active=0;
                 break;
             }
+#if defined(MC_PERF_PROBE) && MC_PERF_PROBE == 1
+            if(a==119) {mc_probe_skip=(uint8_t)b;break;}
+#endif
             if(a==64) {
                 e->midi.sustain[part]=(uint8_t)(b>=64);
                 if(b<64) for(unsigned note=0;note<128;note++) if(e->midi.deferred[part][note/8]&(1u<<(note%8))) {

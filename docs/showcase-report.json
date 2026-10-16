@@ -36,10 +36,10 @@
     {
       "file": "neon-spiral.wav",
       "frames": 2595600,
-      "raw_peak": 20887,
-      "audition_gain": 1.109302,
+      "raw_peak": 17031,
+      "audition_gain": 1.36046,
       "normalized_peak": 23170,
-      "sha256": "41802304c620ce29b1a30dd6b3a55317262a92b7b75bff29b06477181a43c911"
+      "sha256": "46f3bc46512130d02cf1ed056a32c0c7603f1b0a58cebc02c9d6654fe7a21382"
     },
     {
       "file": "kit-showcase.wav",

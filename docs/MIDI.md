@@ -1,6 +1,6 @@
 # MIDI and USB Audio
 
-MC-1 0.3.0 connects the shared sequencer and synth to USB MIDI and the FM-1 TRS
+MC-1 1.0.0 connects the shared sequencer and synth to USB MIDI and the FM-1 TRS
 MIDI input. The USB device also exposes a stereo USB Audio capture stream. These
 are firmware implementations; physical enumeration, electrical MIDI input and
 audio deadlines still require FM-1 testing.
@@ -47,14 +47,18 @@ no synth destination.
 | 7 / 10 | Track level / pan |
 | 74 / 71 | Cutoff / resonance |
 | 73 / 75 / 70 / 72 | Attack / decay / sustain / release |
-| 94 / 91 / 12 / 93 | Delay / reverb / drive / modulation amount |
-| 20 / 21 / 22 / 23 | Delay / reverb / drive / modulation type |
-| 24 / 25 | HPF / LPF amount |
+| 91 / 94 | Selected channel's R/D send (94 is an input alias) |
+| 93 | Selected channel's C/F send |
+| 20 / 23 | Global R/D / C/F type, 0–7 |
 | 64 | Sustain pedal |
 | 120 / 123 | All Sound Off / All Notes Off |
 
-Type controls use the engine's small enumeration values, not a scaled 0–127
-bank. Unmapped controls are ignored. Drum lanes map to MIDI notes
+The two sends range from 0 to 127. Outgoing send edits use CC 91 and 93 on the
+part's configured channel. Type edits received on any configured part channel
+select the same global bank; outgoing type edits use part 1's configured channel.
+Types use enumeration values 0–7, not a scaled 0–127 bank; larger values are
+ignored. Legacy drive, extra type and filter CCs 12, 21, 22, 24 and 25 are
+inactive. Other unmapped controls are ignored. Drum lanes map to MIDI notes
 `36, 38, 42, 46, 39, 45, 35, 37, 40, 50, 49, 51, 70, 56, 75, 47` in panel order.
 
 The selected external clock source accepts Clock (24 pulses per quarter note),

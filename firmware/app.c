@@ -17,14 +17,19 @@
 #include "fm1_flash.h"
 #include "libc.c"
 #include "lcd.c"
+#if MC_DSP_SPLIT != 1
 #include "../src/effects.c"
+#endif
 #include "../src/demo.c"
+#if MC_DSP_SPLIT != 1
 #include "../src/engine.c"
+#endif
 #include "../src/factory.c"
 #include "../src/project.c"
 #include "../src/store.c"
 #include "../src/ui.c"
 #include "../src/midi.c"
+#include "panel_modes.h"
 #define HALF_FRAMES 128u
 #define FELUCCA_CDC 0
 #define FELUCCA_OTA 1
@@ -60,13 +65,56 @@ static volatile int32_t ota_result_code;
 #if MC_PERF_PROBE == 1
 #define MC_PERF_PUBLISH() RING_PUBLISH()
 #include "perf_probe.h"
+#include "perf_hardware.h"
+#include "perf_fixture.h"
 static uint32_t mc_perf_ticks(void) { return fm1_ticks(); }
 static uint32_t mc_perf_lock(void) {
     uint32_t saved=fm1_icfg();fm1_irq_off();return saved;
 }
 static void mc_perf_unlock(uint32_t saved) { RING_PUBLISH();fm1_icfg_set(saved); }
 static int mc_perf_send(const uint8_t *body,uint32_t n) { return ota_send_msg(0x71,body,n); }
-static void ota_probe_request(const uint8_t *body,uint32_t n) { mc_perf_request(body,n); }
+static void ota_probe_request(const uint8_t *body,uint32_t n) {
+    if(!mc_hw_request(body,n))mc_perf_request(body,n);
+}
+static int mc_hw_send(const uint8_t *body,uint32_t n) { return ota_send_msg(0x71,body,n); }
+static uint32_t mc_hw_load_count,mc_hw_load_expected;
+static uint8_t mc_hw_loaded_demo,mc_hw_wanted_demo;
+/* 0/1 stop/start, 2/3 demos, 4..7 fixed RAM stress loads. No SAVE or clock writes. */
+static uint8_t mc_hw_control(unsigned action) {
+    uint32_t saved=fm1_icfg();fm1_irq_off();
+    if(mc_perf.state!=MC_PERF_IDLE||ui.load_request||ui.save_request) {
+        fm1_icfg_set(saved);return 1;
+    }
+    if(action==1)mc_start(&engine);
+    else mc_stop(&engine);
+    if(action>=2) {
+        mc_hw_wanted_demo=(uint8_t)(action-2);
+        mc_hw_load_expected=mc_hw_load_count+1u;
+        ui.load_request=(uint8_t)(action-1);
+    }
+    RING_PUBLISH();fm1_icfg_set(saved);
+    return (uint8_t)(action>=2?2:0);
+}
+static uint8_t mc_hw_control_done(void) {
+    if(mc_hw_load_count!=mc_hw_load_expected)return 2;
+    return (uint8_t)(mc_hw_loaded_demo==mc_hw_wanted_demo?0:3);
+}
+/* 정지·비계측 상태에서만 고정된 레지스터를 읽는다. PLL·전원 값은 쓰지 않는다. */
+static uint8_t mc_hw_snapshot(uint32_t values[6]) {
+    uint32_t saved=fm1_icfg();fm1_irq_off();
+    if(engine.playing||mc_perf.state!=MC_PERF_IDLE) {
+        fm1_icfg_set(saved);return 1;
+    }
+    uint32_t timeouts=fm1_p33_timeouts;
+    values[0]=*(volatile uint32_t *)0x1000cu;   /* CLK_CON0 */
+    values[1]=*(volatile uint32_t *)0x119acu;   /* PLL2_CON1 */
+    values[2]=*(volatile uint32_t *)0x1eee004u; /* C1_CON */
+    values[3]=*(volatile uint32_t *)0x1eee008u; /* CACHE_CON */
+    values[4]=fm1_p33_read(0x06u);             /* P3_ANA_CON6 */
+    values[5]=fm1_p33_read(0x09u);             /* P3_ANA_CON9 */
+    uint8_t status=(uint8_t)(fm1_p33_timeouts!=timeouts?2:0);
+    RING_PUBLISH();fm1_icfg_set(saved);return status;
+}
 static void mc_perf_snapshot(McPerfSnapshot *s) {
     s->deadline=deadline_misses;s->half=audio_half_changes;
     s->underruns=uac.underruns;s->overruns=uac.overruns;s->stalls=uac.stalls;s->missed=uac.missed;
@@ -207,7 +255,7 @@ static void ota_commit(const uint8_t *parm) {
     fm1_irq_off();usb_detach();fm1_guard_unlock_top();fm1_enter_update(parm);
 }
 #if MC_PERF_PROBE == 1
-static void probe_audio_pause(void) { mc_perf_invalidate();audio_pause(); }
+static void probe_audio_pause(void) { mc_hw_invalidate();mc_perf_invalidate();audio_pause(); }
 #define audio_pause probe_audio_pause
 #endif
 #include "update/ota_app.c"
@@ -239,6 +287,8 @@ void fm1_cstart(void) {
     mc_ota_boot_service();
     uint32_t notes=0,both_since=0;
     uint8_t led_playing=255,led_step=255;
+    uint32_t led_notes=UINT32_MAX;
+    uint16_t led_modes=0xffffu;
     uint8_t held_part[27]={0},held_note[27]={0};
     static const uint8_t buttons[14]={2,3,4,5,6,7,8,9,10,11,12,13,0,1};
     static const uint8_t encoders[7]={0,1,6,2,3,4,5};
@@ -252,10 +302,14 @@ void fm1_cstart(void) {
         }
 #if MC_PERF_PROBE == 1
         mc_perf_service();
+        mc_hw_service();
 #endif
-        uint32_t pressed=fm1_input_edges(0),current=fm1_in.notes;
-        for(unsigned i=0;i<14;i++) if(pressed&(1u<<buttons[i])) {
-            fm1_irq_off();mc_ui_button(&engine,&ui,i);fm1_irq_on();
+        uint32_t released=0,pressed=fm1_input_edges(&released),current=fm1_in.notes;
+        for(unsigned i=0;i<14;i++) if((pressed|released)&(1u<<buttons[i])) {
+            fm1_irq_off();
+            if(pressed&(1u<<buttons[i]))mc_ui_button_state(&engine,&ui,i,1);
+            if(released&(1u<<buttons[i]))mc_ui_button_state(&engine,&ui,i,0);
+            fm1_irq_on();
         }
         for(unsigned i=0;i<7;i++) {
             int step=fm1_enc_take(encoders[i]);
@@ -266,7 +320,9 @@ void fm1_cstart(void) {
             if(current&(1u<<i)) {
                 held_part[i]=engine.selected;held_note[i]=(uint8_t)limit(53+(int)i+ui.octave*12,12,108);
                 mc_ui_key(&engine,&ui,i,1);
-            } else if(held_part[i]<3) mc_key(&engine,held_part[i],held_note[i],100,0);
+                if(ui.pattern_keys&(1u<<i))held_part[i]=255;
+            } else if(ui.pattern_keys&(1u<<i))mc_ui_key(&engine,&ui,i,0);
+            else if(held_part[i]<3) mc_key(&engine,held_part[i],held_note[i],100,0);
             fm1_irq_on();
         }
         notes=current;
@@ -282,11 +338,20 @@ void fm1_cstart(void) {
         if(ui.load_request) {
             unsigned demo=ui.load_request-1;ui.load_request=0;
             if(!engine.playing) {
-                audio_pause();mc_demo_load(&engine,demo);mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY";
+                audio_pause();
+#if MC_PERF_PROBE == 1
+                if(demo>=2)mc_perf_fixture(&engine,demo-2);
+                else
+#endif
+                    mc_demo_load(&engine,demo);
+                mc_ui_init(&ui);ui.message="DEMO LOADED - PLAY";
                 fm1_irq_off();for(unsigned i=0;i<FRAMES*4;i++) dma[i]=0;
                 fm1_guard_unlock_top();fm1_audio_init(dma,FRAMES*2,isr_alnk0,3);fm1_guard_lock_top();
                 connection_midi_resume();fm1_irq_on();
                 panel_refresh_restart();
+#if MC_PERF_PROBE == 1
+                mc_hw_loaded_demo=(uint8_t)demo;mc_hw_load_count++;
+#endif
             }
         }
         if(ui.save_request) {
@@ -300,10 +365,15 @@ void fm1_cstart(void) {
                 connection_midi_resume();fm1_irq_on();
             } else ui.message="FLASH UNAVAILABLE";
         }
-        fm1_led_key(12,engine.playing);fm1_led_key(13,engine.recording);
-        if(led_playing!=engine.playing||led_step!=engine.step) {
+        uint16_t modes=mc_panel_mode_mask(&engine,&ui);
+        if(modes!=led_modes) {
+            for(unsigned id=2;id<14;id++)fm1_led_key(id,(modes>>id)&1u);
+            led_modes=modes;
+        }
+        if(led_playing!=engine.playing||led_step!=engine.step||led_notes!=notes) {
             led_playing=engine.playing;led_step=engine.step;
-            mc_panel_step_leds(led_playing,led_step,fm1_led_key);
+            led_notes=notes;
+            mc_panel_key_leds(led_playing,led_step,led_notes,fm1_led_key);
 #if MC_PERF_PROBE == 1
             mc_perf_panel(1);
 #endif

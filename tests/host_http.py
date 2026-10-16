@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-only
 """Integration smoke test: run the real local native host service on a separate port."""
-import json, socket, subprocess, sys, time, urllib.request, urllib.error
+import json, re, selectors, subprocess, sys, time, urllib.request, urllib.error
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
-with socket.socket() as s:
-    s.bind(('127.0.0.1',0));port=s.getsockname()[1]
-process=subprocess.Popen([sys.executable,'host/serve.py','--port',str(port)],cwd=root,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-base=f'http://127.0.0.1:{port}'
+process=subprocess.Popen([sys.executable,'host/serve.py','--port','0'],cwd=root,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 def request(path,data=None,origin=None):
     headers={} if origin is None else {'Origin':origin}
     return urllib.request.urlopen(urllib.request.Request(base+path,data=data,headers=headers),timeout=5).read()
 try:
-    for _ in range(100):
-        try: html=request('/');break
-        except (OSError,urllib.error.URLError):
-            if process.poll() is not None: raise RuntimeError(process.communicate())
-            time.sleep(.05)
-    else: raise RuntimeError('Host startup timeout')
+    with selectors.DefaultSelector() as ready:
+        ready.register(process.stdout,selectors.EVENT_READ)
+        if not ready.select(timeout=30): raise RuntimeError('Host startup timeout')
+        startup=process.stdout.readline()
+        if not startup: raise RuntimeError(process.communicate())
+        address=re.search(rb'http://127\.0\.0\.1:\d+',startup)
+        assert address
+        base=address.group().decode()
+    html=request('/')
     assert b'MC-1' in html
-    original=request('/project');assert len(original)>34850 and original[4]==6
+    original=request('/project');assert len(original)==35124 and original[4]==7
     request('/action',json.dumps({'kind':5,'a':63}).encode())
     request('/action',json.dumps({'kind':0,'a':4}).encode())
     request('/action',json.dumps({'kind':2,'a':0,'b':1}).encode())
@@ -32,7 +32,7 @@ try:
     request('/action',json.dumps({'kind':1,'a':6,'b':2}).encode())
     request('/action',json.dumps({'kind':1,'a':4,'b':63}).encode())
     request('/action',json.dumps({'kind':1,'a':5,'b':1}).encode())
-    song=request('/project');song_offset=len(song)-264
+    song=request('/project');song_offset=len(song)-274
     assert song[song_offset:song_offset+2]==bytes([63,2])
     assert song[song_offset+256:song_offset+259]==bytes([2,0,1])
     request('/project',song);assert request('/project')==song

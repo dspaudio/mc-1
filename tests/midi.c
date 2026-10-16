@@ -1,12 +1,16 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 dspaudio */
-#include "mcfm.h"
+#include "../src/mcfm.h"
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 static McEngine e,a;
 static int16_t buffer[4096];
 static int16_t split[4096];
+_Static_assert(offsetof(McEngine,live_keys)==offsetof(McEngine,pcm_cache)+2112,"Transient state must follow the PCM cache");
+_Static_assert(sizeof(McEngine)-offsetof(McEngine,pcm_cache)<=2400+sizeof(McReverb)+sizeof(McDelay)+8,"Transient state budget exceeded");
+_Static_assert(sizeof(McVoice)==84,"Voice layout must not change");
 static void render(unsigned n) { while(n) { unsigned k=n>2048?2048:n;mc_render(&e,buffer,k);n-=k; } }
 static void input(unsigned s,unsigned status,unsigned x,unsigned y) {
     mc_midi_byte(&e,s,(uint8_t)status);mc_midi_byte(&e,s,(uint8_t)x);
@@ -86,7 +90,59 @@ static void demo_cleanup(void) {
     cleanup(1u<<14,0);overflow_cleanup();
     puts("PASS MIDI demo: owned channels, live/ARP/sustain/reset, pending output, reload, transport and overflow");
 }
+static void legacy_pcm_reference(void) {
+    /* Original PCM references, retained after excluding pressure from this release. */
+    static const uint32_t reference[3]={2313758043u,2814300718u,308011833u};
+    for(unsigned mode=0;mode<3;mode++) {
+        mc_init(&e);
+        for(unsigned part=0;part<3;part++) {
+            e.project.patch[part].engine=(uint8_t)(mode==1?MC_ACID:MC_LA);
+            e.project.patch[part].cutoff=43;
+            if(mode==2) { e.project.patch[part].pcm=MC_PCM_ATTACKS;e.project.patch[part].pcm_mix=127; }
+            mc_note(&e,part,48+part*7,100,0,3000);
+        }
+        uint32_t hash=2166136261u;
+        for(unsigned block=0;block<4;block++) {
+            render(1024);
+            for(unsigned i=0;i<2048;i++) {
+                unsigned sample=(uint16_t)buffer[i];
+                hash=(hash^(sample&255))*16777619u;
+                hash=(hash^(sample>>8))*16777619u;
+            }
+        }
+        assert(hash==reference[mode]);
+    }
+    puts("PASS legacy PCM: bit-identical LA, acid and recorded PCM references");
+}
+static void shared_fx_controls(void) {
+    mc_init(&e);
+    input(1,0xb0,91,77);input(1,0xb1,93,66);
+    input(1,0xb9,20,7);input(1,0xb2,23,5);
+    assert(e.project.fx_send[0][0]==77&&e.project.fx_send[1][1]==66);
+    assert(!e.project.fx_send[1][0]&&!e.project.fx_send[0][1]);
+    assert(e.project.fx_bus_type[0]==7&&e.project.fx_bus_type[1]==5&&!e.midi.count);
+    input(1,0xb0,20,8);assert(e.project.fx_bus_type[0]==7);
+    input(1,0xb0,12,127);assert(!e.project.track_fx[0][2]);
+    assert(!mc_parameter_set(&e,2,MC_PARAM_RD_SEND,88));
+    McMidiMessage m;
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb2&&m.data[1]==91&&m.data[2]==88);
+    assert(!mc_parameter_set(&e,3,MC_PARAM_CF_TYPE,7));
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb0&&m.data[1]==23&&m.data[2]==7);
+    assert(!mc_midi_pop(&e,&m));
+    puts("PASS MIDI FX: independent part sends, global types, strict bounds and output CC routing");
+}
+static void ignored_pressure_messages(void) {
+    mc_init(&e);e.project.patch[0].engine=MC_LA;
+    input(1,0x90,60,100);McVoice before=e.voice[0];
+    input(1,0xa0,60,127);input(1,0xd0,127,0);
+    assert(!memcmp(&before,&e.voice[0],sizeof before)&&!e.midi.count);
+    input(1,0x90,64,100);assert(active(0,64)&&!e.midi.count);
+    puts("PASS MIDI: excluded pressure messages are consumed without voice changes or parser desynchronization");
+}
 int main(void) {
+    legacy_pcm_reference();
+    shared_fx_controls();
+    ignored_pressure_messages();
     demo_cleanup();
     mc_init(&e);e.project.patch[0].engine=MC_LA;input(1,0x90,60,90);assert(active(0,60)&&!e.midi.count);
     mc_midi_byte(&e,1,64);mc_midi_byte(&e,1,0xf8);mc_midi_byte(&e,1,100);assert(active(0,64));

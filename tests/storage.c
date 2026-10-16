@@ -56,9 +56,12 @@ static void cut_at(unsigned cutoff) {
     assert(!memcmp(&loaded,&original,sizeof loaded));guards();
 }
 int main(void) {
-    assert(MC_RECORD_BYTES==35114&&MC_STORE_BYTES==36864);
+    assert(MC_RECORD_BYTES==35124&&MC_STORE_BYTES==36864);
     assert(MC_STORE_A==0x99000&&MC_STORE_B==0xa2000&&MC_STORE_END==0xab000);
-    mc_factory(&original);changed=original;changed.bpm=142;
+    mc_factory(&original);
+    original.fx_send[0][0]=127;original.fx_send[3][1]=93;
+    original.fx_bus_type[0]=7;original.fx_bus_type[1]=5;
+    changed=original;changed.bpm=142;
     changed.step[63][2][15].note[0]=99;changed.step[63][2][15].velocity=101;changed.step[63][2][15].gate=75;
     assert(mc_project_valid(&original)&&mc_project_valid(&changed));
     memset(flash,255,sizeof flash);memset(flash,0xa5,MC_SECTOR);memset(flash+TOTAL-MC_SECTOR,0xa5,MC_SECTOR);
@@ -94,5 +97,22 @@ int main(void) {
     flash[MC_STORE_B-BASE+6]=255;flash[MC_STORE_B-BASE+7]=255;
     assert(mc_store_load(&io,&loaded,&seq)==0);guards();
     puts("PASS: sequence rollover and oversized corrupt header; no read/write outside new72KiB banks");
+    reset_io();memset(flash+(MC_STORE_A-BASE),255,MC_STORE_BYTES*2);
+    changed=original;memset(changed.track_fx,0,sizeof changed.track_fx);
+    changed.track_fx[1][1]=80;changed.track_fx_type[1][1]=2;
+    changed.track_fx[3][0]=50;changed.track_fx[2][3]=67;changed.track_fx_type[2][3]=2;
+    uint8_t *old=flash+(MC_STORE_A-BASE);
+    assert(mc_encode(&changed,42,old,MC_RECORD_BYTES)>0);
+    old[4]=6;old[6]=35094&255;old[7]=35094>>8;
+    uint32_t crc=mc_crc(old+20,35094);for(unsigned i=0;i<4;i++) old[12+i]=(uint8_t)(crc>>(8*i));
+    crc=mc_crc(old,16);for(unsigned i=0;i<4;i++) old[16+i]=(uint8_t)(crc>>(8*i));
+    assert(mc_store_load(&io,&loaded,&seq)==0&&seq==42&&max_read<=35094);
+    assert(loaded.fx_send[1][0]==80&&loaded.fx_send[3][0]==50&&loaded.fx_send[2][1]==67);
+    assert(loaded.fx_bus_type[0]==5&&loaded.fx_bus_type[1]==5&&loaded.bpm==changed.bpm);
+    changed=loaded;
+    assert(!mc_store_save(&io,&loaded));
+    assert(mc_store_load(&io,&loaded,&seq)==1&&seq==43&&!memcmp(&loaded,&changed,sizeof loaded));
+    assert(flash[MC_STORE_B-BASE+4]==7);guards();
+    puts("PASS: fixed-size v6 bank migrates and saves as v7 without changing storage ranges");
     return 0;
 }

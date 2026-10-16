@@ -191,16 +191,16 @@ static void test_descriptors(void)
 #define FS_DEV 44117.6
 static uint32_t prod_n, cons_n, cons_bad, cons_rep, cons_zero, sizes[64], npk;
 static uint32_t last_frame;
-static int32_t blk[64];
+static int32_t blk[HALF_FRAMES * 2u];
 
 static void render_block(void)
 {
     uint32_t i;
-    for (i = 0; i < 32u; i++, prod_n++) {
+    for (i = 0; i < HALF_FRAMES; i++, prod_n++) {
         blk[2 * i] = (int16_t)prod_n;
         blk[2 * i + 1] = (int16_t)~prod_n;
     }
-    uac_tap(blk, 32);
+    uac_tap(blk, HALF_FRAMES);
 }
 
 static void take_packet(void)
@@ -236,9 +236,9 @@ static uint64_t now_ns, next_half, next_pkt;
 static uint32_t blocks_left;
 static uint64_t next_block, rend_len;
 static uint32_t lcg = 12345;
-/* render times: 7 % .. 85 % of a half (the overload shedding starts above 85 %) */
+/* The app publishes a whole half only after rendering, including near-deadline loads. */
 #define REND_MIN ((uint64_t)(HALF_FRAMES * 1e9 / FS_DEV * 0.07))
-#define REND_MAX ((uint64_t)(HALF_FRAMES * 1e9 / FS_DEV * 0.85))
+#define REND_MAX ((uint64_t)(HALF_FRAMES * 1e9 / FS_DEV * 0.98))
 
 static void run(uint32_t ms, uint64_t rend_ns, int produce, int consume)
 {
@@ -260,13 +260,13 @@ static void run(uint32_t ms, uint64_t rend_ns, int produce, int consume)
                 lcg = lcg * 1103515245u + 12345u;
                 rend_len = rend_ns ? rend_ns : REND_MIN + (lcg >> 8) % (REND_MAX - REND_MIN);
                 uac_render_start();
-                blocks_left = HALF_FRAMES / 32u;
-                next_block = now_ns + rend_len / blocks_left;
+                blocks_left = 1;
+                next_block = now_ns + rend_len;
             }
         } else if (blocks_left && now_ns == next_block) {
             render_block();
             blocks_left--;
-            next_block += rend_len / (HALF_FRAMES / 32u);
+            next_block += rend_len;
         } else if (now_ns == next_pkt) {
             lcg = lcg * 1103515245u + 12345u;
             next_pkt = (now_ns / 1000000u + 1u) * 1000000u + (lcg >> 8) % 500000u;   /* in the next frame */
@@ -307,7 +307,7 @@ static void test_ring(void)
     check(s, uac.fill_lo >= 46u && uac.fill_hi + HALF_FRAMES <= UA_N);
     memset(sizes, 0, sizeof sizes);
     npk = 0;
-    for (i = 0; i < 1000u; i++) {                      /* 1000 frames worst case: renders of 85 % */
+    for (i = 0; i < 1000u; i++) {                      /* 1000 USB frames at 98% render load */
         run(1, REND_MAX, 1, 1);
     }
     for (i = sum = 0; i < 64u; i++)

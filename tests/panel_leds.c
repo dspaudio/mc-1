@@ -22,34 +22,47 @@ static int white_key(unsigned key) {
     }
 }
 
-static void check(unsigned playing,unsigned step) {
+static void check(unsigned playing,unsigned step,uint32_t held) {
     memset(writes,0,sizeof writes);
-    mc_panel_step_leds(playing,step,set_key);
-    unsigned white=0,lit=0;
+    mc_panel_key_leds(playing,step,held,set_key);
+    unsigned white=0,lit=0,expected_lit=0;
     for(unsigned key=0;key<27u;key++) {
-        unsigned expected=white_key(key)&&playing&&white==step;
+        unsigned expected=((held>>key)&1u)||(white_key(key)&&playing&&white==step);
         assert(writes[14u+key]==1u);
         assert(leds[14u+key]==expected);
         lit+=leds[14u+key];
+        expected_lit+=expected;
         if(white_key(key))white++;
     }
     assert(white==16u);
-    assert(lit==(unsigned)(playing&&step<16u));
+    assert(lit==expected_lit);
     for(unsigned id=0;id<14u;id++)assert(leds[id]==1u&&!writes[id]);
 }
 
 int main(void) {
     for(unsigned id=0;id<41u;id++)leds[id]=1u;
-    check(0,0);
-    for(unsigned step=0;step<16u;step++)check(1,step);
-    check(1,0);
-    puts("PASS: F3..G5 흰 건반 16개에 순서대로 하나만 점등, 검은 건반 소등, 마지막 스텝에서 첫 스텝으로 복귀");
+    check(0,0,0);
+    for(unsigned step=0;step<16u;step++)check(1,step,0);
+    check(1,0,0);
+    puts("PASS: 16 white-key step LEDs, black keys off without held notes, and wrap");
     for(unsigned step=0;step<16u;step++) {
-        check(1,step);
-        check(0,step);
+        check(1,step,0);
+        check(0,step,0);
     }
-    check(1,16);
-    check(1,255);
-    puts("PASS: 모든 스텝에서 정지 시 전체 건반 소등, 버튼 LED 보존, 범위 밖 스텝 소등");
+    check(1,16,0);
+    check(1,255,0);
+    for(unsigned key=0;key<27u;key++) {
+        check(0,0,1u<<key);
+        for(unsigned step=0;step<16u;step++) {
+            check(1,step,1u<<key);
+            check(1,step,0);
+        }
+        check(0,0,0);
+    }
+    for(unsigned step=0;step<16u;step++)
+        check(1,step,(1u<<0)|(1u<<1)|(1u<<26));
+    check(0,0,0x07ffffffu);
+    check(0,0,0xf8000000u);
+    puts("PASS: all 27 held LEDs, chords, cursor overlap/release, stopped playing and button preservation");
     return 0;
 }

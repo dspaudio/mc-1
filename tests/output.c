@@ -52,10 +52,10 @@ static void hot(void) {
     mc_init(&a);a.master=MC_MASTER_MAX;
     for(unsigned t=0;t<4;t++) {
         a.project.level[t]=127;a.project.pan[t]=64;
-        for(unsigned k=0;k<4;k++)a.project.track_fx[t][k]=127;
+        a.project.fx_send[t][0]=a.project.fx_send[t][1]=127;
         if(t<3) { mc_preset(&a,t,MC_PRESET_VECTOR_LEAD);a.project.patch[t].level=127;a.project.patch[t].cutoff=127;a.project.patch[t].sustain=127; }
     }
-    for(unsigned k=0;k<4;k++)a.project.fx[k]=127;
+    a.project.fx_bus_type[0]=4;a.project.fx_bus_type[1]=4;
     for(unsigned i=0;i<MC_VOICES;i++)mc_note(&a,i%3,36+i,127,MC_ACCENT,0);
     for(unsigned i=0;i<MC_DRUMS;i++)mc_drum(&a,i,127);
     b=a;mc_render(&a,x,4096);
@@ -65,7 +65,7 @@ static void hot(void) {
         mc_render(&a,x,4096);for(unsigned i=0;i<8192;i++)assert(abs(x[i])<=MC_OUTPUT_CEILING);
     }
     assert(a.limiter_hits&&!a.clips&&a.peak<=MC_OUTPUT_CEILING);
-    printf("Hot polyphony + all track/master FX, block identity: PASS; peak=%u limited_frames=%u clips=%u\n",a.peak,a.limiter_hits,a.clips);
+    printf("Hot polyphony + both shared FX, master volume/limiter and block identity: PASS; peak=%u limited_frames=%u clips=%u\n",a.peak,a.limiter_hits,a.clips);
 }
 static void demos(void) {
     mc_init(&a);mc_init(&b);
@@ -80,7 +80,8 @@ static void demos(void) {
         double rms=10*log10((double)sum/(frames*2.0*32768.0*32768.0));
         double gain=10*log10((double)sum/(double)reference);
         assert(gain>14.0&&gain<15.7&&!a.clips&&a.peak<=MC_OUTPUT_CEILING);
-        if(demo==1)assert(rms>-22.0&&rms<-17.0);
+        /* Independent pre-removal binary with master FX bypassed: -23.071376477 dBFS. */
+        if(demo==1)assert(fabs(rms+23.071376477)<0.1);
         printf("Demo %u default: peak=%u rms=%.3f dBFS gain=%.3f dB limited_frames=%u clips=%u\n",demo,a.peak,rms,gain,a.limiter_hits,a.clips);
     }
     puts("Both demos default loudness versus explicit legacy master=28000: PASS");

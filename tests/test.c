@@ -272,11 +272,13 @@ static void panel(void) {
     puts("PASS: drum-grid controls, save confirmation and all screen strip bounds");
 }
 static void effects_demo(void) {
+    static McEffects state;
     for(unsigned fx=0;fx<4;fx++) {
-        mc_init(&e);e.project.fx[fx]=127;uint64_t tail=0,changed=0;int32_t endpeak=0;
+        mc_init(&e);memset(&state,0,sizeof state);e.project.fx[fx]=127;uint64_t tail=0,changed=0;int32_t endpeak=0;
         for(unsigned i=0;i<MC_RATE*5;i++) {
             int32_t dry=i<64?12000:0,l=dry,r=dry;
-            mc_effects(&e,&l,&r);assert(l>-60000&&l<60000&&r>-60000&&r<60000);
+            mc_effects_process_typed(&state,e.project.bpm,e.project.fx,e.project.fx_type,e.project.filter,&l,&r);
+            assert(l>-60000&&l<60000&&r>-60000&&r<60000);
             if(l!=dry||r!=dry)changed++;
             if(i>=64)tail+=(uint64_t)((int64_t)l*l+(int64_t)r*r);
             if(i>MC_RATE*4) { int32_t peak=abs(l)+abs(r);if(peak>endpeak)endpeak=peak; }
@@ -289,7 +291,8 @@ static void effects_demo(void) {
     assert(!memcmp(x,y,sizeof x));
     render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
     McUi u;mc_ui_init(&u);mc_init(&e);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
-    for(unsigned k=0;k<4;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.track_fx[0][k]==50&&e.project.fx[k]==0); }
+    for(unsigned k=0;k<2;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.fx_send[0][k]==50); }
+    for(unsigned k=0;k<4;k++)assert(!e.project.fx[k]&&!e.project.track_fx[0][k]);
     mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
     mc_start(&e);mc_ui_encoder(&e,&u,6,1);assert(!u.load_request);
     mc_stop(&e);mc_ui_encoder(&e,&u,6,1);assert(u.load_request==2);
@@ -298,7 +301,8 @@ static void effects_demo(void) {
 }
 static void stress(void) {
     clock_t begin=clock();mc_init(&e);e.project.bpm=240;e.project.swing=45;
-    for(unsigned fx=0;fx<4;fx++) { e.project.fx[fx]=127;for(unsigned p=0;p<4;p++)e.project.track_fx[p][fx]=127; }
+    for(unsigned p=0;p<4;p++)e.project.fx_send[p][0]=e.project.fx_send[p][1]=127;
+    e.project.fx_bus_type[0]=4;e.project.fx_bus_type[1]=4;
     for(unsigned p=0;p<3;p++) { mc_preset(&e,p,MC_PRESET_VECTOR_LEAD);e.project.patch[p].resonance=127;e.project.patch[p].cutoff=127; }
     for(unsigned i=0;i<8;i++) mc_note(&e,i%3,84+i*3,127,MC_ACCENT,0);
     for(unsigned i=0;i<16;i++) mc_drum(&e,i,127);
@@ -312,22 +316,21 @@ static void record_crc(uint8_t *record,unsigned body) {
 }
 static void cascaded_gain(void) {
     for(unsigned bpm=40;bpm<=240;bpm+=40) {
-        mc_init(&e);e.master=32767;e.project.bpm=(uint16_t)bpm;
+        mc_init(&e);e.master=MC_MASTER_MAX;e.project.bpm=(uint16_t)bpm;
         for(unsigned p=0;p<4;p++) {
             e.project.level[p]=127;e.project.pan[p]=0;
-            e.project.track_fx[p][0]=e.project.track_fx[p][1]=127;
+            e.project.fx_send[p][0]=e.project.fx_send[p][1]=127;
             if(p<3) {
                 McPatch *patch=&e.project.patch[p];patch->engine=MC_LA;patch->wave=2;patch->pcm_mix=0;
                 patch->level=127;patch->attack=0;patch->sustain=127;patch->resonance=0;patch->cutoff=127;
             }
         }
-        e.project.fx[0]=e.project.fx[1]=127;
         for(unsigned v=0;v<MC_VOICES;v++)mc_note(&e,v%3,12,127,MC_ACCENT,0);
         for(unsigned d=0;d<MC_DRUMS;d++)mc_drum(&e,d,127);
         render_n(&e,MC_RATE*2);assert(e.limiter_hits>0&&!e.clips&&e.peak<=MC_OUTPUT_CEILING);
         for(unsigned i=0;i<8192;i++)assert(abs(x[i])<=MC_OUTPUT_CEILING);
     }
-    puts("PASS: cascaded track/master maximum gain engages linked limiter without clipping at six tempos");
+    puts("PASS: track FX and maximum master volume engage linked limiter without clipping at six tempos");
 }
 static void kits_and_tracks(void) {
     uint32_t hashes[MC_KITS][MC_DRUMS];McUi u;uint8_t record[MC_RECORD_BYTES];McProject q;uint32_t seq;
@@ -352,24 +355,28 @@ static void kits_and_tracks(void) {
         assert(!memcmp(&e.project.patch[p],&mc_presets[u.preset[p]],sizeof original));
     }
     mc_init(&a);mc_drum(&a,0,120);b=a;b.project.drum_kit=7;mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x));
-    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++) {
-        mc_init(&a);b=a;a.project.track_fx[p][fx]=127;
+    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<2;fx++) {
+        mc_init(&a);a.project.fx_bus_type[0]=6;b=a;a.project.fx_send[p][fx]=127;
         if(p<3) { mc_note(&a,p,60,110,0,MC_RATE);mc_note(&b,p,60,110,0,MC_RATE); }
         else { mc_drum(&a,0,120);mc_drum(&b,0,120); }
         unsigned changed=0;for(unsigned n=0;n<12;n++) { mc_render(&a,x,4096);mc_render(&b,y,4096);changed|=memcmp(x,y,sizeof x)!=0; }
-        assert(changed&&!a.clips);a.mute=(uint8_t)(1u<<p);mc_render(&a,x,4096);assert(energy(x,8192)==0);
-        a.project.track_fx[p][fx]=0;mc_render(&a,x,1);assert(!(a.track_fx_active&(1u<<p)));
-        McEffects empty={0};assert(!memcmp(&empty,&a.track_effects[p],sizeof empty));
-        mc_init(&a);b=a;a.project.track_fx[(p+1)%4][fx]=127;
+        assert(changed&&!a.clips);a.mute=(uint8_t)(1u<<p);mc_render(&a,x,4096);
+        /* 전송 트랙을 뮤트해도 공용 버스의 기존 꼬리는 끝까지 처리한다. */
+        for(unsigned n=0;n<400&&energy(x,8192);n++)mc_render(&a,x,4096);
+        assert(energy(x,8192)==0);
+        a.project.fx_send[p][fx]=0;mc_render(&a,x,1);
+        assert(fx?a.shared_fx.cf_active:a.shared_fx.rd_active);
+        mc_init(&a);b=a;a.project.fx_send[(p+1)%4][fx]=127;
         if(p<3) { mc_note(&a,p,60,110,0,MC_RATE);mc_note(&b,p,60,110,0,MC_RATE); }
         else { mc_drum(&a,0,120);mc_drum(&b,0,120); }
         mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x));
     }
-    mc_init(&e);mc_ui_init(&u);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_master);
-    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<4;fx++) { e.selected=(uint8_t)p;mc_ui_encoder(&e,&u,fx+3,(int)(p*16+fx+1)); }
-    mc_ui_button(&e,&u,UI_FX);assert(u.fx_master);mc_ui_encoder(&e,&u,3,37);assert(e.project.fx[0]==37);
-    mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_FX);assert(!u.fx_master);
-    e.project.drum_kit=7;assert(mc_encode(&e.project,9,record,sizeof record)>0&&record[4]==6);
+    mc_init(&e);mc_ui_init(&u);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_page);
+    for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<2;fx++) { e.selected=(uint8_t)p;mc_ui_encoder(&e,&u,fx+3,(int)(p*16+fx+1)); }
+    mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&e.selected==3);mc_ui_encoder(&e,&u,3,37);assert(e.project.fx_send[3][0]==86&&!e.project.fx[0]);
+    mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_page);
+    e.project.fx[0]=37; /* Preserve inactive legacy master data through old-format imports. */
+    e.project.drum_kit=7;assert(mc_encode(&e.project,9,record,sizeof record)>0&&record[4]==MC_PROJECT_VERSION);
     assert(!mc_decode(&q,&seq,record,sizeof record)&&!memcmp(&q,&e.project,sizeof q));
     record[23]=8;record_crc(record,MC_PROJECT_BYTES);McProject before=q;assert(mc_decode(&q,&seq,record,sizeof record)<0&&!memcmp(&q,&before,sizeof q));
     record[23]=0;record[20+72+MC_PATTERNS*MC_PARTS*MC_STEPS*8]=128;record_crc(record,MC_PROJECT_BYTES);assert(mc_decode(&q,&seq,record,sizeof record)<0);
@@ -509,6 +516,6 @@ static void q15_truncation(void) {
     puts("PASS: Q15 filter products preserve zero-directed truncation for both signs");
 }
 int main(void) {
-    assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35478&&MC_PROJECT_BYTES==35094);
+    assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35488&&MC_PROJECT_BYTES==35104);
     phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();recorded_mix_transitions();q15_truncation();stress();puts("ALL TESTS PASSED");return 0;
 }

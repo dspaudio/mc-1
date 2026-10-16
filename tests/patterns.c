@@ -31,14 +31,14 @@ static void patterns(void) {
     for(unsigned p=0;p<MC_PATTERNS;p++) {
         e.project.step[p][0][0]=(McStep){{(uint8_t)(36+p),0,0},100,50,0,0};
         mc_queue(&e,p);assert(e.pattern==p);mc_start(&e);e.recording=1;
-        assert(!mc_parameter_set(&e,0,4,20+p));assert(!mc_parameter_set(&e,4,MC_PARAM_LPF,p));
+        assert(!mc_parameter_set(&e,0,4,20+p));assert(!mc_parameter_set(&e,3,MC_PARAM_RD_SEND,p));
         e.recording=0;mc_stop(&e);
     }
-    assert(e.project.automation_count==MC_PATTERNS*2&&e.project.automation[127].address==319);
+    assert(e.project.automation_count==MC_PATTERNS*2&&e.project.automation[127].address==318);
     for(unsigned p=0;p<MC_PATTERNS;p++) {
         mc_queue(&e,(p+1)%MC_PATTERNS);mc_start(&e);mc_queue(&e,p);
         assert(e.queued==p&&e.pattern==(p+1)%MC_PATTERNS);render(MC_RATE);
-        assert(e.pattern==p&&e.step==0&&e.queued==255&&e.project.patch[0].cutoff==20+p&&e.project.filter[1]==p);
+        assert(e.pattern==p&&e.step==0&&e.queued==255&&e.project.patch[0].cutoff==20+p&&e.project.fx_send[3][0]==p);
         mc_stop(&e);
     }
     mc_queue(&e,64);assert(e.pattern==63);

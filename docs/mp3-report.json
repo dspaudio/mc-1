@@ -2,8 +2,8 @@
   "file": "mc-1-neon-spiral-fx.mp3",
   "encoder": "lameenc 1.8.1 / LAME",
   "bitrate_kbps": 320,
-  "source": "Actual shared C built-in demo, all four native effects enabled; host render, not device recording",
+  "source": "Actual shared C built-in demo with both shared FX banks; host render, not device recording",
   "bytes": 2356244,
-  "sha256": "3f21e735985dc39635a2750386dedab55641f2dc7f3c6edb582ae4a83e561560",
-  "wav_sha256": "41802304c620ce29b1a30dd6b3a55317262a92b7b75bff29b06477181a43c911"
+  "sha256": "163ae862470536107c22256c5a0fb52072b1c8fff19a7491d923287d32e9ce23",
+  "wav_sha256": "46f3bc46512130d02cf1ed056a32c0c7603f1b0a58cebc02c9d6654fe7a21382"
 }

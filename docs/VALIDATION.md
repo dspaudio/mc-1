@@ -1,5 +1,593 @@
 # MC-1 validation record
 
+## Accepted performance candidate (2026-10-16)
+
+Both repositories now identify the working tree as **1.0.0**. The default
+1.0.0 diagnostic package in `candidate-v1.0.0-probe/` is byte-for-byte
+identical to the installed and measured package below. Updating version
+metadata therefore does not substitute an unmeasured DSP image.
+
+The measured specification is **eight shared melodic voices plus six drum
+voices**, with both shared FX banks active at full part sends. No FX type or
+processing rate was removed, and there is no automatic quality reduction.
+
+| Workload | Highest observed render ticks | Deadline / DMA-half changes |
+|---|---:|---:|
+| FX-only PLATE + FLANGER, frozen-valid repeats | 17,621 | 0 / 0 |
+| Eight mixed PCM/dual-oscillator voices + six drums, all eight kits | 66,323 | 0 / 0 |
+| One Acid + seven LA voices + six drums | 65,495 | 0 / 0 |
+| Two Acid + six LA voices + six drums | 64,505 | 0 / 0 |
+| Three Acid voices + six drums | 38,426 | 0 / 0 |
+| Eight LA + six drums, actual USB Audio cold/restart | 66,718 | 0 / 0 |
+| Required audio deadline | 69,648 | — |
+
+FX-only cost clears the approximately 21,900-tick half-cost bound. All 21 final
+captures contain 8,192 measured 128-frame blocks after 1,024 warm-up blocks.
+The six USB captures contain actual nonzero stereo PCM and zero USB underruns,
+including both demos and the eight-voice stress workload, cold and STOP/PLAY.
+There are 11 frozen-valid records; ten with master ADC changes (818/843) are
+preserved and excluded from formal paired improvement comparisons. The
+highest frozen-valid eight-LA/six-drum peak is 66,321 ticks. The table retains
+conservative peaks from all observations where indicated, not a paired speedup
+claim. The previous 64-type FX matrix remains a structural routing baseline;
+the final arithmetic changes preserve PCM, MIDI and complete engine state.
+
+Installed package SHA256:
+`313ebd7b4b9173247d1adc3e1586f87c711a02c5807bb28c5675401a799a68b0`.
+Evidence is under `.omo/evidence/perf30-20261015/`: the package is in
+`candidate-shared-voiceprep4-probe/`, raw sets in
+`device/shared-voiceprep4-zero/` and `device/shared-voiceprep4-1/`, and six
+USB WAV/JSON/log sets use `device/usb-restart-shared-voiceprep4-*`.
+Clock/power snapshots are unchanged; no physical volume, SAVE or persistence
+allowlist changes were used. Hardware was left stopped after capture.
+
+Native/render, 24 ASan/UBSan executables, 11 Web regressions, pi32v2 memory,
+flash-off and sanitized OTA/loader checks pass. A 17,614,272-frame comparison
+matches the pre-optimization PCM, MIDI and all 77,168 engine-state bytes.
+The default app/HAL/IRQ `-Os`, engine/effects `-O2` build reproduces the tested
+app and package byte-for-byte. Electrical power-loss recovery remains outside
+these runtime measurements.
+
+After the version change, pinned Web core hashes and all 11 Web regressions
+pass. Actual 1.0.0 emulator, host-panel and project-site screens were inspected
+in light/dark modes at 1440×900 and true 390×844 mobile emulation. All 20
+original PNGs have the expected dimensions (mobile DPR 3: 1170×2532), no
+horizontal overflow, and visible 1.0.0 text. AudioWorklet startup succeeds in
+all four emulator combinations. The evidence directory is
+`.omo/evidence/perf30-20261015/v1-ui-qa-final/`; the earlier mis-sized trial
+captures are not acceptance evidence. Working browser/server/profile resources
+were closed after QA. JavaScript LSP was unavailable; runtime and regression
+checks were used rather than installing new tooling.
+
+## Shared-bank hardware baseline (2026-10-16)
+
+The current routing has two global original FX banks, R/D and C/F, with eight
+types each and independent sends on all four parts. Master output remains volume
+and linked limiter only. Version 7 appends ten serialized bytes; versions 1–6
+import through validated FX/automation migration without saving the source banks.
+
+Native `make test render`, all 24 clean ASan/UBSan executables, 11 web regression
+programs, pinned core hashes and real Chrome SENDS/TYPES screens passed. The
+screens were inspected at 1440×900 and 390×844 with light/dark preferences.
+The pi32v2 package, flash-off and sanitized OTA/loader checks also passed.
+
+### Zero voices, both sends at 127
+
+Diagnostic package
+`2508b5804d6a7b15d66c2821ca97aded5d36359a3ef538c061256a2f08c1fa18`
+was installed and reboot identity verified. All 64 R/D × C/F combinations were
+captured with zero melodic/drum voices, full sends, no probe skips, 1,024 warm-up
+blocks and 8,192 measured 128-frame blocks each.
+
+| Observation | TIMER4 ticks |
+|---|---:|
+| Highest mean, PLATE + FLANGER | 18,853.2003 |
+| Highest individual render block across all 64 captures | 18,924 |
+| Requested half-cost bound | approximately 21,900 |
+| Audio deadline misses / DMA-half changes across all captures | 0 / 0 |
+
+The worst mean is approximately 785.55 microseconds and the observed peak is
+788.5 microseconds. This clears the requested absolute FX-only cost bound.
+The earlier approximately 43,810-tick reference suggests a 56.97% reduction from
+the replaced routing, not a bit-identical wet-DSP optimization comparison.
+There are 33 frozen-valid captures. The other 31 are retained but excluded from
+formal comparisons because master start/end differed by one ADC step
+(818/843). No gain, PLL or power override was used. CLK_CON0, PLL2_CON1 and both
+power-selection register readings remained unchanged.
+
+Raw records: `.omo/evidence/perf30-20261015/device/shared-fx-1/`.
+Each record preserves the package/MIDI hashes, hardware snapshot and unchanged
+42-word capture schema.
+
+### Maximum-source workload
+
+Eight melodic voices are a required target; reducing that limit is not an
+accepted solution. Six-voice measurements are diagnostic only. The RAM-only
+workload covers recorded PCM
+mixed with dual saw oscillators, maximum resonance/sustain, high-register cache
+refills, full part levels/sends, and six repeatedly triggered drum voices.
+Companion modes add one/two Acid voices with continuous slide, or three Acid
+voices. Constant pitch bend does not invalidate the pitch cache every sample.
+
+Native tests verify the live voice/drum counts and ongoing Acid slide after
+warm-up throughout the complete capture window. PCM metadata confirms the chosen
+three looping sources cover the maximum high-register mip step. Hardware
+maximum-load captures, rather than these host tests, must establish deadline
+compliance at eight voices.
+
+The initial full eight-voice mixed-PCM plus six-drum workload measured mean
+79,705 / peak 80,603 ticks and missed all 8,192 deadlines. A 64-frame rendering
+batch preserved exact PCM/MIDI/state over 15,302,592 frames but measured mean
+79,390 / peak 80,287, still missing every deadline. That batch change was reverted.
+
+The constant-arithmetic candidate replaces repeated oscillator-band division, signed power-of-two
+drum divisions and final division by three with exact equivalent arithmetic.
+It retains eight voices, all FX types and their processing rates. Native tests
+match the pre-optimization PCM, MIDI and complete 77,168-byte runtime state over
+17,614,272 frames, including all note bands, 128 kit/sound combinations and all
+64 shared-FX combinations. Native/render, all 24 ASan/UBSan, 11 web regressions
+and target/package checks pass. Installed package
+`2f65ba2ce3094ee67392da09e3a87ced2b059fbe05564fd674db5664568936e4`
+measured mean 78,227.8508 / peak 79,062 ticks with eight mixed voices and six
+drums, missing all 8,192 deadlines. The capture is frozen-valid, but it still
+fails the required eight-voice deadline. Raw record:
+`.omo/evidence/perf30-20261015/device/shared-divopt-1/v8-d1-rd5-cf5-f0-k6-1.json`.
+
+A separate candidate placed only the unchanged sine/saw/square tables (9,216
+bytes) in initialized RAM. Its target symbols confirmed all three RAM addresses;
+native/render, 17,614,272-frame exact comparison, Web hash/WASM and sanitized
+OTA/loader checks passed. Installed package
+`e38917a5dbc0e8c5a3ac1011c1bbe46b9fed1ad6ce9e5a7520f45bba6c078f2b`
+measured mean 78,553.2668 / peak 79,370 ticks, missing all 8,192 deadlines in a
+frozen-valid eight-voice/six-drum capture. No benefit was established, and the
+RAM placement was reverted. Raw record:
+`.omo/evidence/perf30-20261015/device/shared-osc-ram-1/v8-d1-rd5-cf5-f0-k6-1.json`.
+
+The source-arithmetic candidate reuses one oscillator-table selection for both LA phases
+and replaces bounded drum divisions with exact reciprocal products. Tests
+exhaust the signed numerator ranges for all eight kits and verify the
+reciprocal error bound. These are arithmetic changes only; all voice counts,
+FX types, processing rates, clocks and physical master volume remain unchanged.
+Native/render, all 24 ASan/UBSan executables, all 11 Web regressions and the
+pi32v2/flash-off/package/OTA-loader checks passed. The original-reference
+comparison again matched PCM, MIDI and all 77,168 runtime-state bytes over
+17,614,272 frames. Package
+`8ca0f410fb598477ad7008ad7f5d3bfd2359a436903b5de4b686e1781be57a0c`
+contains a 506,204-byte app, 50,424 bytes of globals, 77,168 pool bytes and
+5,568 RAM-text bytes. After verified OTA/reboot, the frozen-valid eight-voice
+mixed-PCM/six-drum capture measured mean 76,990.4799 / peak 77,890 ticks and
+missed all 8,192 deadlines. This remains a failed eight-voice real-time result,
+despite exact native behavior. Raw record:
+`.omo/evidence/perf30-20261015/device/shared-sourceopt-1/v8-d1-rd5-cf5-f0-k6-1.json`.
+Separate probe-skip captures are diagnostic cost decomposition only and must
+not be reported as optimized full-FX performance.
+
+With that same source-arithmetic package, diagnostic skips measured:
+
+| Diagnostic workload | Mean / peak TIMER4 ticks | Frozen validity |
+|---|---:|---|
+| C/F bypassed, mask 1 | 76,210.3185 / 77,152 | valid |
+| R/D bypassed, mask 2 | 74,176.4615 / 75,228 | master changed; excluded from formal comparisons |
+| Both banks bypassed, mask 3 | 73,416.7714 / 74,528 | valid |
+
+All three still missed all 8,192 deadlines. They are not optimized audio results:
+they isolate the bottleneck and show that removing both wet processors is
+insufficient to meet the eight-voice deadline. Raw records remain under
+`.omo/evidence/perf30-20261015/device/shared-sourceopt-components-1/`.
+The function-boundary candidate changed only `melodic`/`percussion` inlining.
+Native/render, 17,614,272-frame PCM/MIDI/full-state equality and offline package
+checks passed. Installed package
+`d18c3503b11877e14c075de855ab0204b5502ac8f64ff7d61128ceb8f99be716`
+measured mean 76,944.9902 / peak 77,748, still missing all 8,192 deadlines;
+master changed during capture, so no formal improvement is claimed.
+
+The next candidate prepares invariant voice coefficients, oscillator-table
+selection, recorded metadata and stationary LA pitch once per rendering slice,
+and inlines recorded interpolation into the voice function. Runtime state is
+not enlarged. Stopped ARP uses one-frame preparation because its notes may
+change on any sample. The first candidate was not installed: differential
+testing found a demo PCM mismatch in the block starting at frame 342,718 because demo controls can
+change every 64 frames independently of sequencer steps. The corrected
+candidate refreshes preparation on those control boundaries as well.
+The corrected candidate passes native/render, all 24 clean ASan/UBSan
+executables, all 11 Web regressions and another 17,614,272-frame exact
+PCM/MIDI/full-state comparison. Added regressions compare stopped three-part
+ARP and within-slice demo control changes across 257-frame and one-frame
+rendering, including complete runtime state. The target render stack frame is
+1,452 bytes before saved registers; runtime/pool size remains 77,168 bytes.
+The offline-validated candidate package is
+`ff9927bd8f70377c4fbcfd884877b7b3ab7a2a70698e3be8cccfa9f938fd5b8f`;
+app size is 507,052 bytes, globals 50,424 and flash-off RAM text 5,568.
+OTA/reboot identity passed. Its frozen-valid full eight-voice/six-drum capture
+measured mean 66,294.6399 / peak 67,402 ticks, with zero deadline misses and DMA
+half changes over 8,192 blocks. However, the first two FX-only repeat captures
+measured means 23,262.9060 / 23,271.6292 and peaks 23,324 / 23,333 ticks. Both
+had master ADC changes and are excluded from formal comparisons; their cost
+also exceeded the requested absolute half-cost bound. The expanded capture run
+was stopped, preserving both completed records.
+
+The next candidate rejects inactive voices before the non-inlined melodic
+call, instead of entering its register-saving prologue only to return zero.
+It preserves the complete audio algorithm and all eight voices. Native/render,
+17,614,272-frame exact PCM/MIDI/state, all 24 ASan/UBSan, all 11 Web regressions
+and the target/flash-off/OTA-loader checks passed. Its package is
+`7ce04eea952125e8a00cd40a214cc9660391f2e8d4344429ab0e96b55cbf7dc0`,
+with a 506,796-byte app; globals, pool and flash-off RAM sizes are unchanged.
+Its first FX-only capture measured mean 17,800.5613 / peak 17,911 ticks;
+the eight-voice/six-drum capture measured mean 67,354.9399 / peak 68,406.
+Both recorded zero deadline misses, but both had master ADC changes and are
+excluded from formal paired comparisons.
+
+Actual USB Audio streaming then exposed insufficient margin: eight-voice cold
+PLAY recorded 14 DMA-half changes and 58 USB underruns; STOP/PLAY recorded
+91 DMA-half changes and 498 underruns. Their render peaks alone (2,865.5833 /
+2,875.6667 microseconds) were below the nominal deadline, so render time alone
+does not establish real-time success. Both USB captures had master ADC changes.
+The WAVs contain actual nonzero USB PCM, but this candidate is not accepted as
+the final eight-voice implementation.
+
+The next candidate uses a shorter exact `/127` product for bounded engine
+signals, unrolls the same two/four filter stages, and prepares the unchanged LA
+cutoff clamp once per slice. The largest valid engine product is
+`8 * 30000 * 127 = 30,480,000`, below the exact reciprocal bound 38,693,400.
+All 30,480,001 magnitudes and their negative values are exhaustively checked;
+the generic full-int32 divider remains in the FX paths. No FX type, processing
+rate, voice count or sample is removed. USB stress validation now fails on any
+deadline miss, DMA-half change or underrun rather than treating a nonzero WAV
+alone as a successful performance result.
+
+This candidate passed native/render, all 24 ASan/UBSan executables, all 11 Web
+regressions and 17,614,272-frame exact PCM/MIDI/full-state comparison. The
+installed package is
+`313ebd7b4b9173247d1adc3e1586f87c711a02c5807bb28c5675401a799a68b0`.
+App size is 506,812 bytes; globals 50,424, pool 77,168 and flash-off RAM text
+5,568 bytes. Actual USB eight-voice/six-drum cold PLAY and STOP/PLAY measured
+render peaks 2,774.5 and 2,779.9167 microseconds, with zero deadline misses,
+DMA-half changes and USB underruns in both captures. Both had master ADC
+changes and are excluded from formal paired improvement comparisons.
+
+The subsequent frozen-valid FX-only repeats measured means 17,495.2793 /
+17,495.2848 and peaks 17,621 / 17,621 ticks, below the approximately 21,900-tick
+bound. Both recorded zero deadline misses and DMA-half changes. Completed
+records remain under `device/shared-voiceprep4-zero/`; USB WAVs and raw records
+use the `device/usb-restart-shared-voiceprep4-*` prefix. The expanded kit/Acid
+and demo USB capture set completed with zero misses, half changes and USB underruns.
+
+The default target build now keeps app/HAL/IRQ at `-Os` and engine/effects at
+`-O2`. A fresh package with both optimization environment variables removed
+passes the offline checks and is byte-for-byte identical, app and package,
+to the installed image. The preserved older normal package was not overwritten.
+
+## Master volume/limiter-only working tree (superseded routing)
+
+Before the shared-bank change, the working tree preserved four independent track FX chains and removed
+the master FX processor and page. Master volume and the linked limiter are
+unchanged. The v6 record layout is unchanged; legacy master settings and
+automation remain portable but inactive.
+
+Native `make test render`, all 24 ASan/UBSan executables, the web native/WASM and
+UI suites, and firmware OTA/installer tests passed. A separate pre-removal
+binary, with only its master effects bypassed, matches the new implementation
+over 6,340,576 frames: exact PCM and meaningful project, voice, track FX, MIDI,
+cache and transport state after accounting for the removed master state and
+inactive legacy metadata. This is not a claim that the former wet master mix is
+unchanged. The independent dry-master NEON SPIRAL reference is
+`-23.071376477 dBFS`; the native loudness regression now uses that tighter routing
+reference rather than the obsolete wet-master range.
+
+The pi32v2 diagnostic candidate is
+`2e912db2025680ad7a91dd7417162a57833371e92494ddccd16ac4f0bd6009e0`:
+499,852 app bytes, 50,420 globals, 253,644 pool bytes and 5,568 RAM-text bytes.
+App/HAL/IRQ remain `-Os`; engine/effects use `-O2`. Package, flash-off and
+sanitized OTA/loader checks passed. The web FX screens were inspected in Chrome (track amounts/types/filters; FX
+again stays on the track page; no master FX page). The candidate was installed by
+Felucca OTA (`INSTALL_EXIT=0`, FM-1_900 re-enumerated).
+
+Raw device `render_sum`/blocks (valid trials; same FM-1, clock, USB and demo
+loads; evidence under `.omo/evidence/perf30-20261015/device`):
+
+| Load | e0d73a6 baseline | divide | this candidate | vs baseline |
+|---|---|---|---|---|
+| Demo 0 | 52,017 (n=7) | 41,697 (n=2) | 33,527 (n=1) | -35.5% |
+| Demo 1 NEON SPIRAL | 39,134 (n=6) | 30,755 (n=3) | 20,171 (n=1) | -48.5% |
+| Repro load | 120,069 / 136,139 (two baseline groups) | 108,377 (n=2) | 100,289 (n=2) | -16.5% / -26.3% |
+
+Only one valid candidate trial exists for each demo; the other trials were
+rejected because the master value changed during capture, but their render
+values agree within 0.1%. Deadline counts (block = 128 frames, about 69,627
+ticks): demo 0 missed 183-185 of 8192 blocks at baseline (maximum render about
+71,760, mean block interval about 71,190) and 0 with this candidate (maximum
+49,236, interval 69,627); demo 1 had 0 before and after. The repro load missed
+8192 of 8192 blocks at baseline and still does (mean render 100,289 ticks, 144%
+of the block period; the run takes twice the real-time duration), so it would need
+about 30.6% further reduction to meet the deadline. It does not reach the 30%
+target. The miss definition is inferred from the raw values. The reduction comes from removing master
+FX, so audio differs from the former wet master mix. LCD progress display,
+rhythm, noise and PLAY/STOP pop were not observed on the device.
+
+## Historical steady-PLAY device observation — 2026-10-15
+
+During this earlier comparison, the device ran the XIP, steady-PLAY-LED diagnostic package
+`60560fe201459cd642190319ab04a540a15bf972cac9ba4cb32229300803bc6a`.
+Installation and reboot completed successfully. The user reports that the
+PLAY/STOP pop on the headphone/line output is not audible with this comparison
+build and explicitly chose steady PLAY illumination for this release.
+`MC_PLAY_LED_PULSE` now defaults to 0; pulsing remains an explicit diagnostic
+option. The observation does not distinguish LED current coupling from execution
+timing, nor establish that every noise condition is resolved.
+
+The user also reports that GLASS BELL currently sounds acceptable and playback
+is approaching a usable state. The required 30% reduction in real-device
+`mc_render` time has not been demonstrated. Earlier RAM experiment entries below
+describe historical builds, not the currently installed image.
+
+That revision added the bright-green current-next pattern display,
+the `CURRENT-NEXT` caption, a leading `*` for edited preset names, and the restored
+small `PATTERN current/64` footer. Before pressure/glide integration, all nine web
+verification scripts and the complete native `make test` passed with that layout.
+An earlier caption snapshot also passed all 24 ASan/UBSan C executables.
+The latest pre-pressure normal package is
+`ed708f0f3c9cae431149db757b9c01de0f9dd37beb446467c0f5666f1bd0d1fc`
+(493,284 application bytes, 306,820 pool bytes, 5,568 RAM-text bytes).
+The installed steady comparison package passed OTA/loader simulation, and that
+normal package was restored byte-for-byte after its diagnostic build. Later
+source changes need a fresh full verification; these records do not establish
+real-device render deadlines.
+
+The LCD scheduler now bypasses its normal 50 ms post-frame idle gap when play,
+stop, step, or pattern state changes. It finishes an active frame and waits for
+DMA ownership before reusing the single strip buffer; a pending transport change
+starts the following frame without the idle gap. The actual scheduler regression
+test covers these cases and passed. It was installed in LCD diagnostic package
+`91a9f4f67cefb7979b6666bbcbaadce878748f788f07a6eff5e6e3e4fa7da4a3`
+and remains in the steady comparison build. It does not eliminate LCD transfer
+time or the repeated 64-pattern pitch-range scans in the renderer.
+
+Three raw captures each were collected for NIGHT CIRCUIT, NEON SPIRAL and
+PCM8_TRACK_FX_SUSTAIN. Their deadline-miss counts were respectively 0/0/0,
+0/0/0 and 8192/8192/8192. However, the observed master gain was around 9175,
+not the predeclared baseline's 46966, and four captures also changed gain during
+capture. The strict comparator returned INVALID for all three workloads; no
+improvement ratio is reported. Raw records and exclusion reasons are retained
+in `device-comparison-lcd.json` in the evidence directory.
+
+The three initial device USB WAV files contain only zero-valued samples and are
+invalid evidence for noise analysis. Successful callbacks and WAV creation did
+not demonstrate capture of device audio. The capture helper now rejects
+all-zero recordings. The initial recorder inherited herdr's execution context
+without an authorized microphone entry. A dedicated, locally built
+MC1USBAudioProbe.app requested normal macOS permission, and the user allowed it.
+`MIC_PERMISSION_GRANTED=1` and subsequent authorized status were verified.
+
+`device/demo0-lcd-usb-1.wav` contains 1,058,400 stereo frames at 44.1 kHz,
+peak 1339, RMS 152.153, and 2,099,816 nonzero samples. A separate 12-second
+PLAY/STOP capture contains 529,200 frames with peak 1313. Its event log records
+host request/acknowledgement times, not exact device sample-edge timestamps.
+These are valid digital-signal captures, not a recording of the analog headphone
+path or proof that physical noise is absent.
+
+The velocity-aware core input API is implemented and has native regression
+coverage for live notes, recording, ARP, drums and MIDI. Physical velocity and
+aftertouch sensing are not enabled. Pressure-core and live mono-glide integration
+is in progress and must be verified separately before installation. The pinned
+MONK-1 license/source audit is recorded in NOTICE.md; no upstream sensing code
+has been imported yet.
+
+## RAM 하위 함수 배치 보완 — 2026-10-15, 오프라인 검사 완료
+
+2,908바이트 RAM 후보는 실제 기기에서 캡처를 완료했지만 NIGHT CIRCUIT
+1/2회 평균2280.888/2280.878us, 최대2937.292/2937.958us, 기한 초과와
+DMA half 변경은 각각171이었다. master46966과 기존 클록·전원·USB 조건은
+일치했다. 코드 복사·실행 성공이 성능 개선을 뜻하지 않으며 이 회귀를 숨기지
+않는다. 실제 링크를 확인하니 melodic·percussion 등 내부 함수가 XIP에 남았다.
+
+후속 `ram-hot` 후보는 산술과 상태를 유지한 채 합성·기록 PCM·oscillator·
+limiter 및 FX 하위 함수까지 같은 DSP 구간에 배치한다. 실제 남은 함수
+심볼이 RAM 안에 있는지 추가 검사했다. 인라인된 private 함수에는 별도
+심볼을 요구하지 않는다. DSP 코드6108바이트가 기존 8192바이트 예산에
+들어가며 globals/pool/flash-off 구간과 저장 영역은 유지된다.
+
+정상 및 probe 빌드의 pi32v2 메모리·분기 거리·flash-off·SDK·LZ4 검사와
+각각의 ASan/UBSan OTA·로더 검사가 통과했다. 정상 app492824바이트의
+SHA-256은 `93962802d550fa1c6b5e581c85d04f721ba1a4b2188dc32c7f2753748014d837`,
+정상 패키지는 `75ddafb4972d1f52443427b8168294bcbbcfd97cbf65433f446130ea8cf81717`,
+별도 `candidate-ram-hot-probe` 패키지는
+`2864c28235ab96b0fc686a8aa9e5e941f3c34400c1ea6211348c247da7c63687`다.
+이 보완 후보는 아직 설치하지 않았고, 기존 `ram` 후보의 나머지 부하를
+수집 중이다. 현재 30% 달성이나 증상 해결은 확인되지 않았다.
+
+## 후속 DSP RAM 후보 — 2026-10-15, 설치 완료·성능 대조 진행 중
+
+첫 XIP 후보의 NIGHT CIRCUIT 첫 캡처는 평균 2048.867us, 최대2784.625us,
+기한 초과0이었다. 기준 첫 유효 회차 평균2167.319us보다 짧지만 30% 목표의
+약1517us에는 못 미쳤다. 이 한 회차로 최종 개선율을 판정하지 않는다.
+추가 PCM8·FX 후보 1/2회는 평균5587.422/5587.383us로, 기준 약5672.454us에
+가깝고 기한 초과도 모두8192였다. 3회차는 master47154로 기준46966과 달라
+동일 조건 비교에서 제외한다. 다른 데모 회차에도 ADC 변동이 있으므로
+이 첫 후보에 대해 완전한 3회 비교나 30% 달성을 주장하지 않는다.
+
+후속 후보는 공유 DSP 산술·상태를 더 바꾸지 않고 FM-1의 코드 배치를 바꾼다.
+`mc_render`, `mc_effects_process_typed`, `mc_midi_sample`을 2,908바이트의
+`.dsp_text`에 배치했다. 부팅 시 `0x01C04000`부터 복사하며 끝은
+`0x01C06000` 아래다. 기존 flash-off `.ram_text` 5,568바이트와 debug 예약,
+globals, pool, 스택, 저장 영역은 유지한다. 23비트 분기 거리 오류는
+샘플 MIDI 함수를 같은 구간에 배치하고 IRQ의 호출에 기존 `FL_FAR`를 사용해
+해결했다. 경고나 링크 검사를 억제하지 않았다.
+
+실제 pi32v2 빌드가 세 함수의 RAM 주소·구간 한계·새 LMA 이미지 배치를
+검사하고, 기존 `.ram_text` 무호출·메모리·SDK·LZ4 검사도 통과했다.
+IRQ 활성화와 PC 보호 설정 전에 DSP 복사를 끝내며, PC 허용 창은 DSP 끝까지만
+확장한다. 새 정상 및 계측 패키지에 대해 각각 기존 ASan/UBSan OTA·로더
+검사를 통과했다. 공유 코어가 바뀌지 않아 앞서 통과한 C/sanitizer23개와
+PCM·상태 동등성 근거는 그대로이며, 실제 RAM 실행은 기기에서 별도 확인한다.
+
+정상 app은 492536바이트이며 SHA-256은
+`682b9d0565c3092d945a89ed4610a541e1fc08857accbacfb8f83da0388561f1`,
+정상 패키지는
+`8fd883d6d3713c7de9995d0fc3633e17c057deb6e97618756530c4fcfae2f34f`다.
+별도 RAM probe 패키지
+`0adcc34e1fd2b57f39b571db4eba89da59d766d2dc1ef9b890372afee5b9ef90`는
+기존 승인 범위에서 실제 설치했다. 쓰기100%·재부팅·`FM-1_900` 확인이 exit0으로
+완료됐다. 이전 XIP probe와 원시 캡처는 보존한다.
+
+초기 캡처의 TIMER4 raw CON9와 기준32777을 동일 조건으로 처리하지 않는다.
+원래 비교기를 완화하지 않고 자연 counter wrap 준비 후 모든 words24..40 및
+클록·전원·core1·cache 설정을 대조한다. RAM 후보 캡처는 별도
+`candidate-ram-*` 이름으로 저장한다. RAM 후보의 30% 개선, 실제 오디오 기한,
+실물 LED·노브·청감 개선은 아직 판정 전이다.
+
+## 실제 기준 계측과 UI 후보 — 2026-10-15, 비교 진행 중
+
+사용자 승인으로 기존 DSP에 진단·RAM 데모/재생 제어만 더한 기준 계측본을
+설치했고 재부팅 후 `FM-1_900`과 `Felucca`를 확인했다. 패키지 SHA-256은
+`4bdb156354cf87276298d688eaa73bcdb4ba4a0acca5cc94046eb7bfaacd7a1e`다.
+그 소스의 probe-off 패키지는 설치 기준 `e0d73a6`과 바이트가 일치한다.
+기준본 설치 후에도 사용자는 재생 문제가 지속된다고 보고했다.
+
+정지 중 읽은 레지스터는 CLK_CON0=`0x1c1`, PLL2_CON1=`0x0750310c`,
+C1_CON=`0x01000002`, P3_ANA_CON6=`0x0b`, P3_ANA_CON9=`0x1b`다.
+CLK_CON1=`0x10400`, CLK_CON2=`0x6`과 PLL feedback 268은 조사한
+360MHz SYS 클록 프로파일과 일치한다. 주파수계 실측은 아니며, 아래 이전
+오프라인 단계의 240MHz 가정을 현재 기기의 확정 클록으로 사용하지 않는다.
+CACHE_CON은 `0x302` 또는 `0x4302`다. bit14는 cache wait handshake 상태로,
+PLL lock이나 정적인 캐시 설정 변경으로 해석하지 않는다.
+
+사용자가 지정한 `charlesvestal/fm1-x0x` issue #21의 Update 4와
+커밋 `f2953562785bc8f26a1ca562df254ca032663fe4`의 전원 초기화를 대조했다.
+현재 선택된 VDC14 level3, SYSVDD level11은 각각 명목 1.40V, 1.26V다.
+stock 초기화의 level7/15(명목 1.60V/1.38V)와 다르다. 전압계 측정도,
+낮은 설정이 이번 잡음의 원인이라는 증명도 아니다. 이번 코드는 PLL,
+전원 레일과 C1 설정을 변경하지 않고 정지 중 읽기만 한다.
+
+동일 원본 데모, 내부 클록, USB Audio 비활성, master=46966 조건에서
+8192블록씩 수집했다. TIMER4의 24MHz 기준 시간으로 환산한 유효 기준값은:
+
+| 부하 | 유효 회차 | 평균 mc_render | 최대 mc_render | 기한 초과 / DMA half 변경 |
+| --- | --- | --- | --- | --- |
+| NIGHT CIRCUIT | 1 | 2167.319us | 2989.542us | 184 / 184 |
+| NIGHT CIRCUIT | 4 | 2167.318us | 2990.083us | 184 / 184 |
+| NEON SPIRAL | 1 | 1630.648us | 2160.542us | 0 / 0 |
+| NEON SPIRAL | 2 | 1630.512us | 2166.208us | 0 / 0 |
+| NEON SPIRAL | 3 | 1630.606us | 2166.542us | 0 / 0 |
+
+NIGHT CIRCUIT의 2/3/5회는 master ADC 한 단계 변동으로 비교 무효다.
+원시 파일은 보존하고 동등 조건 검사를 완화하지 않았다. 이 표만으로
+후보 개선율이나 전체 CPU 점유율을 주장하지 않는다. 이후 NIGHT CIRCUIT
+7회차도 유효하게 확보했다. 후보 결과를 보기 전에 `baseline-cohort.json`에
+각 부하의 최초 동등 조건 유효 3회를 확정했다(NIGHT:1/4/7, NEON:1/2/3,
+수정 PCM8:4/5/6). 원래 비교기의 `_record_problems`와 고정 조건을 실제
+재검증한 후, 기존 승인 범위에서 아래 새 probe 후보를 설치했다.
+전체 OTA 쓰기100%·재부팅·`FM-1_900` 확인이 exit0으로 완료됐으며,
+후보의 실기기 대조는 진행 중이다.
+
+새 후보는 오른쪽 모드 LED, 실제 16분음표 step에 동기화한 PLAY 점멸,
+melodic ENV의 ADSR 그래프를 포함한다. 실제 C 화면의 3파트×최소/중간/최대
+9상태, 4노브 반응, strip/guard/드럼 화면 보존을 검사했다. 웹의 동일 C UI와
+네이티브/WASM·AudioWorklet 9개 검사가 통과했고, 실제 브라우저의
+1440×900 및 390×844 화면을 확인했다. 모바일의 기존 회전 패널 안에서도
+곡선·값·노브가 잘리지 않았다. 후보 설치는 완료했고 실물 LED와 화면 조작
+확인은 남아 있다.
+
+노브는 실제 HAL의 2샘플 필터가 한 프레임짜리 빠른 quadrature 상태를 전부
+버렸다. 수정 전 실제 HAL 회귀에서 16클릭이 slow=16, fast=0으로 실패했다.
+일반 회전의 첫 샘플도 디코딩하되 최초 rest 확정과 1초 rest 재학습은
+안정된 상태에서만 유지하도록 수정했다. 7개 encoder의 양방향·bounce·역회전,
+실제 UI의 파라미터 3배·tempo 6배 가속이 통과했다. 실물 회전 확인은 남았다.
+
+첫 XIP 후보 단계에서 `make test`의 C 23개와 Python 수집기 검사, ASan/UBSan C 23개,
+정상 및 probe 패키지 각각의 sanitized OTA·loader 검사가 통과했다.
+새 정상 app은 492828바이트, globals 50036바이트, pool 306820바이트,
+RAM code 5568바이트다. pi32v2 메모리·flash-off call·SDK·LZ4 가드가 통과했다.
+정상 패키지 SHA-256은
+`e0ed2570feedab237c6be9ea633ce5bb4ad5f4244b47fa9b22acef57ee130298`,
+새 probe 후보는
+`2dda7340b43ab6b2e26ce6f8cfdef8737ddc141e133f4fc977e83ca8d6720e5c`다.
+probe 준비 후 정상 산출물은 원래 바이트로 복원했다.
+
+추가 재현 부하 `PCM8_TRACK_FX_SUSTAIN`은 정지한 원본 demo0에서 MIDI
+177바이트로 세 recorded PCM 프리셋(77/34/9), sustain127의 8개 지속음,
+네 파트의 delay/reverb/drive/modulation 및 필터를 구성한다. SAVE는 없다.
+기준 커밋과 현재 후보를 같은 바이트로 구동한 별도 C 대조에서
+1,179,648프레임·9,216블록의 PCM과 304708바이트 상태가 모두 일치했다.
+종료 시 양쪽 모두 recorded PCM 8보이스 유지, 네 파트 FX 활성, clips0이다.
+
+최초 fixture는 드럼의 실제 기본 채널9 대신 채널3으로 CC를 보냈다.
+실제 C 상태 검사가 이를 잡았으며 기본 채널 정의를 확인해 수정했다.
+그 전 원시 `baseline-repro-1..3.json`은 삭제하지 않지만 수정된 네 파트 FX
+부하의 비교에서 제외한다. 구 fixture MIDI SHA-256은
+`9683e339c0a92a926cc7ea51d8f8c68b4c5728ff6e6b62ce490df5649182e406`다.
+기록의 settings에 MIDI 해시가 있으므로 수정된 fixture와 혼합하지 않는다.
+수정 fixture의 MIDI SHA-256은
+`1530126a4cc9c5bbb6e8a93f204160627ff676cc7263ff0c6b8b80b3ea89a391`이다.
+실기기 `baseline-repro-4..6.json`은 master46966·정지·step0·USB Audio
+비활성을 동일하게 유지한 유효 3회다. 평균 mc_render는 각각
+5672.497/5672.413/5672.451us, 최대 5684.250/5684.333/5684.083us다.
+세 회차 모두 8192블록 전체에서 기한 초과와 DMA half 변경이 관측됐다.
+이 극단 부하는 이미 기준 기기의 오디오 예산을 초과하며, 후보의 상대 성능과
+기한 결과를 따로 대조해야 한다.
+
+기준 DSP에서 보고된 GLASS BELL 잡음은 별도 단일음 청음으로 분리 중이다.
+호스트 실제 C의 4초 단일음은 176400프레임, peak4783, clips0, steals0지만,
+이 수치만으로 찍찍거림이 없거나 원인을 해결했다고 판정하지 않는다.
+실기기 30% 개선과 청감·진행 표시·리듬 개선은 아직 미확인이다.
+
+## 이전 오프라인 후보 — 당시 240MHz 가정, 실기기 성능 미측정 — 2026-10-15
+
+사용자는 기기 전원을 꺼뒀고 240MHz로 동작한다고 전했다. 이번 후보는 그 조건을
+설계 기준으로 삼는다. CPU 클록·하드웨어 캐시·IRQ·샘플률은 바꾸지 않는다.
+듀얼코어 계열 사양을 두 코어의 사용 가능한 DSP 처리량으로 계산하지 않는다.
+실제 현재 클록, 전체 CPU 점유율과 오디오 기한은 기기 계측이 필요하다.
+
+부호 있는 `/127`, `/254`와 2의 거듭제곱 나눗셈을 정확한 정수 연산으로
+치환했다. 음수의 0 방향 절삭과 항별 계산 순서를 보존한다. amount 0의 무효
+출력 계산과 비TAPE delay의 불필요한 길이 계산을 생략하지만 delay 슬롯의
+0 쓰기·위치 전진, TAPE·comb·allpass·modulation 이력은 계속 갱신한다.
+기록 PCM은 엔진별 128샘플 창 8개를 사용해 연속 읽기를 모은다. 추가 RAM은
+2,112바이트다. 초기 후보의 샘플당 캐시 판정 함수 3회 호출은 실제 pi32v2
+코드에서 확인하고 제거했다. 프로젝트 형식·발음 수·샘플 데이터는 유지한다.
+
+메인이 실제 소스와 명령 결과를 직접 확인했다. 최종 소스의 `make test`
+19개 C 검사 및 Python 47개, `make render`, 별도 새 ASan/UBSan 19개와
+실제 새 패키지를 사용한 sanitized OTA·loader 2개가 통과했다. 처음의
+Homebrew LLVM sysroot 실패는 실제 `xcrun` SDK 경로와 그 SDK의 deployment
+target을 지정해 해결했으며 경고를 억제하지 않았다.
+
+수정 전 기준본과 두 고정 데모 각 60초×3회, 128프리셋×3 mix의 bend·release를
+직접 대조했다. 총 18,235,296프레임·142,464블록에서 PCM과 기존 엔진 상태
+304,708바이트가 모두 일치했다. 끝에 추가한 캐시 메타데이터는 그 상태 prefix에
+포함하지 않는다. 별도로 16개 FX 조합×8,192프레임의 출력과 전체 FX 상태도
+직접 일치했다. 창 경계·원샷·루프·112 mip·소스 교체·8보이스 회귀가 통과했다.
+
+두 데모·8 PCM·전체 FX·128프리셋의 132부하를 양쪽 각 3회 비교했다. 호스트
+명령 수 +25% 회귀 위반과 호스트 CPU 시간 +35% 경고는 모두 0건이다.
+명령 수는 오히려 최대 16.57% 늘었고 일관된 호스트 속도 개선도 없었다.
+이는 회귀 문턱 검사이지 FM-1 성능이나 30% 개선의 증거가 아니다.
+`make test` 로그의 반복 1회 `INVALID`는 수집기의 의도된 부정 테스트 출력이며
+이 3회 반복 벤치의 실패가 아니다.
+
+pi32v2의 정적 DIV 지점은 `mc_render` 31→18, `recorded` 1→0,
+`mc_effects_process_typed` 42→7이다. 코드 지점 수는 동적 실행 횟수·CPI·XIP 대기나
+IRQ 선점을 포함하지 않으며 전체 처리 시간의 상한이나 개선율로 사용하지 않는다.
+새 app은 491,540바이트, globals 50,036바이트, pool 306,820바이트,
+RAM code 5,568바이트다. 메모리·flash-off call·SDK 해시·LZ4 가드가 통과했다.
+패키지 SHA-256은 `2e49284b974a9b261302152c72603d353d9f386520c304f3538c7481f4609987`다.
+웹 코어 19파일의 해시와 변경 4파일의 바이트 일치, 새 WASM·네이티브 및
+실제 AudioWorklet 등의 9개 검사가 통과했다. 웹 출처는 미커밋 작업 트리로 표시한다.
+
+계측 비교용 패키지도 오프라인 준비했다. `7dac9c1`의 기준 계측본은 별도
+detached 작업 트리에서 재현해 이전 SHA-256
+`fa2155d6592791a4863588615893e2397a13203b8be6ae551392ceaa4cb16276`과
+일치했고, 그 작업 트리는 정리했다. 후보의 동일 계측 빌드 SHA-256은
+`a7db6118b6ccf569ca1fcd614ffca1d20a531e1e399b76c3c76bb8af6ba4f181`이다.
+두 계측 패키지 모두 sanitized OTA·loader 검사를 통과했다. 후보 계측 app은
+492,900바이트, globals 50,356바이트, pool 306,820바이트다. 정상 빌드의
+app·패키지·ELF·disassembly·보고서는 계측 빌드 전 바이트로 복원해 확인했다.
+
+이 후보는 설치하지 않았다. 동일 FM-1·클록·USB·두 데모 및 재현 부하에서
+후보 평균 렌더 시간 ≤ 기준 평균×0.70, 기한 초과와 표시 끊김·노이즈·리듬을
+검사해야 한다. 128프레임의 70%인 약 2.03ms는 별도의 설계 예산이며 그 상대
+30% 개선 조건을 대신하지 않는다. 현재 30% 달성 여부와 증상 개선은 미확인이다.
+
 ## 추가 30% 개선을 위한 선택적 계측 준비 — 2026-10-14
 
 `e0d73a6` 패키지를 실제 기기에 설치하고 재부팅·USB 재연결을 확인한 뒤,

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101114">
+<meta name="description" content="Install verified MC-1 firmware on an M-VAVE FM-1 over USB MIDI.">
+<title>Install MC-1 firmware</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #101114; --surface: #1c1f24; --control: #25282e;
+  --txt: #c9cdd4; --muted: #9aa1ab; --border: #747b86;
+  --accent: #e8b84b; --success: #63ff42; --error: #ffb4ab; --ink: #101114;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --s8: 32px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--txt);
+  font: 14px/1.6 "Terminus (TTF)", "DejaVu Sans Mono", ui-monospace, monospace;
+}
+main { max-width: 720px; margin: var(--s8) auto; padding: 0 var(--s4); }
+nav, .actions { display: flex; flex-wrap: wrap; gap: var(--s4); align-items: center; }
+a { color: var(--accent); text-underline-offset: var(--s1); }
+nav a { display: inline-flex; align-items: center; min-height: 44px; }
+h1 { margin: var(--s8) 0 var(--s3); font-size: 24px; line-height: 1.3; }
+h2 { margin: 0 0 var(--s4); font-size: 16px; line-height: 1.5; }
+p { margin: var(--s3) 0; }
+.intro, .hint, footer { color: var(--muted); }
+section { background: var(--surface); border-radius: var(--s2); padding: var(--s6); margin-top: var(--s6); }
+button {
+  min-height: 44px; padding: var(--s2) var(--s3); border: 1px solid var(--border);
+  border-radius: 5px; background: var(--control); color: var(--txt); font: inherit;
+}
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .6; }
+button.primary { color: var(--ink); background: var(--accent); border-color: var(--accent); font-weight: bold; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+dl { margin: 0; }
+dt { color: var(--muted); font-size: 12px; margin-top: var(--s3); }
+dd { margin: 0; overflow-wrap: anywhere; }
+#package-hash { font-size: 12px; }
+#install-status { overflow-wrap: anywhere; }
+#install-status[data-state="error"] { color: var(--error); }
+#install-status[data-state="verified"] { color: var(--success); }
+progress { width: 100%; height: var(--s3); margin: var(--s4) 0 var(--s2); accent-color: var(--accent); }
+[hidden] { display: none !important; }
+footer { margin-top: var(--s6); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+<nav aria-label="MC-1"><a href="./">MC-1 home</a><a href="https://dspaudio.github.io/mc-1-web/">Play the emulator</a><a href="https://github.com/dspaudio/mc-1">Firmware source</a></nav>
+<h1>Install MC-1 firmware</h1>
+<p class="intro">Update your M-VAVE FM-1 over its USB MIDI connection. The emulator and the physical instrument are separate.</p>
+<section aria-labelledby="package-heading">
+  <h2 id="package-heading">1. Verified release</h2>
+  <p id="package-status" role="status">Loading release metadata…</p>
+  <dl id="package-details" hidden>
+    <dt>Version</dt><dd id="package-version"></dd>
+    <dt>Device identity</dt><dd id="package-identity"></dd>
+    <dt>Package size</dt><dd id="package-size"></dd>
+    <dt>SHA256</dt><dd id="package-hash"></dd>
+  </dl>
+  <p><a id="release-link" href="https://github.com/dspaudio/mc-1/releases">Release notes and desktop installer</a></p>
+</section>
+<section aria-labelledby="device-heading">
+  <h2 id="device-heading">2. Connect your instrument</h2>
+  <p>Connect the FM-1 directly by USB and stop playback. Close other MIDI applications, including the emulator's MIDI connection.</p>
+  <p>The connection step automatically finds the FM-1 and reads its identity. It does not send firmware data.</p>
+  <button id="connect-device" type="button">Connect FM-1</button>
+  <p id="device-identity" class="hint">No device identified.</p>
+</section>
+<section aria-labelledby="install-heading">
+  <h2 id="install-heading">3. Install and verify</h2>
+  <p>Keep USB and power connected until the instrument has restarted and verification is complete. MC-1's saved project banks are not reformatted; an update is not a backup.</p>
+  <div class="actions"><button id="install-firmware" class="primary" type="button" disabled>Install firmware</button></div>
+  <progress id="install-progress" max="100" value="0" aria-label="Firmware installation progress" hidden></progress>
+  <p id="install-status" role="status" aria-live="polite">Verify a release and connect an instrument to continue.</p>
+  <p class="hint">This page needs Web MIDI with SysEx permission, available in supported desktop browsers such as Chrome and Edge. If it is unavailable, use the desktop installer linked in the release.</p>
+</section>
+<footer>Code: <a href="LICENSE.txt">GPL-3.0-only</a>. USB MIDI update protocol derived from Felucca / ORBIT. <a href="NOTICE.md">Licenses and source notices</a>. Not affiliated with M-VAVE.</footer>
+</main>
+<script type="module" src="firmware-install.js"></script>
+</body>
+</html>

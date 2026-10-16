@@ -38,6 +38,13 @@ export JIELI_TOOLCHAIN=/path/to/jieli-linux-toolchains-20260730.1
 make target
 ```
 
+The default target keeps app/HAL/IRQ code at `-Os` and compiles only
+`src/engine.c` and `src/effects.c` as separate `-O2` objects. This is the
+hardware-validated optimization split. `MC_DSP_OPTIMIZATION=-Os` is available
+for diagnostic comparisons; whole-app `-O2` is rejected because that earlier
+experiment broke USB boot/update behavior. The target report records both
+optimization settings.
+
 The tested acquisition URL is the official vendor distribution:
 `https://jl-update.oss-cn-shenzhen.aliyuncs.com/jieli-linux-toolchains-20260730.1.tar.xz`.
 SHA-256: `a1545cddbc451a06bac43eb5cd96d831470c42a97c5c0b1f98879a20fc7647bd`.
@@ -53,9 +60,9 @@ No installation or flashing command is included. Hardware installation, boot che
 calibration verification and real-time measurement require a separate device test.
 
 The development Mac's Linux x86-64 Docker build reproduces the native Linux CI app
-and package bytes. The target report includes the compiler installation path, which
-differs between Docker (`/opt/jieli`) and CI (`/tmp/mcfm-toolchain/...`); compare image
-hashes and section sizes when checking across environments. See the validation
+and package bytes. The target report normalizes the compiler installation path to
+`<toolchain>/pi32v2/bin`, so identical builds compare exactly across Docker and CI.
+The compiler version, image hashes and section sizes remain checked. See the validation
 record for the exact source revision, checks and measured section sizes.
 
 ## Experimental .fwsc package
@@ -75,8 +82,10 @@ This rebuilds the app and a separate, entirely RAM-resident upstream loader, ver
 three SDK binary hashes, round-trips each LZ4 block, then packages both using the
 upstream FM-1 format. The `.fwsc` is a candidate for the standard M-UPGRADE path
 when entered from a compatible existing stock/SLOOP/Felucca/ORBIT updater. Physical
-USB handshakes, install and boot are **not tested**. Protocol identity `FM-1_900`
-is inherited; this is not an official vendor release or verified version check.
+USB handshakes, repeated OTA install and boot were tested for the candidate
+hashes listed in [the validation record](docs/VALIDATION.md); that evidence is
+not a claim about an arbitrary rebuilt package. Protocol identity `FM-1_900`
+is inherited and is not an MC-1 build-version check.
 
 The loader writes app/config `0x4000..0x92FFF`, never boot head `0..0x3FFF`.
 It scans `0x93000..0xFBFFF` for valid update records and erases only matching record
@@ -111,3 +120,32 @@ staging 정리를 연결했다. 호스트 오류 주입 검사는 실제 USB 핸
 실기기 쓰기 권한이나 가역적인 설치 검증을 대신하지 않는다.
 SDK binaries remain outside source; packages carry the Apache-2.0 assets described
 in NOTICE.md and LICENSES/Apache-2.0-AC79.txt.
+
+## Product Pages and web installer
+
+The firmware installer is served by this repository at `install.html`; mc-1-web
+contains only the emulator. Like ORBIT's Pages pipeline, the build verifies a
+release package and bundles it with the installer for same-origin delivery.
+`FIRMWARE.json` pins the version, protocol identity, filename, size and SHA256.
+The builder checks the package CRCs and loader before producing any site output.
+
+```sh
+python3 tools/make_site.py --out build/site
+node tests/firmware-ota.mjs
+node tests/firmware-install.mjs
+python3 tests/site_test.py build/site
+```
+
+Use Node.js 22+ and Python 3. For offline preview, add `--package` with a local
+copy of the exact pinned release. A different rebuilt package is rejected.
+Pages includes the product page, installer, package metadata, release `.fwsc`,
+license notices and `SHA256SUMS`; no SDK or compiler is needed to assemble it.
+Like ORBIT, the workflow runs for a published release or a manual main-branch
+dispatch, so a main push does not race an unpublished package. Publish after
+main CI passes. The builder fails closed until the pinned release asset exists.
+
+The 1.0.0 release pin names the actual device-tested performance-probe build,
+with diagnostics inactive during normal use. Reproduce it using
+`MC_PERF_PROBE=1 MC_PLAY_LED_PULSE=0 python3 tools/build_package.py`.
+The default non-probe target/package reports are separate compiled-only evidence;
+their hashes are not substituted for the release pin or its hardware results.

@@ -22,7 +22,7 @@
  * sample is a closed key; two in a row keep one stray sample from playing a note), a release after
  * FM1_DEB_RELEASE frames open in a row (~9 ms): a contact bouncing open on the way down, or chattering
  * on the way up, never ends a note early or plays it twice.
- * Encoders: quadrature decoder (2-sample filter, + = clockwise) with detent counting, as
+ * Encoders: quadrature decoder (+ = clockwise) with full-cycle detent counting, as
  * Felucca 1.0 reworked it (its #23, "knobs skipping or jumping"): an FM-1 detent is one full
  * quadrature cycle (4 transitions) and the knob rests in one state, the one seen at power-on
  * (relearned only after FM1_REST_FRAMES, ~1 s, parked elsewhere). Steps are emitted on arriving
@@ -239,18 +239,19 @@ static void fm1__frame(void)
     for (e = 0; e < FM1_NENC; e++) {               /* quadrature decoder + detents */
         const uint8_t *m = FM1_ENC[e];
         uint32_t cur = ((fm1_in.raw[m[0]] >> m[1]) & 1u) << 1 | ((fm1_in.raw[m[2]] >> m[3]) & 1u);
-        uint32_t idx;
+        uint32_t idx, stable = cur == fm1_in.enc_last[e];
         volatile int8_t *sub = &fm1_in.enc_sub[e];
         if (cur != fm1_in.enc_last[e]) {
             fm1_in.enc_last[e] = (uint8_t)cur;
             fm1_in.enc_still[e] = 0;
-            continue;
         }
         if (fm1_in.enc_prev[e] == 0xFF) {          /* first frame: the knob rests here */
+            if (!stable)
+                continue;
             fm1_in.enc_prev[e] = (uint8_t)cur;
             fm1_in.enc_rest[e] = (uint8_t)cur;
         }
-        if (fm1_in.enc_still[e] < 0xFFFFu && ++fm1_in.enc_still[e] == FM1_REST_FRAMES &&
+        if (stable && fm1_in.enc_still[e] < 0xFFFFu && ++fm1_in.enc_still[e] == FM1_REST_FRAMES &&
             cur != fm1_in.enc_rest[e]) {
             fm1_in.enc_rest[e] = (uint8_t)cur;     /* parked ~1 s off the detent state (held at power-on): */
             *sub = 0;                              /* that is the detent. Never a second state (see top) */

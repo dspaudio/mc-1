@@ -7,10 +7,10 @@
   <meta name="theme-color" content="#101110">
   <meta name="description" content="MC-1: an open-source groovebox with 128 sounds, eight drum kits, arpeggiation, step automation and hands-on effects. Play the shared C engine in your browser.">
   <meta property="og:title" content="MC-1 — Four parts. Your next groove.">
-  <meta property="og:description" content="128 sounds. Eight drum kits. Fifteen effects. An original open-source groovebox, ready to explore in the web emulator.">
+  <meta property="og:description" content="128 sounds. Eight drum kits. Two shared eight-type FX banks. An original open-source groovebox, ready to explore in the web emulator.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dspaudio.github.io/mc-1/">
-  <meta property="og:image" content="https://dspaudio.github.io/mc-1/assets/screens/home-playing-green.png">
+  <meta property="og:image" content="https://dspaudio.github.io/mc-1/assets/screens/v1-home.png">
   <link rel="canonical" href="https://dspaudio.github.io/mc-1/">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
@@ -21,24 +21,25 @@
   <header class="masthead shell">
     <a class="wordmark" href="#main" aria-label="MC-1 home">MC-1<span class="status-dot" aria-hidden="true"></span></a>
     <nav aria-label="Main navigation">
-      <a href="#sounds">Sounds</a><a href="#performance">Performance</a><a href="#listen">Listen</a><a href="https://github.com/dspaudio/mc-1">Source ↗</a>
+      <a href="#sounds">Sounds</a><a href="#performance">Performance</a><a href="#listen">Listen</a><a href="install.html">Install firmware</a><a href="https://github.com/dspaudio/mc-1">Source ↗</a>
     </nav>
   </header>
   <main id="main">
     <section class="hero shell" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">Open-source groovebox / Experimental 0.3.0</p>
+        <p class="eyebrow">Open-source groovebox / Version 1.0.0</p>
         <h1 id="hero-title">MC-1</h1>
         <p class="hero-line">Four parts.<br>Your next groove.</p>
         <p class="lead">Acid lines, recorded instruments and punchy drums. Build a pattern, play a chord, turn a knob. Keep the moment.</p>
         <div class="actions">
-          <a class="button primary" href="https://dspaudio.github.io/mc-1-web/">Play the web emulator <span aria-hidden="true">↗</span></a>
+          <a class="button primary" href="install.html">Install on FM-1 <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="https://dspaudio.github.io/mc-1-web/">Play the web emulator <span aria-hidden="true">↗</span></a>
           <a class="button secondary" href="#listen">Hear MC-1 <span aria-hidden="true">↓</span></a>
         </div>
         <p class="hero-note">Original firmware for the M-VAVE FM-1.<br>Explore its shared C engine in your browser today.</p>
       </div>
       <figure class="hero-screen">
-        <div class="screen-frame"><img src="assets/screens/home-playing-green.png" width="240" height="240" fetchpriority="high" alt="Actual MC-1 display playing ACID SAW: four pattern rows, orange notes, green active steps and four sound controls."></div>
+        <div class="screen-frame"><img src="assets/screens/v1-home.png" width="240" height="240" fetchpriority="high" alt="Actual MC-1 display playing ACID SAW: four pattern rows, orange notes, green active steps and four sound controls."></div>
         <figcaption><span>Actual shared C display</span><span>240 × 240 pixels</span></figcaption>
       </figure>
     </section>
@@ -50,36 +51,35 @@
     <section id="sounds" class="section shell" aria-labelledby="sounds-title">
       <div class="section-heading"><p class="eyebrow">01 / Sound palette</p><h2 id="sounds-title">From the first note<br>to the last kick.</h2><p class="lead">Three melodic parts combine LA-inspired synthesis, a 303-inspired engine and real instrument recordings. A fourth part brings 16 lanes of synthesized drums.</p></div>
       <div class="sound-layout">
-        <figure class="screen-figure"><img src="assets/screens/preset-popup.png" width="240" height="240" loading="lazy" alt="The seven-row PRESETS list with CONTRABASS ROUND selected in orange, number 8 of 128."><figcaption>Turn PRESETS. Hear the sound immediately.</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-presets.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 PRESETS browser with WOOD MALLET selected in orange, number 106 of 128."><figcaption>Turn PRESETS. Hear the sound immediately.</figcaption></figure>
         <div class="sound-copy"><h3>64 recorded-instrument presets.<br>16 real recordings.</h3><p>Piano, organ, mallets, harp, strings, woodwinds and brass sit alongside 64 original synthesis patches. Fourteen sound families keep all 128 presets easy to browse.</p><p>The recorded sounds use CC0 samples from VSCO 2 Community Edition. Their default mix is sample-only; lower PCM mix to blend in the oscillator.</p><a class="text-link" href="https://github.com/dspaudio/mc-1/blob/main/docs/PRESETS.md">Browse the complete sound list ↗</a></div>
-        <figure class="screen-figure"><img src="assets/screens/drums-playing-green.png" width="240" height="240" loading="lazy" alt="Actual drum pattern display with orange hits and a green active playback column."><figcaption>Sixteen lanes. Eight distinct kit recipes.</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-drums.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 drum grid with kit, lane controls and active playback."><figcaption>Sixteen lanes. Eight distinct kit recipes.</figcaption></figure>
       </div>
       <div class="kit-line"><h3>Choose your kit</h3><p>BASE 808 <span>/</span> CLUB 909 <span>/</span> TIGHT 606 <span>/</span> VINTAGE <span>/</span> HOUSE <span>/</span> BREAK JUNGLE <span>/</span> IRON WORKS <span>/</span> ELECTRO LATIN</p></div>
     </section>
 
     <section id="listen" class="listening section" aria-labelledby="listen-title">
       <div class="shell listening-grid">
-        <div><p class="eyebrow">Press play / Actual engine audio</p><h2 id="listen-title">NEON SPIRAL</h2><p class="lead">A 32-bar journey through pattern changes, mutes and filter sweeps, with the original effects chain.</p><p>Rendered by the native host engine. This is an original MC-1 demo, not a recording from an FM-1 or Roland device.</p></div>
+        <div><p class="eyebrow">Press play / Actual engine audio</p><h2 id="listen-title">NEON SPIRAL</h2><p class="lead">A 32-bar journey through pattern changes, mutes and filter sweeps, with both shared FX banks.</p><p>Rendered by the native host engine. This is an original MC-1 demo, not a recording from an FM-1 or Roland device.</p></div>
         <div class="audio-block"><p class="audio-label" id="audio-title">MC-1 — NEON SPIRAL with FX</p><audio controls preload="none" aria-labelledby="audio-title"><source src="audio/mc-1-neon-spiral-fx.mp3" type="audio/mpeg">Your browser does not support embedded audio. Use the MP3 download below.</audio><a class="text-link" href="audio/mc-1-neon-spiral-fx.mp3" download>Download the 320 kbps MP3 ↓</a><p class="small">No autoplay. Playback starts when you choose.</p></div>
       </div>
     </section>
 
     <section class="section shell" aria-labelledby="fx-title">
-      <div class="section-heading wide"><p class="eyebrow">02 / Shape the space</p><h2 id="fx-title">Fifteen ways to color it.<br>Every track. The master, too.</h2><p class="lead">Independent delay, reverb, drive and modulation, plus high-pass and low-pass filters. Press FX to move between the selected track and master.</p></div>
-      <div class="screen-grid three">
-        <figure class="screen-figure"><img src="assets/screens/fx-amounts.png" width="240" height="240" loading="lazy" alt="Track effects AMOUNTS page showing DELAY, REVERB, DRIVE and MOD controls."><figcaption>01 — Set the amount</figcaption></figure>
-        <figure class="screen-figure"><img src="assets/screens/fx-types.png" width="240" height="240" loading="lazy" alt="Track effects TYPES page showing the chosen delay, reverb, drive and modulation algorithms."><figcaption>02 — Choose the character</figcaption></figure>
-        <figure class="screen-figure"><img src="assets/screens/fx-filters.png" width="240" height="240" loading="lazy" alt="Track effects FILTERS page with independent high-pass and low-pass controls."><figcaption>03 — Carve out the space</figcaption></figure>
+      <div class="section-heading wide"><p class="eyebrow">02 / Shape the space</p><h2 id="fx-title">Two FX banks.<br>Sixteen choices.</h2><p class="lead">Send each part independently into shared reverb/delay and chorus/flanger banks. ENV switches between part sends and global types. The master stays volume and limiter only.</p></div>
+      <div class="screen-grid two">
+        <figure class="screen-figure"><img src="assets/screens/v1-fx-sends.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 FX SENDS page with R/D and C/F amounts for the selected part."><figcaption>01 - Set each part's two sends</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-fx-types.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 FX TYPES page selecting the shared R/D and C/F algorithms."><figcaption>02 - Choose the two global types</figcaption></figure>
       </div>
-      <dl class="effects-list"><div><dt>Delay / 4</dt><dd>Digital · Tape · Pingpong · Multitap</dd></div><div><dt>Reverb / 4</dt><dd>Room · Hall · Plate · Spring</dd></div><div><dt>Drive / 4</dt><dd>Soft · Hard · Fold · Fuzz</dd></div><div><dt>Modulation / 3</dt><dd>Chorus · Phaser · Flanger</dd></div></dl>
+      <dl class="effects-list"><div><dt>R/D / 8 types</dt><dd>ROOM1 / ROOM2 / ROOM3 / HALL1 / HALL2 / PLATE / DELAY / PANNING DLY</dd></div><div><dt>C/F / 8 types</dt><dd>CHORUS1 / CHORUS2 / CHORUS3 / CHORUS4 / FB CHORUS / FLANGER / SHORT DLY / FB SHORT DLY</dd></div></dl>
     </section>
 
     <section id="performance" class="performance section" aria-labelledby="performance-title">
       <div class="shell">
         <div class="section-heading"><p class="eyebrow">03 / Play it. Capture it.</p><h2 id="performance-title">Give the pattern<br>a performance.</h2></div>
         <div class="performance-grid">
-          <article><figure class="screen-figure"><img src="assets/screens/arp-updown-latch.png" width="240" height="240" loading="lazy" alt="Arpeggiator set to UP-DOWN, sixteenth notes, three octaves, 75 percent gate and latch enabled in green."><figcaption>Held chords become moving phrases.</figcaption></figure><h3>Six arpeggiator modes</h3><p>Up, Down, Up-Down, Order, Random and Chord. Set rate, octave range and gate, then latch the phrase. PLAY + REC writes the generated notes into the sequencer.</p></article>
-          <article><figure class="screen-figure"><img src="assets/screens/automation-full.png" width="240" height="240" loading="lazy" alt="KNOB AUTOMATION display showing the full 384-event project capacity and the current pattern count."><figcaption>Sound, mixer and FX movement stays with the project.</figcaption></figure><h3>384 automation events</h3><p>Turn a sound, level or FX knob during PLAY + REC to record its value at the current step. Refine an existing move or clear just the current pattern's automation.</p></article>
+          <article><figure class="screen-figure"><img src="assets/screens/v1-arp.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 arpeggiator with mode, rate, octave range and gate controls."><figcaption>Held chords become moving phrases.</figcaption></figure><h3>Six arpeggiator modes</h3><p>Up, Down, Up-Down, Order, Random and Chord. Set rate, octave range and gate, then latch the phrase. PLAY + REC writes the generated notes into the sequencer.</p></article>
+          <article><figure class="screen-figure"><img src="assets/screens/v1-automation.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 KNOB AUTOMATION display with project capacity and current-pattern usage."><figcaption>Sound, mixer and FX movement stays with the project.</figcaption></figure><h3>384 automation events</h3><p>Turn a sound, level or FX knob during PLAY + REC to record its value at the current step. Refine an existing move or clear just the current pattern's automation.</p></article>
         </div>
       </div>
     </section>
@@ -89,17 +89,17 @@
       <div class="screen-grid three">
         <figure class="screen-figure"><img src="assets/screens/neon-spiral-origin.png" width="240" height="240" loading="lazy" alt="NEON SPIRAL demo sound retaining its source preset name on the home display."><figcaption>Know where your sound started.</figcaption></figure>
         <figure class="screen-figure"><img src="assets/screens/preset-origin-star.png" width="240" height="240" loading="lazy" alt="An edited sound showing its original preset name with an asterisk."><figcaption>An asterisk marks your edits, even after saving.</figcaption></figure>
-        <figure class="screen-figure"><img src="assets/screens/master-filters.png" width="240" height="240" loading="lazy" alt="Master FILTERS display with high-pass and low-pass controls."><figcaption>Switch from one track to the whole mix.</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-mixer.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 GLOBAL MIXER display with four part levels."><figcaption>Balance the four parts in one place.</figcaption></figure>
       </div>
       <div class="screen-grid two">
-        <figure class="screen-figure"><img src="assets/screens/song-playing-128.png" width="240" height="240" loading="lazy" alt="Actual SONG EDIT display at position 128 of 128, pattern 64, sixteen repeats and loop enabled, with separate position, pattern, repeat and length knobs."><figcaption>128 song positions. See the current pattern and the next bar.</figcaption></figure>
-        <figure class="screen-figure"><img src="assets/screens/midi-internal.png" width="240" height="240" loading="lazy" alt="GLOBAL MIDI display showing Internal clock, stopped transport, USB and TRS receive counters, four track channel controls and BLE unavailable."><figcaption>Four MIDI channels. Internal, USB or TRS clock.</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-song.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 SONG EDIT page with position, pattern, repeat and length controls."><figcaption>128 song positions. See the current pattern and the next bar.</figcaption></figure>
+        <figure class="screen-figure"><img src="assets/screens/v1-midi.png" width="240" height="240" loading="lazy" alt="Actual 1.0.0 GLOBAL MIDI display with Internal clock, receive counters, four track channels and BLE unavailable."><figcaption>Four MIDI channels. Internal, USB or TRS clock.</figcaption></figure>
       </div>
-      <dl class="control-guide"><div><dt>PRESETS</dt><dd>Pick a melodic sound or drum kit. The large list closes after 500 ms of idle time.</dd></div><div><dt>ALGORITHM</dt><dd>Select one of 64 patterns on any part; queue the next pattern while playing.</dd></div><div><dt>SEQ → EDIT</dt><dd>Switch Pattern / Song mode. In Song, browse positions with knob 1; EDIT unlocks pattern, repeats and length; LFO toggles looping. Arrange up to 128 positions with 1–16 repeats each.</dd></div><div><dt>ENV</dt><dd>On a melodic sound, edit attack, decay, sustain and release. In FX, cycle the effects pages.</dd></div><div><dt>FX → ENV</dt><dd>Open track effects, press FX again for master, then use ENV for amounts, types or filters.</dd></div><div><dt>ARP → LFO</dt><dd>Open the melodic arpeggiator and toggle latch. In GLOBAL MIXER, ARP mutes the selected part.</dd></div><div><dt>GLO</dt><dd>Cycle through Global Mixer, Groove, Demo, Knob Automation and MIDI. MIDI knobs set four track channels; LFO selects Internal, USB or TRS clock. BLE hardware support is unavailable.</dd></div><div><dt>PLAY + REC</dt><dd>Capture notes and parameter changes. Save the project to keep the performance.</dd></div></dl>
+      <dl class="control-guide"><div><dt>PRESETS</dt><dd>Pick a melodic sound or drum kit. The large list closes after 500 ms of idle time.</dd></div><div><dt>ALGORITHM</dt><dd>Select one of 64 patterns on any part; queue the next pattern while playing.</dd></div><div><dt>SEQ → EDIT</dt><dd>Switch Pattern / Song mode. In Song, browse positions with knob 1; EDIT unlocks pattern, repeats and length; LFO toggles looping. Arrange up to 128 positions with 1–16 repeats each.</dd></div><div><dt>ENV</dt><dd>On a melodic sound, edit attack, decay, sustain and release. In FX, cycle the effects pages.</dd></div><div><dt>FX → ENV</dt><dd>Open the selected part’s R/D and C/F sends; ENV switches to the two global bank types.</dd></div><div><dt>ARP → LFO</dt><dd>Open the melodic arpeggiator and toggle latch. In GLOBAL MIXER, ARP mutes the selected part.</dd></div><div><dt>GLO</dt><dd>Cycle through Global Mixer, Groove, Demo, Knob Automation and MIDI. MIDI knobs set four track channels; LFO selects Internal, USB or TRS clock. BLE hardware support is unavailable.</dd></div><div><dt>PLAY + REC</dt><dd>Capture notes and parameter changes. Save the project to keep the performance.</dd></div></dl>
       <details class="extra-screens"><summary>More actual display views</summary><div class="screen-grid two"><figure class="screen-figure"><img src="assets/screens/arp-off.png" width="240" height="240" loading="lazy" alt="The arpeggiator page with mode set to OFF."><figcaption>ARP off — ordinary live playing.</figcaption></figure><figure class="screen-figure"><img src="assets/screens/automation-pattern-cleared.png" width="240" height="240" loading="lazy" alt="Automation page after clearing the current pattern's recorded knob movements."><figcaption>Clear one pattern while retaining the rest.</figcaption></figure></div></details>
     </section>
 
-    <section class="closing section shell" aria-labelledby="try-title"><div><p class="eyebrow">Open source / Open the instrument</p><h2 id="try-title">Make something<br>with MC-1.</h2><p class="lead">The web emulator runs the shared C engine and display. Try the sounds, build a pattern and save your project.</p><a class="button primary" href="https://dspaudio.github.io/mc-1-web/">Play the web emulator ↗</a></div><aside class="release-note" aria-labelledby="release-title"><h3 id="release-title">Experimental 0.3.0</h3><p>Host engine, sequencer, display and storage validation are documented in the repository. FM-1 boot, listening, stability, control calibration and audio deadlines have not been tested on hardware.</p><p><a href="https://github.com/dspaudio/mc-1/blob/main/docs/VALIDATION.md">Read the validation record ↗</a><br><a href="https://github.com/dspaudio/mc-1/blob/main/BUILDING.md">Build and package guide ↗</a></p></aside></section>
+    <section class="closing section shell" aria-labelledby="try-title"><div><p class="eyebrow">Open source / Open the instrument</p><h2 id="try-title">Make something<br>with MC-1.</h2><p class="lead">The web emulator runs the shared C engine and display. Try the sounds, build a pattern and save your project.</p><a class="button secondary" href="https://dspaudio.github.io/mc-1-web/">Play the web emulator ↗</a></div><aside class="release-note" aria-labelledby="release-title"><h3 id="release-title">Version 1.0.0</h3><p>Eight melodic voices plus six drums and both shared FX banks meet the measured FM-1 deadline, including actual USB Audio cold/restart tests. Package hashes, workloads and gain exclusions are documented in the repository. Electrical power-loss recovery remains unverified.</p><p><a href="https://github.com/dspaudio/mc-1/blob/main/docs/VALIDATION.md">Read the validation record ↗</a><br><a href="https://github.com/dspaudio/mc-1/blob/main/BUILDING.md">Build and package guide ↗</a></p></aside></section>
   </main>
   <footer class="footer shell">
     <div class="footer-top"><a class="wordmark" href="#main">MC-1</a><nav aria-label="Project resources"><a href="https://github.com/dspaudio/mc-1">Source</a><a href="https://github.com/dspaudio/mc-1/blob/main/README.md">Manual</a><a href="https://github.com/dspaudio/mc-1/blob/main/LICENSE">GPL-3.0</a></nav></div>

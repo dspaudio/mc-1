@@ -7,10 +7,11 @@ static McEngine engine;
 static McUi ui;
 static uint16_t strip[240 * 8];
 static uint32_t milliseconds;
-static unsigned sent, rendered, last_y;
+static unsigned sent, rendered, last_y, prepared;
 static int busy;
 static void lcd_sync(void) { busy = 0; }
 static int lcd_idle(void) { return !busy; }
+void mc_ui_prepare_frame(const McEngine *e,McUi *u) { (void)e;(void)u;prepared++; }
 void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned h,uint16_t *pixels)
 {
     (void)e; (void)u;
@@ -34,6 +35,7 @@ int main(void)
     milliseconds = 50;
     panel_draw_service(milliseconds);
     assert(sent == 1 && rendered == 1 && last_y == 0);
+    assert(prepared == 1);
     for (unsigned y = 8; y < 240; y += 8) {
         unsigned before = sent;
         panel_draw_service(++milliseconds);
@@ -43,6 +45,7 @@ int main(void)
         assert(sent == before + 1 && last_y == y);
     }
     assert(sent == 30 && panel_finishing);
+    assert(prepared == 1);
     milliseconds += 17;
     panel_draw_service(milliseconds);
     assert(sent == 30);
@@ -81,6 +84,37 @@ int main(void)
     busy = 0;
     panel_draw_service(milliseconds);
     assert(sent == before + 2 && last_y == 0);
-    puts("panel refresh: DMA ownership, 30 strips, completion gap, OTA draw and wrap PASS");
+
+    draw();
+    before = sent;
+    engine.playing = 1;
+    panel_draw_service(++milliseconds);
+    assert(sent == before + 1 && last_y == 0);
+    engine.step = 1;
+    panel_draw_service(milliseconds);
+    assert(sent == before + 1 && panel_urgent);
+    for (unsigned y = 8; y < 240; y += 8) {
+        busy = 0;
+        panel_draw_service(milliseconds);
+        assert(last_y == y);
+    }
+    assert(sent == before + 30 && panel_finishing && panel_urgent);
+    panel_draw_service(milliseconds);
+    assert(sent == before + 30);
+    busy = 0;
+    panel_draw_service(milliseconds);
+    assert(sent == before + 31 && last_y == 0 && !panel_urgent);
+
+    draw();
+    before = sent;
+    engine.pattern = 1;
+    panel_draw_service(++milliseconds);
+    assert(sent == before + 1 && last_y == 0);
+    draw();
+    before = sent;
+    engine.playing = 0;
+    panel_draw_service(++milliseconds);
+    assert(sent == before + 1 && last_y == 0);
+    puts("panel refresh: DMA ownership, 30 strips, idle gap, transport priority, OTA draw and wrap PASS");
     return 0;
 }
