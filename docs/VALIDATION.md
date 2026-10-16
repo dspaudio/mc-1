@@ -103,8 +103,9 @@ sessions, record hashes, WAV hashes and exclusions are indexed by
 snapshots are alongside it. Reused USB-script outputs are the
 `device/usb-restart-shared-voiceprep4-*-101.*` files under the earlier
 `perf30-20261015` evidence directory, with the new package hash in every JSON.
-Physical knob/LED and analog listening checks and electrical power-loss
-recovery remain unverified.
+The user confirmed that PLAY is green and does not blink to the beat:
+it is a steady playback indicator. Physical knob and other LED checks,
+analog listening and electrical power-loss recovery remain unverified.
 
 Before release publication, the user separately authorized MP3-only publication.
 Commits `0209f56` and

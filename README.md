@@ -218,8 +218,9 @@ with the project, and PLAY + REC records their knob changes as automation.
 
 For Acid sounds, overlap keys for legato glide. HOME's GLIDE knob controls speed;
 zero disables live glide. Releasing the active key returns to the highest remaining
-held key. Overlapping recorded destinations receive SLIDE. PLAY is steadily lit,
-and held-key LEDs coexist with the playback cursor.
+held key. Overlapping recorded destinations receive SLIDE. PLAY stays steadily
+green during playback; it does not blink to the beat. Held-key LEDs coexist
+with the playback cursor.
 
 ## Song arrangement
 
