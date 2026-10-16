@@ -80,8 +80,31 @@ static void demos(void) {
         double rms=10*log10((double)sum/(frames*2.0*32768.0*32768.0));
         double gain=10*log10((double)sum/(double)reference);
         assert(gain>14.0&&gain<15.7&&!a.clips&&a.peak<=MC_OUTPUT_CEILING);
-        /* Independent pre-removal binary with master FX bypassed: -23.071376477 dBFS. */
-        if(demo==1)assert(fabs(rms+23.071376477)<0.1);
+        {
+            for(unsigned part=0;part<4;part++)assert(a.project.fx_send[part][0]);
+            assert(a.project.fx_send[1][0]==112);
+            assert(a.project.fx_send[1][1]&&a.project.fx_send[2][1]);
+            mc_demo_load(&a,demo);mc_demo_load(&b,demo);
+            memset(b.project.fx_send,0,sizeof b.project.fx_send);
+            mc_start(&a);mc_start(&b);uint64_t dry=0,difference=0;
+            for(unsigned offset=0;offset<frames;) {
+                unsigned n=frames-offset>4096?4096:frames-offset;
+                mc_render(&a,x,n);mc_render(&b,y,n);
+                if(!offset)assert(a.shared_fx.rd_active&&a.shared_fx.cf_active);
+                for(unsigned i=0;i<n*2;i++) {
+                    int32_t delta=(int32_t)x[i]-y[i];
+                    dry+=(uint64_t)((int32_t)y[i]*y[i]);
+                    difference+=(uint64_t)((int64_t)delta*delta);
+                }
+                offset+=n;
+            }
+            /* The dry control retains the independent pre-removal reference. */
+            double dry_rms=10*log10((double)dry/(frames*2.0*32768.0*32768.0));
+            if(demo==1)assert(fabs(dry_rms+23.071376477)<0.1);
+            assert(difference>dry/10000&&!a.clips&&!b.clips);
+            printf("Demo %u wet/dry difference energy=%.6f, both shared banks active\n",
+                demo,(double)difference/(double)dry);
+        }
         printf("Demo %u default: peak=%u rms=%.3f dBFS gain=%.3f dB limited_frames=%u clips=%u\n",demo,a.peak,rms,gain,a.limiter_hits,a.clips);
     }
     puts("Both demos default loudness versus explicit legacy master=28000: PASS");

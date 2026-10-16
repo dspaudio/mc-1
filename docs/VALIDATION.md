@@ -1,5 +1,77 @@
 # MC-1 validation record
 
+## 1.0.1 candidate (2026-10-16)
+
+The firmware branch is `fix/1.0.1`; the sibling web emulator is not changed.
+The six shared reverb returns have approximately 6.02 dB more gain. HALL1,
+HALL2 and PLATE use higher existing feedback coefficients, with no added
+buffer or DSP stage. Independent impulse checks measure HALL2's last nonzero
+sample at 1,110.6 ms versus 786.9 ms before the change. This is a quantization
+floor measurement, not RT60 or listening approval. Delay, C/F and legacy DSP
+reference hashes remain unchanged.
+
+New projects use ROOM2 sends 12 / 72 / 24 / 8 and no C/F send; stored projects
+retain their own values. Both built-in demos use reverb and chorus, with PART2
+R/D send 112. Lockstep wet/dry renders prove real PCM differences, both banks
+active, and zero clips. GLOBAL MIXER uses ENV to switch LEVEL / PAN, with four
+independent controls, range 0..127, center 64, and existing pan automation and
+v7 persistence. The lower queued NEXT is removed; the upper destination stays.
+PLAY ID 12 is routed to the separate PA5/column 8 green coordinate documented
+by the existing FM-1 platform reference, with its red die off and REC separate.
+
+Checks completed:
+
+- Native regression: all 25 C executables and 47 Python capture tests pass.
+- Clean separate ASan/UBSan builds: all 25 C executables pass. The final
+  cosmetic PAN hint relocation was followed by fresh mixer, UI input, pattern
+  title and ENV graph regressions and a new target/package build.
+- Actual shared-C audio: 129 renders pass non-silence, saturation, DC and release
+  checks; seven peak-normalized listening examples and 320 kbps MP3 regenerate.
+- Final source UI: 20 fresh desktop/mobile light/dark captures cover HOME, ENV,
+  DRUMS, LEVEL and PAN. Original dimensions are 1440x900 or 1170x2532
+  (390x844 at DPR 3); no horizontal overflow. Main inspected every distinct
+  frame and adjudicated two independent visual reports. An initial overlapping
+  ENV hint was corrected before these captures.
+- pi32v2, flash-off code checks, package CRC/loader simulation, 32 OTA protocol
+  vectors, 15 installer UI scenarios and local Pages assembly all pass.
+
+| Image | App | Globals | Pool | RAM text |
+|---|---:|---:|---:|---:|
+| Non-probe, CI reports | 505,004 B | 50,052 B | 77,168 B | 5,568 B |
+| Diagnostic candidate | 507,420 B | 50,424 B | 77,168 B | 5,568 B |
+
+Both images satisfy the documented flash/RAM ceilings. Link-section sizes are
+not stack high-water measurements. App/HAL stays `-Os`, DSP stays `-O2`;
+eight melodic and six drum voices and both eight-type banks are retained.
+
+Pinned diagnostic package: 610,089 B, SHA256
+`a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5`.
+Non-probe package SHA256:
+`68e813a43bc22c5a63519c2e6e93c7509f758bad9747b57879fec68f0d8fe862`.
+These are different images and are not interchangeable measurement evidence.
+
+**Hardware status:** this 1.0.1 candidate has not been installed or measured.
+The connected device answered a read-only clock/power diagnostic; that does not
+prove new-image boot, physical LED color or CPU deadlines. The earlier 1.0.0
+peak of 66,718 ticks must not be attributed to 1.0.1. Real 8+6-voice/full-send
+deadline, DMA-half and USB-underrun validation remains required before a
+hardware-performance release claim. Physical knob/LED and analog listening
+checks and electrical power-loss recovery remain unverified.
+
+The user separately authorized MP3-only publication. Commits `0209f56` and
+`2cb3087` publish only the MP3 and its hash report. The final public MP3 SHA256
+is `f5fc281a96aafd7d9c77db2c9694073dac09f8e9abf6ea97b3e1b4b29bb25555`;
+Pages run 38884307249 succeeded and the public bytes match. The first replacement
+also decoded successfully to stereo 44.1 kHz Int16 PCM. Public page HTML is
+unchanged and still pins firmware 1.0.0. The 1.0.1 firmware and local Pages
+preview have not been published.
+
+Evidence: `.omo/evidence/v1.0.1/`, including the preserved diagnostic candidate,
+independent DSP/default/PAN reports, `visual-captures.json`, `visual-verdict.md`
+and `audio-fx.md`. HTML/YAML LSP servers were unavailable; C files whose LSP
+context lacks `-Isrc` report missing includes. Actual warnings-as-errors builds
+and runtime checks above provide compilation evidence instead.
+
 ## Accepted performance candidate (2026-10-16)
 
 Both repositories now identify the working tree as **1.0.0**. The default

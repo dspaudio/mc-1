@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identity": "FM-1_900",
-  "file": "mc-1-1.0.0.fwsc",
+  "file": "mc-1-1.0.1.fwsc",
   "bytes": 610089,
-  "sha256": "313ebd7b4b9173247d1adc3e1586f87c711a02c5807bb28c5675401a799a68b0"
+  "sha256": "a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5"
 }

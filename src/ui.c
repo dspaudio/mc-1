@@ -35,8 +35,8 @@ void mc_ui_button(McEngine *e,McUi *u,unsigned button) {
     case UI_HOME: u->page=0;u->editing=0; break;
     case UI_SEQ: mc_song_mode(e,!e->project.song_mode);u->page=e->project.song_mode?8:0;u->editing=0;break;
     case UI_EDIT: if(u->page==8)u->song_editing^=1;else if(u->page==7)mc_automation_clear(e,e->pattern);else if(u->page!=9)u->editing^=1;break;
-    case UI_ENV: if(u->page==3)u->fx_page^=1;else u->page=u->page==1?0:1; break;
-    case UI_GLO: u->page=u->page==5?2:u->page==2?4:u->page==4?7:u->page==7?9:5;u->editing=0;break;
+    case UI_ENV: if(u->page==3)u->fx_page^=1;else if(u->page==5)u->mixer_pan^=1;else u->page=u->page==1?0:1; break;
+    case UI_GLO: u->page=u->page==5?2:u->page==2?4:u->page==4?7:u->page==7?9:5;u->editing=0;u->mixer_pan=0;break;
     case UI_LFO:
         if(u->page==8)e->project.song_loop^=1;
         else if(u->page==9)mc_clock_source(e,e->project.clock_source<2?e->project.clock_source+1:0);
@@ -108,7 +108,7 @@ static void encoder_apply(McEngine *e,McUi *u,unsigned enc,int delta) {
     } else if(u->page==7) {
         return;
     } else if(u->page==5) {
-        parameter_delta(e,u,k,MC_PARAM_LEVEL,delta);
+        parameter_delta(e,u,k,u->mixer_pan?MC_PARAM_PAN:MC_PARAM_LEVEL,delta);
     } else if(u->page==4) {
         if(k==0) u->demo_choice=(uint8_t)wrap(u->demo_choice+delta,2);
         if(k==3&&delta>0) {
@@ -174,7 +174,7 @@ static unsigned encoder_range(const McEngine *e,const McUi *u,unsigned enc) {
 }
 void mc_ui_encoder_at(McEngine *e,McUi *u,unsigned enc,int delta,uint32_t now_ms) {
     if(!delta||enc>6)return;
-    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)(u->page==8?u->song_editing:u->editing)<<6)|((uint32_t)u->fx_page<<23);
+    uint32_t context=e->selected|((uint32_t)u->page<<2)|((uint32_t)(u->page==8?u->song_editing:u->editing)<<6)|((uint32_t)(u->page==5&&u->mixer_pan)<<7)|((uint32_t)u->fx_page<<23);
     if(enc>=3) {
         if(e->selected==3)context|=(uint32_t)u->sound<<8;
         else context|=(uint32_t)e->project.patch[e->selected].engine<<12;
@@ -464,10 +464,25 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
     } else if(u->page==5) {
         static const char *const names[4]={"PART1","PART2","PART3","DRUMS"};
         text(&c,14,30,"GLOBAL MIXER",WHITE,2);
+        text(&c,176,34,u->mixer_pan?"PAN":"LEVEL",ORANGE,1);
         for(unsigned part=0;part<4;part++) {
             int x=part?25+(int)part*60:26;
             uint16_t color=e->mute&(1u<<part)?DIM:ORANGE;
             text(&c,x-17,61,names[part],part==p?ORANGE:WHITE,1);
+            if(u->mixer_pan) {
+                unsigned pan=e->project.pan[part];
+                int mx=x-24+(int)pan*48/127;
+                text(&c,x-24,79,"L",WHITE,1);text(&c,x-2,79,"C",WHITE,1);text(&c,x+19,79,"R",WHITE,1);
+                rect(&c,x-24,102,49,3,GRID);rect(&c,x,96,1,15,DIM);
+                rect(&c,mx-2,94,5,19,part==p&&color!=DIM?WHITE:color);
+                if(pan==64)text(&c,x-2,122,"C",color,1);
+                else { text(&c,x-8,122,pan<64?"L":"R",color,1);number(&c,x,122,pan<64?64-pan:pan-64,color); }
+                if(part==p)rect(&c,x-17,70,30,1,ORANGE);
+                if(e->mute&(1u<<part)) text(&c,x-11,153,"MUTE",DIM,1);
+                else text(&c,x-5,153,"ON",WHITE,1);
+                knob(&c,x,names[part],pan,color);
+                continue;
+            }
             rect(&c,x-8,79,18,64,GRID);
             int level=(int)e->project.level[part]*64/127;
             rect(&c,x-8,143-level,18,level,color);
@@ -476,6 +491,7 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
             knob(&c,x,names[part],e->project.level[part],color);
         }
         if(!u->message) text(&c,66,173,"SELECT-ARP to mute",WHITE,1);
+        text(&c,14,163,u->mixer_pan?"ENV: LEVEL":"ENV: PAN",DIM,1);
     } else if(u->page==4) {
         text(&c,14,40,"DEMO LIBRARY",WHITE,2);
         text(&c,14,77,u->demo_choice?"NEON SPIRAL":"NIGHT CIRCUIT",ORANGE,2);
@@ -611,7 +627,6 @@ void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint
         count[n++]=(char)('0'+value%10);
         count[n++]='/';count[n++]='6';count[n++]='4';count[n]=0;
         text(&c,4,173,"PATTERN",DIM,1);text(&c,52,173,count,GREEN,1);
-        if(e->queued<MC_PATTERNS) { text(&c,94,173,"NEXT",DIM,1);number(&c,124,173,e->queued+1,ORANGE); }
     }
     if(u->pattern_hold) {
         rect(&c,0,171,240,12,BG);text(&c,4,173,"PATTERN BANK",DIM,1);

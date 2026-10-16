@@ -90,11 +90,34 @@ static void demo_cleanup(void) {
     cleanup(1u<<14,0);overflow_cleanup();
     puts("PASS MIDI demo: owned channels, live/ARP/sustain/reset, pending output, reload, transport and overflow");
 }
+static void factory_default_reverb(void) {
+    static const uint8_t sends[MC_PARTS]={12,72,24,8};
+    McProject stored,loaded;uint8_t blob[MC_RECORD_BYTES];uint32_t seq;
+    mc_init(&e);
+    assert(e.project.fx_bus_type[0]==1&&!e.project.fx_bus_type[1]);
+    for(unsigned part=0;part<MC_PARTS;part++) assert(e.project.fx_send[part][0]==sends[part]&&!e.project.fx_send[part][1]);
+    /* Stored v7 sends are portable and never replaced by the factory reverb. */
+    stored=e.project;memset(stored.fx_send,0,sizeof stored.fx_send);stored.fx_bus_type[0]=4;stored.fx_send[2][0]=99;
+    assert(mc_encode(&stored,9,blob,sizeof blob)>0&&mc_decode(&loaded,&seq,blob,sizeof blob)==0);
+    assert(!memcmp(loaded.fx_send,stored.fx_send,sizeof stored.fx_send)&&loaded.fx_bus_type[0]==4);
+    /* Audible but subtle: the wet render differs from dry by a bounded amount. */
+    int64_t diff=0,dry_sum=0;
+    mc_init(&e);mc_init(&a);memset(a.project.fx_send,0,sizeof a.project.fx_send);
+    mc_note(&e,0,48,100,0,3000);mc_note(&a,0,48,100,0,3000);
+    for(unsigned block=0;block<8;block++) {
+        mc_render(&e,buffer,1024);mc_render(&a,split,1024);
+        for(unsigned i=0;i<2048;i++) {
+            int32_t d=buffer[i]-split[i];diff+=d<0?-d:d;dry_sum+=split[i]<0?-split[i]:split[i];
+        }
+    }
+    assert(diff>0&&diff<dry_sum/2);
+    puts("PASS factory reverb: ROOM2 sends 12/72/24/8, no chorus, bounded wet-vs-dry difference, v7 sends preserved");
+}
 static void legacy_pcm_reference(void) {
     /* Original PCM references, retained after excluding pressure from this release. */
     static const uint32_t reference[3]={2313758043u,2814300718u,308011833u};
     for(unsigned mode=0;mode<3;mode++) {
-        mc_init(&e);
+        mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send); /* dry legacy reference */
         for(unsigned part=0;part<3;part++) {
             e.project.patch[part].engine=(uint8_t)(mode==1?MC_ACID:MC_LA);
             e.project.patch[part].cutoff=43;
@@ -115,7 +138,7 @@ static void legacy_pcm_reference(void) {
     puts("PASS legacy PCM: bit-identical LA, acid and recorded PCM references");
 }
 static void shared_fx_controls(void) {
-    mc_init(&e);
+    mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);
     input(1,0xb0,91,77);input(1,0xb1,93,66);
     input(1,0xb9,20,7);input(1,0xb2,23,5);
     assert(e.project.fx_send[0][0]==77&&e.project.fx_send[1][1]==66);
@@ -140,6 +163,7 @@ static void ignored_pressure_messages(void) {
     puts("PASS MIDI: excluded pressure messages are consumed without voice changes or parser desynchronization");
 }
 int main(void) {
+    factory_default_reverb();
     legacy_pcm_reference();
     shared_fx_controls();
     ignored_pressure_messages();

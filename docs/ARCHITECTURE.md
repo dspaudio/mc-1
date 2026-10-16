@@ -196,6 +196,41 @@ protection does not permit execution from globals, the pool or the reserved
 debug gap. Historical RAM experiment reports are retained as failed experiments,
 not as the current link layout or evidence of a speed improvement.
 
+## 1.0.1 resource acceptance
+
+Three kinds of bound apply. Hard limits fail the build or the format.
+Release ceilings are policy for a 1.0.1 candidate. Targets are optional goals.
+
+| Resource | Hard limit (enforced by) | Release ceiling | Optional target |
+|---|---|---|---|
+| App image | 581,564 B, `0x8DFBC` (`firmware/app.ld`, `tools/build_target.py`) | 581,564 B | <= 560,000 B, keeping reserve |
+| `.data + .bss` | 98,304 B (`app.ld`, `build_target.py`) | 65,536 B | none |
+| `.pool` | 344,064 B region; script enforces <= 335,872 B, keeping 8,192 B spare | 335,872 B | none |
+| `.ram_text` | 24,576 B, `0x6000`, no `call` (`build_target.py`) | 24,576 B | none |
+| Project record | 35,124 B v7 record in each 36,864 B bank (`tests/storage.c`) | unchanged | none |
+
+These sizes are static link sections. They are not a stack high-water mark;
+stack use and IRQ nesting still need device measurement.
+
+CPU: each DMA half is 128 frames at 44,100 Hz, a deadline of 69,648 TIMER4 ticks
+(about 2,902 us). A release needs zero deadline misses, zero DMA-half changes and
+zero USB underruns on the device with 8 melodic voices, 6 drum voices and full
+R/D and C/F sends. No host test proves this. The historical 1.0.0 peak of
+66,718 ticks leaves about 4.2% margin. A 10% reserve is aspirational, not a
+prerequisite, and it doesn't widen optimization scope. Any new DSP work needs new
+device evidence. 1.0.1 has no new device timing measurement yet.
+
+Validation commands:
+
+```sh
+make test
+make render
+python3 tools/build_target.py   # needs JIELI_TOOLCHAIN; asserts the hard limits above
+```
+
+Compare `docs/target-report.json` against the release ceilings. Device timing
+follows the capture procedure in [VALIDATION.md](VALIDATION.md).
+
 ## Persistence and safety
 
 Sixty-four 16-step patterns and 128 song entries fit one portable 35,124-byte version 7 project record. Serialization is explicit
@@ -243,8 +278,9 @@ emulation. Each of the four parts has independent R/D and C/F sends, 0–127.
 After part level/pan, each signal enters the dry mix and its two send sums.
 Each shared bank processes its sum once, and both returns join the dry mix.
 Muting stops a part's dry signal and new sends; an existing shared tail can remain.
-Changing a bank's type clears only that bank's state. With no sends, a bank
-bypasses and clears its stored signal once. There is no master FX processor,
+Changing a bank's type clears only that bank's state. A bank's state is cleared
+only on first use or a type change. When all sends reach zero, an active bank
+keeps its stored tail and lets it decay (see `tests/test.c`). There is no master FX processor,
 per-part effect type, drive processor or HPF/LPF stage. The final sum goes through
 master volume and the linked limiter, with a wide product and safety clamp.
 Feedback stays below unity and rendering allocates no heap memory.

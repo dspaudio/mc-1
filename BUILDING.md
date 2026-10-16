@@ -144,8 +144,10 @@ Like ORBIT, the workflow runs for a published release or a manual main-branch
 dispatch, so a main push does not race an unpublished package. Publish after
 main CI passes. The builder fails closed until the pinned release asset exists.
 
-The 1.0.0 release pin names the actual device-tested performance-probe build,
-with diagnostics inactive during normal use. Reproduce it using
+The 1.0.1 candidate pin names the performance-probe build, with diagnostics
+inactive during normal use. Reproduce it using
 `MC_PERF_PROBE=1 MC_PLAY_LED_PULSE=0 python3 tools/build_package.py`.
 The default non-probe target/package reports are separate compiled-only evidence;
-their hashes are not substituted for the release pin or its hardware results.
+their hashes are not substituted for the candidate pin. See VALIDATION.md for
+candidate-specific hardware status; the measured 1.0.0 results do not establish
+device timing for a newly compiled image.

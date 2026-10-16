@@ -304,7 +304,8 @@ static void shared_fx_ui(void) {
         mc_ui_encoder(&e,&u,0,1);
     }
     assert(!e.selected);
-    init();e.selected=2;mc_start(&e);e.recording=1;
+    init();e.project.fx_bus_type[0]=0; /* fixture counts type steps from the legacy zero default */
+    e.selected=2;mc_start(&e);e.recording=1;
     mc_ui_button(&e,&u,UI_FX);
     mc_ui_encoder(&e,&u,3,21);mc_ui_encoder(&e,&u,4,31);
     assert(e.project.automation_count==2);

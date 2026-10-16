@@ -33,8 +33,8 @@ build/test-storage: $(CORE) $(HEADERS) tests/storage.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/storage.c -o $@
 build/test-effects-modes: src/effects.c $(HEADERS) tests/effects_modes.c | build
 	$(CC) $(CFLAGS) -Isrc src/effects.c tests/effects_modes.c -lm -o $@
-build/test-panel-leds: firmware/panel_leds.h tests/panel_leds.c | build
-	$(CC) $(CFLAGS) tests/panel_leds.c -o $@
+build/test-panel-leds: firmware/panel_leds.h firmware/hal/fm1_input.h tests/panel_leds.c | build
+	$(CC) $(CFLAGS) -Wno-unused-function tests/panel_leds.c -o $@
 build/test-ota: firmware/update/ota.c tests/ota_test.c | build
 	$(CC) -O2 -std=c11 -Wall -Wextra -Werror -Wno-unused-function tests/ota_test.c -o $@
 build/ldr-test: firmware/update/ota.c firmware/loader/ldr_core.c tests/ldr_test.c | build
@@ -59,12 +59,14 @@ build/test-encoder-input: $(CORE) $(HEADERS) firmware/hal/fm1_input.h tests/enco
 	$(CC) $(CFLAGS) -Wno-unused-function -Isrc $(CORE) tests/encoder_input.c -o $@
 build/test-pattern-title: $(CORE) $(HEADERS) tests/pattern_title.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/pattern_title.c -o $@
+build/test-mixer-pan: $(CORE) $(HEADERS) tests/mixer_pan.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tests/mixer_pan.c -o $@
 build/test-pcm-cache: $(CORE) $(HEADERS) tests/pcm_cache.c | build
 	$(CC) $(CFLAGS) -Isrc $(filter-out src/engine.c,$(CORE)) tests/pcm_cache.c -o $@
 test-ota: build/test-ota build/ldr-test
 	./build/test-ota build/mc-1-EXPERIMENTAL.fwsc
 	./build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
-test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota build/test-perf-probe build/test-fixed build/test-pcm-cache build/test-perf-hardware build/test-panel-modes build/test-env-graph build/test-encoder-input build/test-pattern-title
+test: build/test build/test-ui-input build/test-performance build/test-patterns build/test-output build/test-metronome build/test-song build/test-midi build/test-connections build/test-connection-routing build/test-storage build/test-effects-modes build/test-panel-leds build/test-ota-entry build/test-panel-refresh build/test-connections-ota build/test-perf-probe build/test-fixed build/test-pcm-cache build/test-perf-hardware build/test-panel-modes build/test-env-graph build/test-encoder-input build/test-pattern-title build/test-mixer-pan
 	./build/test
 	./build/test-ui-input
 	./build/test-performance
@@ -89,6 +91,7 @@ test: build/test build/test-ui-input build/test-performance build/test-patterns 
 	./build/test-env-graph
 	./build/test-encoder-input
 	./build/test-pattern-title
+	./build/test-mixer-pan
 	python3 -B tests/perf_capture_test.py
 render: build/mc1-host
 	./build/mc1-host render build/demo.wav 16

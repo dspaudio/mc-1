@@ -239,9 +239,9 @@ void mc_fx_rd_block(McSharedFx *f,unsigned bpm,unsigned type,int32_t stereo[][2]
             {{331,457,673,911},0,2,9},
             {{751,809,947,1031},8192,2,10},
             {{997,1153,1301,1451},12288,3,11},
-            {{1557,1617,1491,1422},16384,2,12},
-            {{2039,1999,1867,1747},20480,3,13},
-            {{887,1061,1217,1367},24576,1,12}};
+            {{1557,1617,1491,1422},16384,2,13},
+            {{2039,1999,1867,1747},20480,3,14},
+            {{887,1061,1217,1367},24576,1,13}};
         McReverb *r=&f->rd.reverb;
         unsigned damping=profile[type].damping;
         int32_t feedback=profile[type].feedback,diffusion=profile[type].diffusion,rounding=(1<<damping)-1;
@@ -263,7 +263,7 @@ void mc_fx_rd_block(McSharedFx *f,unsigned bpm,unsigned type,int32_t stereo[][2]
                 wet[0]=fx_allpass(wet[0],diffusion,&r->ap[0]);
                 wet[1]=fx_allpass(wet[1],diffusion,&r->ap[1]);
             }
-            stereo[n][0]=mc_div_pow2(wet[0],1);stereo[n][1]=mc_div_pow2(wet[1],1);
+            stereo[n][0]=wet[0];stereo[n][1]=wet[1];
         }
     }
 }

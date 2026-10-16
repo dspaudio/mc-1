@@ -1,4 +1,9 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
+#include "../firmware/hal/fm1_gpio.h"
+static volatile uint32_t gpio[8][8];
+#undef FM1_PR
+#define FM1_PR(p,r) gpio[(p)][(r)/4u]
+#include "../firmware/hal/fm1_input.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -39,7 +44,35 @@ static void check(unsigned playing,unsigned step,uint32_t held) {
     for(unsigned id=0;id<14u;id++)assert(leds[id]==1u&&!writes[id]);
 }
 
+static void play_green(void) {
+    for(unsigned playing=0;playing<2;playing++)for(unsigned recording=0;recording<2;recording++) {
+        memset(fm1_led,0x1e,sizeof fm1_led);
+        fm1_led_key(12,(int)playing);
+        fm1_led_key(13,(int)recording);
+        for(unsigned col=0;col<FM1_NCOL;col++) {
+            unsigned expected=0x1eu;
+            if(col==8u)expected=(expected&~2u)|(playing<<1);
+            if(col==10u)expected&=~4u;
+            if(col==7u)expected=(expected&~4u)|(recording<<2);
+            assert(fm1_led[col]==expected);
+        }
+        mc_panel_key_leds(playing,0,0x07ffffffu,fm1_led_key);
+        assert(((fm1_led[8]>>1)&1u)==playing);
+        assert(!(fm1_led[10]&4u));
+        assert(((fm1_led[7]>>2)&1u)==recording);
+        mc_panel_key_leds(playing,15,0,fm1_led_key);
+        assert(((fm1_led[8]>>1)&1u)==playing);
+        assert(!(fm1_led[10]&4u));
+        assert(((fm1_led[7]>>2)&1u)==recording);
+        fm1_led_key(12,0);
+        assert(!(fm1_led[8]&2u)&&!(fm1_led[10]&4u));
+        assert(((fm1_led[7]>>2)&1u)==recording);
+    }
+    puts("PASS: physical green PLAY, red die off, independent REC and held/cursor preservation");
+}
+
 int main(void) {
+    play_green();
     for(unsigned id=0;id<41u;id++)leds[id]=1u;
     check(0,0,0);
     for(unsigned step=0;step<16u;step++)check(1,step,0);

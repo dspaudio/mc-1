@@ -7,6 +7,15 @@ void mc_demo_load(McEngine *e,unsigned demo) {
     mc_init(e);
     e->midi.output_channels=channels;e->midi.output_running=running;
     e->midi.cleanup=(uint8_t)(channels?3:0);e->midi.stop_pending=running;
+    /* Both built-in demos use the active shared banks, not legacy master FX. */
+    static const uint8_t sends[2][4][2]={
+        {{18,0},{112,48},{80,32},{24,0}},
+        {{24,8},{112,24},{100,56},{28,0}}};
+    unsigned version=demo?1:0;
+    for(unsigned part=0;part<4;part++)for(unsigned bank=0;bank<2;bank++)
+        e->project.fx_send[part][bank]=sends[version][part][bank];
+    e->project.fx_bus_type[0]=(uint8_t)(demo?4:3);
+    e->project.fx_bus_type[1]=(uint8_t)(demo?1:0);
     if(!demo) return;
     for(unsigned i=0;i<sizeof e->project.step;i++) ((uint8_t *)e->project.step)[i]=0;
     e->project.bpm=140;e->project.swing=0;

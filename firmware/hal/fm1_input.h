@@ -363,6 +363,16 @@ static uint32_t fm1_input_note_edges(void)
 /* LED of key id (button 0..13 or note key 14..40) */
 static void fm1_led_key(uint32_t id, int on)
 {
+    /* PLAY's green die is at the keyless PA5/column 8 position.
+     * Its button-mapped PA6/column 10 die is red, not the playback indicator. */
+    if (id == 12u) {
+        if (on)
+            fm1_led[8] |= (uint8_t)(1u << 1);
+        else
+            fm1_led[8] &= (uint8_t)~(1u << 1);
+        fm1_led[10] &= (uint8_t)~(1u << 2);
+        return;
+    }
     uint32_t p, r;
     for (p = 0; p < FM1_NCOL; p++)
         for (r = 1; r < 5u; r++)

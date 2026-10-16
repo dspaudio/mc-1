@@ -122,7 +122,9 @@ static void sequence(void) {
     mc_init(&e);e.project.bpm=120;e.project.swing=0;mc_start(&e);mc_queue(&e,2);
     render_n(&e,MC_RATE*2-1);assert(e.pattern==0&&e.step==15);
     render_n(&e,1);assert(e.pattern==2&&e.step==0&&e.queued==255&&e.events==17);
-    mc_init(&e);e.project.bpm=120;e.project.swing=45;mc_start(&e);
+    mc_init(&e);e.project.bpm=120;e.project.swing=45;
+    memset(e.project.fx_send,0,sizeof e.project.fx_send); /* mute must be exactly silent without a reverb tail */
+    mc_start(&e);
     render_n(&e,MC_RATE*60);assert(e.events==481&&e.step==0);
     for(unsigned p=0;p<4;p++) mc_mute(&e,p);
     mc_render(&e,x,4096);assert(energy(x,8192)==0);
@@ -193,7 +195,9 @@ static void phrase_grid(void) {
     e.project.step[0][0][0].note[0]=0;screen(&e,&u,current);
     assert(current[62*240+32]==0xfb20);
     mc_start(&e);screen(&e,&u,previous);mc_queue(&e,2);screen(&e,&u,current);
-    assert(e.pattern==0&&e.queued==2&&memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    assert(e.pattern==0&&e.queued==2);
+    assert(!memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    assert(memcmp(previous+14*240+163,current+14*240+163,7*240*sizeof(uint16_t)));
     memcpy(previous,current,sizeof previous);
     for(unsigned frame=0;e.pattern!=2&&frame<MC_RATE*3;frame++) render_n(&e,1);
     screen(&e,&u,current);assert(e.pattern==2&&e.queued==255);
@@ -204,7 +208,8 @@ static void phrase_grid(void) {
     screen(&e,&u,previous);assert(previous[162*240+32]==0x67e8);
     mc_queue(&e,0);screen(&e,&u,current);
     assert(!memcmp(previous+159*240,current+159*240,8*240*sizeof(uint16_t)));
-    assert(memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    assert(!memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
+    assert(memcmp(previous+14*240+163,current+14*240+163,7*240*sizeof(uint16_t)));
     puts("PASS: demo pattern progression changes pitch grid; chord and non-leading notes rendered");
     puts("PASS: home PATTERN/NEXT status follows queued bar transition; messages retain priority");
 }
@@ -290,7 +295,7 @@ static void effects_demo(void) {
     mc_render(&a,x,4096);for(unsigned i=0;i<4096;i+=64)mc_render(&b,y+i*2,64);
     assert(!memcmp(x,y,sizeof x));
     render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
-    McUi u;mc_ui_init(&u);mc_init(&e);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
+    McUi u;mc_ui_init(&u);mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);mc_ui_button(&e,&u,UI_FX);assert(u.page==3);
     for(unsigned k=0;k<2;k++) { mc_ui_encoder(&e,&u,k+3,50);assert(e.project.fx_send[0][k]==50); }
     for(unsigned k=0;k<4;k++)assert(!e.project.fx[k]&&!e.project.track_fx[0][k]);
     mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
@@ -371,7 +376,7 @@ static void kits_and_tracks(void) {
         else { mc_drum(&a,0,120);mc_drum(&b,0,120); }
         mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x));
     }
-    mc_init(&e);mc_ui_init(&u);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_page);
+    mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);mc_ui_init(&u);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_page);
     for(unsigned p=0;p<4;p++)for(unsigned fx=0;fx<2;fx++) { e.selected=(uint8_t)p;mc_ui_encoder(&e,&u,fx+3,(int)(p*16+fx+1)); }
     mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&e.selected==3);mc_ui_encoder(&e,&u,3,37);assert(e.project.fx_send[3][0]==86&&!e.project.fx[0]);
     mc_ui_button(&e,&u,UI_HOME);mc_ui_button(&e,&u,UI_FX);assert(u.page==3&&!u.fx_page);
@@ -397,7 +402,7 @@ static void sorted_bank(void) {
     for(unsigned old=0;old<64;old++) {
         unsigned found=MC_PRESETS;for(unsigned p=0;p<MC_PRESETS;p++)if(!strcmp(presets_012[old].name,mc_preset_names[p]))found=p;
         assert(found<MC_PRESETS&&!memcmp(&presets_012[old].patch,&mc_presets[found],sizeof(McPatch)));
-        mc_init(&e);e.master=28000;mc_preset(&e,0,found);mc_note(&e,0,60,110,0,MC_RATE);mc_render(&e,x,4096);
+        mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);e.master=28000;mc_preset(&e,0,found);mc_note(&e,0,60,110,0,MC_RATE);mc_render(&e,x,4096);
         assert(mc_crc(x,sizeof x)==presets_012[old].pcm_crc);
     }
     uint8_t record[MC_RECORD_BYTES];for(unsigned demo=0;demo<2;demo++) {

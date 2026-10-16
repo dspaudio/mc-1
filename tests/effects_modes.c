@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include "fixed.h"
 
 static McEffects effects[5];
 static const uint8_t zero[4]={0};
@@ -345,6 +346,88 @@ static void shared_block(McSharedFx *f,unsigned bank,unsigned bpm,unsigned type,
     if(bank)mc_fx_cf_block(f,type,stereo,frames);
     else mc_fx_rd_block(f,bpm,type,stereo,frames);
 }
+/* Hard output bound: delay, C/F keep 24000; reverb returns are no longer halved (allpass 48000, ROOM1 two 16000 taps). */
+static int32_t shared_bound(unsigned bank,unsigned type) {
+    if(bank||type>=6)return 24000;
+    return type?48000:32000;
+}
+/* Independent reference of the shared reverb; old = pre-1.0.1 feedback and halved return. */
+typedef struct { int16_t comb[4][2048]; int32_t damp[4],ap[2]; unsigned pos[4]; } RefReverb;
+static const struct { uint16_t length[4],diffusion; uint8_t damping,old_fb,new_fb; } ref_profile[6]={
+    {{331,457,673,911},0,2,9,9},{{751,809,947,1031},8192,2,10,10},{{997,1153,1301,1451},12288,3,11,11},
+    {{1557,1617,1491,1422},16384,2,12,13},{{2039,1999,1867,1747},20480,3,13,14},{{887,1061,1217,1367},24576,1,12,13}};
+static int32_t ref_clip(int32_t x,int32_t limit) { return x<-limit?-limit:x>limit?limit:x; }
+static int32_t rv_allpass(int32_t in,int32_t c,int32_t *s) {
+    int32_t out=ref_clip(*s-mc_div_pow2(in*c,15),48000);
+    *s=ref_clip(in+mc_div_pow2(out*c,15),48000);return out;
+}
+static void ref_reverb(RefReverb *s,unsigned type,int is_new,int32_t l,int32_t r,int32_t out[2]) {
+    int32_t feedback=is_new?ref_profile[type].new_fb:ref_profile[type].old_fb,wet[2]={0,0};
+    int32_t round=(1<<ref_profile[type].damping)-1,input=mc_div_pow2(ref_clip(l,16000)+ref_clip(r,16000),2);
+    for(unsigned i=0;i<4;i++) {
+        int32_t tap=s->comb[i][s->pos[i]],delta=tap-s->damp[i];
+        s->damp[i]+=delta<0?-((-delta+round)>>ref_profile[type].damping):(delta+round)>>ref_profile[type].damping;
+        s->comb[i][s->pos[i]]=(int16_t)ref_clip(input+mc_div_pow2(s->damp[i]*feedback,4),16000);
+        if(++s->pos[i]>=ref_profile[type].length[i])s->pos[i]=0;
+        wet[i&1]+=tap;
+    }
+    if(ref_profile[type].diffusion)for(unsigned c=0;c<2;c++)wet[c]=rv_allpass(wet[c],ref_profile[type].diffusion,&s->ap[c]);
+    out[0]=is_new?wet[0]:mc_div_pow2(wet[0],1);out[1]=is_new?wet[1]:mc_div_pow2(wet[1],1);
+}
+static RefReverb ref_state[2];
+static int32_t reverb_actual[MC_RATE*4][2],reverb_old[MC_RATE*4][2],reverb_new[MC_RATE*4][2];
+static void reverb_metrics(const int32_t out[][2],double *energy,int32_t *peak,unsigned *last) {
+    *energy=0;*peak=0;*last=0;
+    for(unsigned n=0;n<MC_RATE*4;n++)for(unsigned c=0;c<2;c++) {
+        int32_t v=out[n][c],a=v<0?-v:v;
+        *energy+=(double)v*v;if(a>*peak)*peak=a;if(a)*last=n;
+    }
+}
+static void shared_reverb_strength(void) {
+    for(unsigned type=0;type<6;type++) {
+        memset(&shared[0],0,sizeof shared[0]);memset(ref_state,0,sizeof ref_state);
+        for(unsigned at=0;at<MC_RATE*4;) {
+            int32_t block[128][2]={0};
+            unsigned frames=MC_RATE*4-at;if(frames>128)frames=128;
+            if(!at){block[0][0]=12000;block[0][1]=6000;}
+            mc_fx_rd_block(&shared[0],120,type,block,frames);
+            for(unsigned n=0;n<frames;n++) {
+                int32_t in_l=at+n?0:12000,in_r=at+n?0:6000;
+                reverb_actual[at+n][0]=block[n][0];reverb_actual[at+n][1]=block[n][1];
+                ref_reverb(&ref_state[0],type,0,in_l,in_r,reverb_old[at+n]);
+                ref_reverb(&ref_state[1],type,1,in_l,in_r,reverb_new[at+n]);
+            }
+            at+=frames;
+        }
+        double e_act,e_old,e_new;int32_t p_act,p_old,p_new;unsigned l_act,l_old,l_new;
+        reverb_metrics(reverb_actual,&e_act,&p_act,&l_act);
+        reverb_metrics(reverb_old,&e_old,&p_old,&l_old);
+        reverb_metrics(reverb_new,&e_new,&p_new,&l_new);
+        printf("reverb metric type=%u energy=%.0f peak=%d last_ms=%.3f ref_old_energy=%.0f ref_old_peak=%d ref_old_last_ms=%.3f ratio=%.4f\n",
+            type,e_act,p_act,l_act*1000.0/MC_RATE,e_old,p_old,l_old*1000.0/MC_RATE,e_act/e_old);
+        assert(!memcmp(reverb_actual,reverb_new,sizeof reverb_actual));
+        assert(p_act<=shared_bound(0,type)&&l_act>=l_old);
+        /* Return gain is strengthened: energy ~4x for unchanged feedback (+6.02 dB), more with longer tails. */
+        if(type<3) {
+            assert(l_act>=l_old&&e_act>3.9*e_old&&e_act<4.1*e_old&&p_act>=2*p_old-2);
+            for(unsigned n=0;n<MC_RATE*4;n++)for(unsigned c=0;c<2;c++) {
+                int32_t d=reverb_new[n][c]-2*reverb_old[n][c];assert(d>=-1&&d<=1);
+            }
+        } else assert(l_act>l_old&&e_act>4.0*e_old);
+        assert(!l_act||l_act<MC_RATE*3);
+    }
+    /* Hot sustained input reaches the strengthened bound that the old 24000 contract could not. */
+    memset(&shared[0],0,sizeof shared[0]);
+    int32_t peak=0;
+    for(unsigned at=0;at<MC_RATE/2;at+=64) {
+        int32_t block[64][2];
+        for(unsigned n=0;n<64;n++){block[n][0]=16000;block[n][1]=16000;}
+        mc_fx_rd_block(&shared[0],120,0,block,64);
+        for(unsigned n=0;n<64;n++)for(unsigned c=0;c<2;c++)if(block[n][c]>peak)peak=block[n][c];
+    }
+    assert(peak>24000&&peak<=32000);
+    puts("Shared reverb: independent reference, +6.02 dB return, longer HALL1/HALL2/PLATE tails, bounds PASS");
+}
 static void shared_impulses(void) {
     for(unsigned bank=0;bank<2;bank++) {
         uint32_t hashes[8]={0};
@@ -363,7 +446,8 @@ static void shared_impulses(void) {
                 for(unsigned n=0;n<frames;n++) {
                     unsigned frame=at+n;
                     int32_t l=block[n][0],r=block[n][1];
-                    assert(l>=-24000&&l<=24000&&r>=-24000&&r<=24000);
+                    int32_t bound=shared_bound(bank,type);
+                    assert(l>=-bound&&l<=bound&&r>=-bound&&r<=bound);
                     if(!first&&(l||r))first=frame;
                     int32_t al=l<0?-l:l,ar=r<0?-r:r;
                     if(al>peak)peak=al;
@@ -472,7 +556,7 @@ static void shared_bounds(void) {
             }
             shared_block(&shared[0],bank,40,type,block,frames);
             for(unsigned n=0;n<frames;n++)for(unsigned c=0;c<2;c++) {
-                assert(block[n][c]>=-24000&&block[n][c]<=24000);
+                assert(block[n][c]>=-shared_bound(bank,type)&&block[n][c]<=shared_bound(bank,type));
                 if(at+n>=MC_RATE*4)tail+=(uint64_t)(block[n][c]<0?-block[n][c]:block[n][c]);
             }
             at+=frames;
@@ -484,6 +568,6 @@ static void shared_bounds(void) {
 }
 int main(void) {
     legacy();impulse();filters();phaser();zero_to_wet();zero_amount_history();transitions();filter_history();prepared_tempo();blocks();stress();
-    shared_impulses();shared_resets();shared_blocks();shared_bounds();
+    shared_impulses();shared_reverb_strength();shared_resets();shared_blocks();shared_bounds();
     puts("effects modes PASS");return 0;
 }

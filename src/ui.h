@@ -4,7 +4,7 @@
 #include "mcfm.h"
 enum { UI_FX,UI_SEL,UI_ENV,UI_LFO,UI_EDIT,UI_GLO,UI_HOME,UI_SAVE,UI_ARP,UI_SEQ,UI_PLAY,UI_REC,UI_OCTDN,UI_OCTUP };
 enum { UI_FX_SENDS,UI_FX_TYPES };
-typedef struct { uint8_t page, sound, preset[3], editing, save_pending, save_request, load_request, demo_choice, fx_page; int8_t octave; const char *message;
+typedef struct { uint8_t page, sound, preset[3], editing, save_pending, save_request, load_request, demo_choice, fx_page, mixer_pan; int8_t octave; const char *message;
     uint32_t preset_at, encoder_at, encoder_context;
     uint8_t preset_popup, encoder_active, encoder_last, song_cursor, song_editing;
     int8_t encoder_direction;

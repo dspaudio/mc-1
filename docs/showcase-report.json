@@ -4,18 +4,18 @@
     {
       "file": "la-showcase.wav",
       "frames": 705600,
-      "raw_peak": 9536,
-      "audition_gain": 2.42974,
+      "raw_peak": 9654,
+      "audition_gain": 2.400041,
       "normalized_peak": 23170,
-      "sha256": "49675c83aff7b4e9afaf6129aebac2cfec7b3ac794ddccadc97613a58eced53f"
+      "sha256": "88bb9fa996cf923263924a3bd612baf2695b4d80c47d45283a6e86c2ade635d1"
     },
     {
       "file": "303-showcase.wav",
       "frames": 705600,
-      "raw_peak": 4383,
-      "audition_gain": 5.286334,
+      "raw_peak": 4388,
+      "audition_gain": 5.28031,
       "normalized_peak": 23170,
-      "sha256": "bb87f68defa7967ae184734cedc2348a26a39dd6080d1efde9eb0ce3cf7af2f1"
+      "sha256": "518e72c29049bb5b7a50088ba24ad85457fcb7177f7be7b514edce2d3b95ed7f"
     },
     {
       "file": "808-showcase.wav",
@@ -23,23 +23,23 @@
       "raw_peak": 29999,
       "audition_gain": 0.772359,
       "normalized_peak": 23170,
-      "sha256": "406fe9b55b15bea3b51ce5c9018ce7fd66a4ad225d90b787c3b7475739363696"
+      "sha256": "a97f1bf3b827712ca53daa8ea5e58fd81e91e463935158e5d9faeb009c53c3ac"
     },
     {
       "file": "full-mix-preview.wav",
       "frames": 705600,
-      "raw_peak": 26819,
-      "audition_gain": 0.86394,
+      "raw_peak": 26649,
+      "audition_gain": 0.869451,
       "normalized_peak": 23170,
-      "sha256": "1c2c6d2c1c01b08d25a027f484e45bb4d765a904458194633bce3eb7c3b39512"
+      "sha256": "040b2af173430180bb5894132bbc06b95334b91ac24e2f83708bea008ed41b1b"
     },
     {
       "file": "neon-spiral.wav",
       "frames": 2595600,
-      "raw_peak": 17031,
-      "audition_gain": 1.36046,
+      "raw_peak": 17482,
+      "audition_gain": 1.325363,
       "normalized_peak": 23170,
-      "sha256": "46f3bc46512130d02cf1ed056a32c0c7603f1b0a58cebc02c9d6654fe7a21382"
+      "sha256": "f75089731a213fd6f70abab4c91f3de2b0f91ef521f7b595840c37765a7e6db2"
     },
     {
       "file": "kit-showcase.wav",
@@ -47,15 +47,15 @@
       "raw_peak": 24435,
       "audition_gain": 0.94823,
       "normalized_peak": 23170,
-      "sha256": "976111ecfd80813d58b02d3b03ecb01f794152102b1a7a990ff32e1811813f98"
+      "sha256": "2d43d1a8e1e64e5fa9ae01bac66b93b29c31034611183161fcb73129006e375e"
     },
     {
       "file": "recorded-showcase.wav",
       "frames": 2116800,
-      "raw_peak": 4870,
-      "audition_gain": 4.7577,
+      "raw_peak": 4906,
+      "audition_gain": 4.722788,
       "normalized_peak": 23170,
-      "sha256": "c557874b8090ab7b0067f858e470f63b6a99fc7eab981b5d0b51a95c1d0bfb46"
+      "sha256": "40612dbccd3bfa4feadee9438489947954e8bd7effb2bbd67bd9a0d3afc97c53"
     }
   ]
 }

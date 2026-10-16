@@ -12,7 +12,7 @@ jobs:
         run: |
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/test.c -o build/test-sanitized
           build/test-sanitized
-          for suite in ui_input performance patterns storage output metronome song midi; do
+          for suite in ui_input performance patterns storage output metronome song midi mixer_pan; do
             cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/$suite.c -lm -o build/test-$suite-sanitized
             build/test-$suite-sanitized
           done
@@ -22,7 +22,7 @@ jobs:
           build/test-connections-sanitized
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/connection_routing.c -o build/test-connection-routing-sanitized
           build/test-connection-routing-sanitized
-          cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all tests/panel_leds.c -o build/test-panel-leds-sanitized
+          cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/panel_leds.c -o build/test-panel-leds-sanitized
           build/test-panel-leds-sanitized
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-sanitize-recover=all -Isrc src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c tests/ota_entry_test.c -o build/test-ota-entry-sanitized
           build/test-ota-entry-sanitized

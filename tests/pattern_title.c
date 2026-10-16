@@ -21,8 +21,24 @@ static void separator(const uint16_t *pixels,unsigned x)
     for(unsigned y=0;y<14;y++)for(unsigned dx=0;dx<10;dx++)
         assert(pixels[(30+y)*240+x+dx]==(y==6||y==7?0x67e8:0x0841));
 }
+static int region_differs(const uint16_t *a,const uint16_t *b,unsigned x,unsigned y,unsigned w,unsigned h)
+{
+    for(unsigned row=y;row<y+h;row++)
+        if(memcmp(a+row*240+x,b+row*240+x,w*sizeof *a))return 1;
+    return 0;
+}
+static void queue_pixels(unsigned page,unsigned selected)
+{
+    mc_init(&engine);mc_ui_init(&ui);engine.project.bpm=120;engine.project.swing=0;
+    ui.page=(uint8_t)page;engine.selected=(uint8_t)selected;
+    mc_start(&engine);render(first);mc_queue(&engine,1);render(queued);
+    assert(!region_differs(first,queued,0,171,150,12));
+    assert(region_differs(first,queued,163,14,45,7));
+    if(!selected&&page==0)assert(region_differs(first,queued,8,30,68,14));
+}
 int main(void)
 {
+    queue_pixels(0,0);queue_pixels(0,3);queue_pixels(1,0);queue_pixels(1,3);
     mc_init(&engine);mc_ui_init(&ui);engine.project.bpm=120;engine.project.swing=0;
     render(first);same_glyph(first,8,first,32);separator(first,20);
     mc_start(&engine);mc_queue(&engine,1);render(queued);

@@ -403,6 +403,11 @@ void mc_factory(McProject *p)
     p->bpm=118; p->swing=10;
     p->patch[0]=mc_presets[MC_PRESET_ACID_SAW]; p->patch[1]=mc_presets[MC_PRESET_SILK_PAD]; p->patch[2]=mc_presets[MC_PRESET_GLASS_BELL];
     mc_project_defaults(p);
+    { /* subtle shared ROOM2 reverb on new projects only; stored projects keep their own sends */
+        static const uint8_t reverb_send[MC_PARTS]={12,72,24,8};
+        p->fx_bus_type[0]=1;
+        for(unsigned t=0;t<MC_PARTS;t++) { p->fx_send[t][0]=reverb_send[t]; p->fx_send[t][1]=0; }
+    }
     for(unsigned t=0;t<4;t++) { p->level[t]=t==1?75:100; p->pan[t]=t==1?42:t==2?88:64; }
     for(unsigned b=0;b<4;b++) for(unsigned s=0;s<16;s++) {
         McStep *bass=&p->step[b][0][s], *pad=&p->step[b][1][s];

@@ -1,4 +1,4 @@
-# MC-1 1.0.0
+# MC-1 1.0.1
 
 **An original four-part groovebox for the M-VAVE FM-1.**
 
@@ -63,7 +63,7 @@ notes, controllers and clock through the supported MIDI connections.
 
 ## What is included
 
-| Area | MC-1 1.0.0 |
+| Area | MC-1 1.0.1 |
 |---|---|
 | Melodic sound | LA-inspired dual oscillators with PCM attacks/recordings, or a monophonic 303-inspired saw/square engine with accent and slide |
 | Presets | 64 original synthesis patches and 64 presets from 16 CC0 instrument recordings, in 14 families |
@@ -109,9 +109,27 @@ A raw `.app.bin` is not an installer. Updating does not reformat MC-1's project
 banks, but it is not a backup or a saved-data verification protocol. Electrical
 power-loss recovery remains unverified. See [the package boundary](BUILDING.md#experimental-fwsc-package).
 
-## Measured device performance
+## Version 1.0.1 changes
 
-The accepted package keeps **eight melodic voices plus six drums and both full
+Shared reverb returns are stronger, with longer HALL and PLATE tails using the
+existing buffers and processing stages. PLAY uses its separate green LED during
+playback, including PLAY + REC; the REC indicator remains independent. The lower
+queued-pattern duplicate is removed while the upper destination stays visible.
+Flash, RAM and CPU acceptance budgets are documented in
+[Architecture and budgets](docs/ARCHITECTURE.md).
+
+Project format 7, eight melodic voices, six drum voices and both eight-type FX
+banks are retained. Existing sends are preserved; a zero send still sounds dry.
+New projects start with ROOM2 reverb sends of 12 / 72 / 24 / 8, giving PART2
+more ambience while the other parts stay subtle. Both built-in demos enable
+shared reverb and chorus, with PART2's reverb send at 112. The Pages MP3 is
+rendered from the same FX-enabled NEON SPIRAL demo.
+Candidate-specific checks and hardware limits are recorded in
+[VALIDATION.md](docs/VALIDATION.md).
+
+## Measured 1.0.0 device performance
+
+The accepted 1.0.0 package keeps **eight melodic voices plus six drums and both full
 shared FX banks**, including actual USB Audio cold PLAY and STOP/PLAY tests.
 
 | Workload | Measured maximum | Limit |
@@ -167,7 +185,7 @@ build/mc1-host                 # Interactive command help
 | PRESETS | Browse melodic presets or drum kits; the popup closes after 500 ms idle |
 | PLAY / REC | Start/stop transport; toggle quantized recording |
 | HOME | Return to performance controls |
-| ENV | Edit the melodic envelope; in FX, switch SENDS / TYPES |
+| ENV | Edit the melodic envelope; in FX, switch SENDS / TYPES; in MIXER, switch LEVEL / PAN |
 | FX | Open the selected part's FX sends and global type choices |
 | ARP | Open/close the melodic arpeggiator; in GLOBAL MIXER, mute the selected part |
 | LFO | Accent, or LATCH on the ARP page; LOOP in SONG |
@@ -193,8 +211,10 @@ one note; factory chords remain playable but chord step entry is not exposed.
 Recording uses fixed default velocity and gate, quantized to the current step.
 
 Press GLO once for GLOBAL MIXER: its four knobs always control PART1 / PART2 /
-PART3 / DRUMS, regardless of selection. ARP mutes the selected part. Muted bars
-are dimmed and labeled MUTE; levels are saved with the project.
+PART3 / DRUMS, regardless of selection. ENV switches LEVEL / PAN; PAN shows
+left/center/right positions (0 / 64 / 127). ARP mutes the selected part in either
+view. Muted controls are dimmed and labeled MUTE. Levels and pans are saved
+with the project, and PLAY + REC records their knob changes as automation.
 
 For Acid sounds, overlap keys for legato glide. HOME's GLIDE knob controls speed;
 zero disables live glide. Releasing the active key returns to the highest remaining
