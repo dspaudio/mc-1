@@ -50,21 +50,70 @@ Non-probe package SHA256:
 `68e813a43bc22c5a63519c2e6e93c7509f758bad9747b57879fec68f0d8fe862`.
 These are different images and are not interchangeable measurement evidence.
 
-**Hardware status:** this 1.0.1 candidate has not been installed or measured.
-The connected device answered a read-only clock/power diagnostic; that does not
-prove new-image boot, physical LED color or CPU deadlines. The earlier 1.0.0
-peak of 66,718 ticks must not be attributed to 1.0.1. Real 8+6-voice/full-send
-deadline, DMA-half and USB-underrun validation remains required before a
-hardware-performance release claim. Physical knob/LED and analog listening
-checks and electrical power-loss recovery remain unverified.
+**Hardware status:** after the user's explicit installation request, the pinned
+1.0.1 diagnostic package above completed OTA, reboot and `FM-1_900`
+re-identification with exit 0. A separate final connection also identified the
+running application. This is a known-package transfer and boot check, not a
+flash readback hash. Source and the existing `v1.0.1` tag remain at `3f0fb2e`.
 
-The user separately authorized MP3-only publication. Commits `0209f56` and
+Actual device collection completed 30 captures, each with 1,024 warm-up blocks
+followed by 8,192 measured 128-frame blocks: **245,760 measured blocks**.
+All completed records have zero deadline misses, DMA-half changes, USB
+underruns, overruns, stalls and missed packets.
+
+| Capture group | Captures | Render peak, ticks | Audio-path peak, ticks |
+|---|---:|---:|---:|
+| 8 mixed LA + 6 drums, PLATE/FLANGER, repeat | 3 | 66,114 | 66,798 |
+| All eight kits and three Acid/LA configurations | 11 | 66,113 | 66,805 |
+| Seven additional full-load R/D-C/F paired types | 7 | 65,979 | 66,655 |
+| FX-only PLATE/FLANGER | 3 | 17,589 | 18,120 |
+| USB stress8, cold PLAY and STOP/PLAY | 2 | 66,630 | 67,687 |
+| USB NIGHT CIRCUIT, cold PLAY and STOP/PLAY | 2 | 52,107 | 53,038 |
+| USB NEON SPIRAL, cold PLAY and STOP/PLAY | 2 | 35,600 | 36,373 |
+
+Stress fixtures retain eight melodic voices plus six drum voices, both banks
+and four-part sends 127, with diagnostic skip mask 0. The Acid configurations
+are 1 Acid + 7 LA, 2 Acid + 6 LA, and all three monophonic Acid parts. Paired
+types 0/0 through 7/7 cover every type in each bank; this does not claim a
+full 64-combination matrix. FX-only peak 17,589 is below the existing
+approximately 21,900-tick ceiling.
+
+At the configured 24 MHz TIMER4 tick rate, maximum render time is 2,776.250 us
+and maximum complete audio-path time is **2,820.292 us** against the firmware's
+2,902 us threshold (69,648 ticks). Observed worst audio-path headroom is only
+**81.708 us / 2.816%**. The deadline passes, but the aspirational 10% reserve
+is not met; these finite captures do not establish an unlimited-load guarantee.
+Fifteen records pass the unchanged frozen-condition validator. The other
+fifteen have master ADC changes and remain excluded from fixed-condition
+paired comparisons. No percentage speedup over 1.0.0 is claimed.
+
+All six USB recordings contain nonzero stereo Int16 PCM at 44.1 kHz, each
+1,367,100 frames. Their performance windows have streaming flags 7/7 and
+zero underruns, including full stress cold PLAY and STOP/PLAY. Clock/power
+registers match before, throughout and after testing. CACHE_CON reads 0x4302
+before installation, 0x302 immediately after and 0x4302 at the final snapshot;
+no fixed-cache comparison is assumed. No SAVE or volume/PLL/PMU write was
+sent; the final RAM fixture is cleared to stopped demo0.
+
+The first coverage watcher reached its 300-second host limit after eleven
+completed source captures. Missing type/FX-only cases then completed under a
+600-second watcher. No interrupted or partial capture is counted. Raw records,
+sessions, record hashes, WAV hashes and exclusions are indexed by
+`.omo/evidence/v1.0.1/hardware-summary.json`; the install and final hardware
+snapshots are alongside it. Reused USB-script outputs are the
+`device/usb-restart-shared-voiceprep4-*-101.*` files under the earlier
+`perf30-20261015` evidence directory, with the new package hash in every JSON.
+Physical knob/LED and analog listening checks and electrical power-loss
+recovery remain unverified.
+
+Before release publication, the user separately authorized MP3-only publication.
+Commits `0209f56` and
 `2cb3087` publish only the MP3 and its hash report. The final public MP3 SHA256
 is `f5fc281a96aafd7d9c77db2c9694073dac09f8e9abf6ea97b3e1b4b29bb25555`;
 Pages run 38884307249 succeeded and the public bytes match. The first replacement
-also decoded successfully to stereo 44.1 kHz Int16 PCM. Public page HTML is
-unchanged and still pins firmware 1.0.0. The 1.0.1 firmware and local Pages
-preview have not been published.
+also decoded successfully to stereo 44.1 kHz Int16 PCM. At that stage, public
+page HTML was unchanged and still pinned firmware 1.0.0; the 1.0.1 firmware
+and local Pages preview had not yet been published.
 
 Evidence: `.omo/evidence/v1.0.1/`, including the preserved diagnostic candidate,
 independent DSP/default/PAN reports, `visual-captures.json`, `visual-verdict.md`
