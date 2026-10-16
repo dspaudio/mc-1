@@ -32,7 +32,7 @@ def main() -> None:
     version = info["version"]
     if not re.fullmatch(r"\d+\.\d+\.\d+", version) or version != (root / "VERSION").read_text().strip():
         raise ValueError("Invalid release version")
-    expected = f"mc-1-{version}-EXPERIMENTAL.fwsc"
+    expected = f"mc-1-{version}.fwsc"
     if (info["identity"] != "FM-1_900" or info["file"] != expected or
             not re.fullmatch(r"[a-f0-9]{64}", info["sha256"]) or
             type(info["bytes"]) is not int or not 960 <= info["bytes"] <= 1048576):

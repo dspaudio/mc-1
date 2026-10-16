@@ -54,6 +54,7 @@ def check_site(root: Path) -> None:
                 assert target in pages and unquote(url.fragment) in pages[target].ids
             checked += 1
     pinned = json.loads((ROOT / "FIRMWARE.json").read_text())
+    assert pinned["file"] == f"mc-1-{pinned['version']}.fwsc"
     assert json.loads((root / "firmware-release.json").read_text()) == pinned
     package = root / pinned["file"]
     assert package.stat().st_size == pinned["bytes"]
@@ -72,6 +73,7 @@ def check_site(root: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="mc1-pages-test-") as temporary:
         temp = Path(temporary)
         for field, value in [("version", "../1"), ("identity", "OTHER_001"),
+                             ("file", f"mc-1-{pinned['version']}-EXPERIMENTAL.fwsc"),
                              ("bytes", pinned["bytes"] + 1), ("sha256", "0" * 64)]:
             manifest = temp / "FIRMWARE.json"
             manifest.write_text(json.dumps({**pinned, field: value}))
@@ -81,7 +83,7 @@ def check_site(root: Path) -> None:
                 "--manifest", str(manifest), "--package", str(package), "--out", str(output),
             ], capture_output=True, check=False)
             assert result.returncode != 0 and not output.exists(), field
-    print(f"PRODUCT_INSTALLER_SITE_PASS pages={len(pages)} links={checked} rejected=4")
+    print(f"PRODUCT_INSTALLER_SITE_PASS pages={len(pages)} links={checked} rejected=5")
 
 
 if __name__ == "__main__":

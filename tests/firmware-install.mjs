@@ -8,7 +8,7 @@ import {FirmwareInstaller as ProtocolInstaller} from '../site/firmware-ota.js';
 const source = fs.readFileSync('site/firmware-install.js', 'utf8')
     .replace(/^import .+;$/m, '')
     .replace('void fetchRelease();', 'globalThis.boot = fetchRelease();');
-const manifest = {version: '0.3.1', identity: 'FM-1_900', file: 'mc-1-0.3.1-EXPERIMENTAL.fwsc',
+const manifest = {version: '0.3.1', identity: 'FM-1_900', file: 'mc-1-0.3.1.fwsc',
     bytes: 960, sha256: 'a'.repeat(64)};
 const deferred = () => {
     let resolve, reject;
