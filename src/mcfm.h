@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "presets.h"
 #include "midi.h"
-#define MC_VERSION "1.0.1"
+#define MC_VERSION "1.0.2"
 #define MC_RATE 44100
 #define MC_MASTER_MAX (6u*32768u)
 #define MC_MASTER_DEFAULT (6u*28000u)

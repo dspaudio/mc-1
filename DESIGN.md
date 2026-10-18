@@ -58,6 +58,9 @@ scrolling; no fixed panel may cover controls or install progress.
 - **Button:** at least 44px tall, 12px horizontal padding, 5px radius.
   Primary uses amber with dark text; secondary uses the control surface.
   Disabled uses the native disabled state and must remain distinguishable.
+  Enabled hover uses an amber border (text-colored for the primary button).
+  Pressed secondary uses amber with dark text; pressed primary uses the text
+  surface with dark text. Feedback is immediate and never changes geometry.
 - **Connection:** one explicit Connect FM-1 action automatically discovers a
   uniquely matched MIDI pair and reads its identity. No input/output selectors.
   Missing or multiple devices block installation and provide a retry action.
@@ -68,6 +71,18 @@ scrolling; no fixed panel may cover controls or install progress.
   Indeterminate progress is reserved for discovery/reboot, not byte transfer.
 - **Package metadata:** version, identity, byte size, SHA256 and source/release
   links. A package must be verified before installation is enabled.
+- **Official V15 restore:** a visible section after MC-1 installation links to
+  `https://www.m-vave.com/download`. A native labeled `.fwsc` file input fills
+  the available width and wraps within the existing section. A native checkbox
+  with a wrapping label explicitly acknowledges that MC-1 projects/patches
+  cannot be used in V15 and that restoration is not a backup. The secondary
+  restore button requires a verified file, acknowledgement and identified device.
+  File and acknowledgement controls use the existing spacing, focus and accent
+  tokens; checkbox labels have a minimum 44px touch height.
+- **Restore validation status:** persistent live status, using the same error
+  and verified colors as installation. States are empty, validating, verified
+  and rejected. A file change immediately clears the prepared image and the
+  acknowledgement; only the latest selection may publish a result.
 
 ## 6. Motion and interaction
 
@@ -76,6 +91,16 @@ Connection requests require a button click; installation requires a separate,
 explicit action after identifying both device and package. Opening the page
 never sends an update command. During flash writes, conflicting actions are
 disabled and the page reports that USB and power must remain connected.
+Both transfer actions share the connection lock and unload guard; each action's
+section shows its own progress and persistent status beside the initiating button.
+During either transfer, connection, installation, file selection, acknowledgement
+and restoration are disabled. File selection validates locally without requesting
+MIDI or writing firmware. Restoration retains official V15 flash content while
+using the verified release's small MC-1 loader, and succeeds only after the
+installer verifies the restarted `FM-1_015` identity. Recovery allows reconnecting
+MC-1 or its `loader900` ports and retrying the same prepared restore.
+Restoration replaces the official application, not the separate factory USR
+patch bank, and is not a factory reset or a guarantee of stored-data retention.
 
 ## 7. Accessibility and verification
 

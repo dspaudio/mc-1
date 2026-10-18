@@ -42,6 +42,15 @@ repository's Pages site. The corresponding source is available at its release
 tag. `FM-1_900` and `FELUCCA-LOADER-1` are protocol identifiers, not MC-1 version
 claims. Package SDK assets retain the licenses described below.
 
+`site/firmware-stock.js` follows the official V15 file identity and layout checks
+in `validateStockPackage` from public hugelton/Felucca-WebApp, `index_pkg.html`,
+commit `b7947ad1da2017d211368610b5e96deabef4849a`:
+https://github.com/hugelton/Felucca-WebApp/blob/b7947ad1da2017d211368610b5e96deabef4849a/index_pkg.html
+The original GPL-3.0-only and Leo Kuroshita/Hügelton Instruments notices are
+retained. MC-1's local preparation pairs the user's verified official application
+with its existing small RAM loader. Official M-VAVE firmware is not distributed
+in this repository, its installer archive or its Pages site.
+
 ## Sensing reference audit — excluded from this release
 
 The earlier velocity/aftertouch investigation examined

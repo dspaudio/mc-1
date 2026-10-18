@@ -64,7 +64,8 @@ if (pkg.product !== process.argv[2]) throw new Error('Release identity mismatch'
     ], input=data, cwd=root, check=True)
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
-    for name in ("index.html", "styles.css", "install.html", "firmware-install.js", "firmware-ota.js"):
+    for name in ("index.html", "styles.css", "install.html", "firmware-install.js", "firmware-ota.js",
+                 "firmware-stock.js"):
         shutil.copyfile(root / "site" / name, out / name)
     shutil.copytree(root / "site/assets", out / "assets", dirs_exist_ok=True)
     shutil.copytree(root / "LICENSES", out / "LICENSES", dirs_exist_ok=True)

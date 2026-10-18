@@ -1,4 +1,4 @@
-# MC-1 1.0.1
+# MC-1 1.0.2
 
 **An original four-part groovebox for the M-VAVE FM-1.**
 
@@ -63,7 +63,7 @@ notes, controllers and clock through the supported MIDI connections.
 
 ## What is included
 
-| Area | MC-1 1.0.1 |
+| Area | MC-1 1.0.2 |
 |---|---|
 | Melodic sound | LA-inspired dual oscillators with PCM attacks/recordings, or a monophonic 303-inspired saw/square engine with accent and slide |
 | Presets | 64 original synthesis patches and 64 presets from 16 CC0 instrument recordings, in 14 families |
@@ -108,6 +108,38 @@ path for browsers without Web MIDI SysEx.
 A raw `.app.bin` is not an installer. Updating does not reformat MC-1's project
 banks, but it is not a backup or a saved-data verification protocol. Electrical
 power-loss recovery remains unverified. See [the package boundary](BUILDING.md#experimental-fwsc-package).
+
+### Restore official V15
+
+The same [installer](https://dspaudio.github.io/mc-1/install.html#restore-title)
+can return a working MC-1 to M-VAVE's official V15 firmware, including existing
+1.0.1 installations. No intermediate firmware update is required.
+
+1. Download and keep M-VAVE's original V15 `FM-1.fwsc` from
+   [M-VAVE downloads](https://www.m-vave.com/download). Do not select V14 or a
+   renamed custom firmware.
+2. Open **Restore official V15**, select that file, and wait for verification.
+   The page checks its exact SHA256, byte size and package layout locally;
+   it does not upload or redistribute M-VAVE's firmware.
+3. Connect the FM-1, read the data-compatibility notice and acknowledge it,
+   then choose **Restore official V15**. Keep the page, power and USB connected.
+4. Wait for restart verification as `FM-1_015`. If writing is interrupted,
+   reopen the page, select the same official file and retry from the update loader.
+
+MC-1 projects and patches are not usable in V15. This is firmware restoration,
+not a backup, project conversion or factory reset; saved-data retention is not
+guaranteed. The separate factory USR patch bank is not rewritten. The browser
+preserves the official application image and pairs it
+with MC-1's verified RAM update loader, so the flash head is never rewritten
+and the recovery-record sector stays separate from the loader.
+
+## Version 1.0.2 changes
+
+The installer adds verified official V15 restoration, progress, restart identity
+checks and retry guidance. The existing small RAM loader is reused rather than
+relaxing firmware staging limits or flash-write boundaries. The device firmware
+package is byte-identical to the pinned 1.0.1 diagnostic package; this release
+changes the installer and release metadata, not the audio engine or project format.
 
 ## Version 1.0.1 changes
 

@@ -35,14 +35,23 @@ button {
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .6; }
 button.primary { color: var(--ink); background: var(--accent); border-color: var(--accent); font-weight: bold; }
+button:enabled:hover { border-color: var(--accent); }
+button.primary:enabled:hover { border-color: var(--txt); }
+button:enabled:active { color: var(--ink); background: var(--accent); }
+button.primary:enabled:active { border-color: var(--txt); background: var(--txt); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 dl { margin: 0; }
 dt { color: var(--muted); font-size: 12px; margin-top: var(--s3); }
 dd { margin: 0; overflow-wrap: anywhere; }
 #package-hash { font-size: 12px; }
-#install-status { overflow-wrap: anywhere; }
-#install-status[data-state="error"] { color: var(--error); }
-#install-status[data-state="verified"] { color: var(--success); }
+#install-status, #restore-status { overflow-wrap: anywhere; }
+[data-state="error"] { color: var(--error); }
+[data-state="verified"] { color: var(--success); }
+.file-label { display: block; margin: var(--s4) 0 var(--s2); }
+input[type="file"] { width: 100%; min-width: 0; font: inherit; color: var(--txt); }
+input::file-selector-button { min-height: 44px; font: inherit; }
+.acknowledgement { display: flex; gap: var(--s2); align-items: flex-start; min-height: 44px; margin: var(--s4) 0; }
+.acknowledgement input { flex-shrink: 0; margin-top: var(--s2); accent-color: var(--accent); }
 progress { width: 100%; height: var(--s3); margin: var(--s4) 0 var(--s2); accent-color: var(--accent); }
 [hidden] { display: none !important; }
 footer { margin-top: var(--s6); font-size: 12px; }
@@ -78,6 +87,18 @@ footer { margin-top: var(--s6); font-size: 12px; }
   <progress id="install-progress" max="100" value="0" aria-label="Firmware installation progress" hidden></progress>
   <p id="install-status" role="status" aria-live="polite">Verify a release and connect an instrument to continue.</p>
   <p class="hint">This page needs Web MIDI with SysEx permission, available in supported desktop browsers such as Chrome and Edge. If it is unavailable, use the desktop installer linked in the release.</p>
+</section>
+<section aria-labelledby="restore-title">
+  <h2 id="restore-title">Restore official V15</h2>
+  <p>To return to M-VAVE firmware, download the official FM-1 V15 package from <a href="https://www.m-vave.com/download">M-VAVE downloads</a> and select its unmodified FM-1.fwsc file.</p>
+  <p>The official V15 application image is preserved. This page uses the verified MC-1 release's small update loader, not the official package's large loader. It does not rewrite the separate factory USR patch bank or perform a factory reset.</p>
+  <label class="file-label" for="restore-file">Official V15 firmware (.fwsc)</label>
+  <input id="restore-file" type="file" accept=".fwsc" aria-describedby="restore-status" disabled>
+  <p id="restore-status" role="status" aria-live="polite">Select the official V15 file after the MC-1 release is verified.</p>
+  <label class="acknowledgement" for="restore-ack"><input id="restore-ack" type="checkbox" disabled><span>I understand that MC-1 projects and patches cannot be used in V15, and restoring firmware is not a backup.</span></label>
+  <button id="restore-firmware" type="button" disabled>Restore official V15</button>
+  <progress id="restore-progress" max="100" value="0" aria-label="Official V15 restoration progress" hidden></progress>
+  <p class="hint">Connect your instrument above before restoring. Keep USB and power connected until restart verification completes. If interrupted in the update loader, reconnect and retry the same restore.</p>
 </section>
 <footer>Code: <a href="LICENSE.txt">GPL-3.0-only</a>. USB MIDI update protocol derived from Felucca / ORBIT. <a href="NOTICE.md">Licenses and source notices</a>. Not affiliated with M-VAVE.</footer>
 </main>

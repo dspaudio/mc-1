@@ -70,6 +70,7 @@ def check_site(root: Path) -> None:
         path.relative_to(root).as_posix()
         for path in root.rglob("*") if path.is_file() and path.name != "SHA256SUMS"
     }
+    assert {"firmware-stock.js", "firmware-ota.js", "firmware-install.js"} <= files
     with tempfile.TemporaryDirectory(prefix="mc1-pages-test-") as temporary:
         temp = Path(temporary)
         for field, value in [("version", "../1"), ("identity", "OTHER_001"),

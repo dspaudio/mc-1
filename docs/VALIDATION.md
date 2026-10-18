@@ -1,5 +1,76 @@
 # MC-1 validation record
 
+## 1.0.2 official V15 application restore (2026-10-18)
+
+The installer accepts the user's original V15 file only at 699,956 bytes and
+SHA256 `db1642b2b6fa5c2cccb11ffd13878068bb28601678d3644049f99dc40e7edb8a`.
+It checks the UFW header/list and official flash image, then preserves all
+`0x93000` bytes of official `flash.bin` while retaining the SHA-pinned MC-1
+small RAM loader. The generic package validator is unchanged. The stock
+package's separate USR entry is not installed; this is application restoration,
+not factory reset, user-data recovery or saved-project compatibility.
+
+The 1.0.2 release package is byte-identical to the pinned 1.0.1 diagnostic
+package: 610,089 bytes, SHA256
+`a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5`.
+The firmware staging code, flash allowlists, loader and audio engine are unchanged.
+The version, web installer and Pages metadata identify this installer release.
+The device's `FM-1_900` protocol identity does not identify a release version.
+
+Checks completed:
+
+- `make test render`: all 25 C executables and 47 Python tests pass; the shared-C
+  render has 705,600 frames, peak 26,649 and zero clips.
+- A fresh `make -B test` with Homebrew LLVM ASan/UBSan passes. Separate sanitized
+  OTA and loader fault-injection runs also pass using the actual prepared V15
+  image. Native loader simulation passes in both MC-1-to-V15 and V15-to-MC-1
+  directions, including head/data sentinels and interrupted-transfer cases.
+- pi32v2 compilation, flash-off code guards, SDK hashes, LZ4 round trips and
+  package construction pass. The diagnostic app is 507,420 bytes, globals
+  50,424 bytes, pool 77,168 bytes and RAM text 5,568 bytes.
+- The browser codec passes synthetic boundary tests and a real-file integration:
+  official flash bytes and MC-1 loader bytes are unchanged, and prepared package
+  SHA256 is `8b7ac1f7e84467fba38ec695b51d1b633f6c880a83914577c7f2025f48e9934e`.
+  This private package is not distributed in Pages or the source repository.
+- Existing 32 protocol scenarios and 25 installer UI scenarios pass, including
+  invalid file rejection, acknowledgement, asynchronous file-selection races,
+  transfer locks, progress, unload protection and loader retry. Pages assembly
+  checks the pinned release, resource hashes and rejected manifest inputs.
+- Final-source visual captures cover both pages at 390, 1440 and 1920 CSS pixels,
+  both system themes, top/end positions and file rejection/verification: 36
+  original PNGs, all with correct dimensions and no horizontal overflow.
+  Twenty additional component-state images cover rest, hover, pressed, actual
+  keyboard Tab focus and CSS 200% zoom. These state-harness checks do not access
+  MIDI or install firmware. Body/secondary contrast is 10.36/6.34:1; control
+  borders are 3.46:1 and focus outlines 8.96:1.
+  Both independent visual reviewers pass the final implementation. The initial
+  missing hover/pressed feedback was fixed using existing tokens and rechecked;
+  the final 36-frame set and 20 state frames contain no blocking findings.
+
+C diagnostics and actual warnings-as-errors builds are clean. JavaScript and
+Python/YAML language servers are unavailable in this workspace; Node syntax,
+runtime regressions and actual Pages/hardware checks provide the executed
+evidence rather than a claim of language-server coverage.
+
+**Hardware:** a normal MIDI restore from the running MC-1 completed and
+reidentified as `FM-1_015`. The user confirmed that V15's screen and sound were
+normal. Then the actual local Pages installer in real Chrome performed:
+
+1. V15 to MC-1, verified as `FM-1_900`.
+2. MC-1 to V15 with the page deliberately reloaded at 5% of the write stage.
+3. Reconnection to `ota-FM-1_900`, selection of the same official file, resumed
+   restoration, and verified restart as `FM-1_015`.
+4. V15 to MC-1 again, verified as `FM-1_900`. An independent desktop identity
+   query also confirms the final running MC-1.
+
+All transfers use the normal M-UPGRADE path, not UBOOT. The interruption removes
+the browser host only; no power cable was disconnected. Electrical power-loss
+recovery, all factory patches, and stored-data retention remain unverified.
+The user subsequently reported that operation appeared normal.
+Evidence is in ignored `build/qa102/hardware-web.json`, the adjacent actual-page
+captures, `build/v102-restore-hardware.log` and `build/v102-sanitizers.log`.
+No firmware or site was published by this validation.
+
 ## 1.0.1 candidate (2026-10-16)
 
 The firmware branch is `fix/1.0.1`; the sibling web emulator is not changed.

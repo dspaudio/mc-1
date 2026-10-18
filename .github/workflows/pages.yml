@@ -28,6 +28,7 @@ jobs:
       - name: Check firmware installer without hardware access
         run: |
           node tests/firmware-ota.mjs
+          node tests/firmware-stock.mjs
           node tests/firmware-install.mjs
       - name: Assemble product and installer site from pinned release
         run: python3 tools/make_site.py --out _site

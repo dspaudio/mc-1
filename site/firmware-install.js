@@ -2,26 +2,71 @@
 // Copyright (C) 2026 dspaudio
 // Firmware installation belongs to the MC-1 product site.
 import {FirmwareInstaller, loadPackage} from './firmware-ota.js';
+import {prepareStockRestore} from './firmware-stock.js';
 
 const get = id => document.getElementById(id);
 const connect = get('connect-device');
 const install = get('install-firmware');
 const status = get('install-status');
 const progress = get('install-progress');
+const restoreFile = get('restore-file');
+const restoreAck = get('restore-ack');
+const restore = get('restore-firmware');
+const restoreStatus = get('restore-status');
+const restoreProgress = get('restore-progress');
 let access, release, packageBytes, identity, deviceInput, deviceOutput;
-let busy = false, installing = false;
+let busy = false, installing = false, restoring = false;
 let selection = 0;
+let fileSelection = 0, preparedRestore;
 
 function message(text, state = '') {
     status.textContent = text;
     status.dataset.state = state;
     status.setAttribute('role', state === 'error' ? 'alert' : 'status');
+    if (restoring) restoreMessage(text, state);
 }
 
 function controls() {
     connect.disabled = busy || !packageBytes || !navigator.requestMIDIAccess || !isSecureContext;
     install.disabled = busy || !packageBytes || !identity;
+    restoreFile.disabled = busy || !packageBytes;
+    restoreAck.disabled = busy || !preparedRestore;
+    restore.disabled = busy || !identity || !preparedRestore || !restoreAck.checked;
 }
+
+function restoreMessage(text, state = '') {
+    restoreStatus.textContent = text;
+    restoreStatus.dataset.state = state;
+    restoreStatus.setAttribute('role', state === 'error' ? 'alert' : 'status');
+}
+
+restoreFile.addEventListener('change', async () => {
+    if (busy) return;
+    const current = ++fileSelection;
+    const file = restoreFile.files[0];
+    preparedRestore = undefined;
+    restoreAck.checked = false;
+    controls();
+    if (!file || !packageBytes) {
+        restoreMessage('Select the unmodified official FM-1 V15 .fwsc file.');
+        return;
+    }
+    restoreMessage('Verifying official V15 firmware and preparing the safe update loader…');
+    try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        if (current !== fileSelection) return;
+        const prepared = await prepareStockRestore(bytes, packageBytes, {loaderSha256: release.sha256});
+        if (current !== fileSelection) return;
+        preparedRestore = prepared;
+        restoreMessage('Official V15 verified. Acknowledge the project and patch limitations, then connect and restore.', 'verified');
+    } catch (error) {
+        if (current !== fileSelection) return;
+        restoreMessage(`V15 verification failed: ${error.message}. Select the official file to retry.`, 'error');
+    } finally {
+        controls();
+    }
+});
+restoreAck.addEventListener('change', controls);
 
 function selected() {
     return [deviceInput, deviceOutput];
@@ -76,6 +121,7 @@ async function identify() {
 }
 
 connect.addEventListener('click', async () => {
+    if (busy || !packageBytes) return;
     busy = true;
     controls();
     try {
@@ -113,40 +159,51 @@ const stages = {
 };
 function onProgress(event) {
     if (event.stage === 'error') return;
+    const activeProgress = restoring ? restoreProgress : progress;
     let text = stages[event.stage] || event.stage;
     if (event.stage === 'write' && event.total) {
         const percent = Math.min(100, Math.floor((event.end || 0) * 100 / event.total));
-        progress.value = percent;
+        activeProgress.value = percent;
         text += ` — ${percent}%`;
-    } else if (event.stage === 'done') progress.value = 100;
-    else progress.removeAttribute('value');
+    } else if (event.stage === 'done') activeProgress.value = 100;
+    else activeProgress.removeAttribute('value');
     if (event.identity) get('device-identity').textContent = event.identity;
     message(`${text}. Keep USB and power connected.`);
 }
 
-install.addEventListener('click', async () => {
+async function transfer(stock = false) {
     if (busy || !packageBytes || !identity) return;
+    if (stock && (!preparedRestore || !restoreAck.checked)) return;
+    const prepared = stock ? preparedRestore : {raw: packageBytes, sha256: release.sha256};
     const [incoming, outgoing] = selected();
     if (!incoming || !outgoing) return;
     busy = installing = true;
+    restoring = stock;
+    if (!stock && preparedRestore)
+        restoreMessage('Official V15 file verified and ready for a future restore.', 'verified');
     controls();
-    progress.hidden = false;
+    progress.hidden = stock;
+    restoreProgress.hidden = !stock;
     const updater = new FirmwareInstaller({access, input: incoming, output: outgoing, onProgress});
     try {
-        const result = await updater.install(packageBytes, {sha256: release.sha256});
-        message(`MC-1 ${release.version} package installed. Restart verified: ${result.identity}. ` +
-            'The protocol identity does not report the MC-1 version.', 'verified');
+        const result = await updater.install(prepared.raw, {sha256: prepared.sha256});
+        message(stock
+            ? `Official V15 restored. Restart verified: ${result.identity}.`
+            : `MC-1 ${release.version} package installed. Restart verified: ${result.identity}. ` +
+                'The protocol identity does not report the MC-1 version.', 'verified');
     } catch (error) {
         message(error.recoveryRequired
-            ? `Update needs recovery: ${error.message}. Keep the instrument powered, reconnect its update-loader ports, and retry this same package.`
+            ? `Update needs recovery: ${error.message}. Keep the instrument powered, reconnect its update-loader ports, and retry this same ${stock ? 'V15 restore' : 'package'}.`
             : `Installation did not start: ${error.message}. Reconnect the selected instrument and retry.`, 'error');
     } finally {
-        busy = installing = false;
+        busy = installing = restoring = false;
         identity = null;
         ports({preserveStatus: true});
         controls();
     }
-});
+}
+install.addEventListener('click', () => transfer());
+restore.addEventListener('click', () => transfer(true));
 
 window.addEventListener('beforeunload', event => {
     if (!installing) return;

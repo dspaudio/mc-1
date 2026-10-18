@@ -112,8 +112,14 @@ staging 정리를 연결했다. 호스트 오류 주입 검사는 실제 USB 핸
 로더 본문은 최대 16,352바이트다. 32바이트 JLFS 헤더와 함께
 `0xE4000` 기록 섹터 앞에서 끝나야 하며, 초과 패키지는 삭제 전에 거부한다.
 알려진 더 큰 공식 stock loader를 사용하는 원본 V15 패키지는 이 경로에서
-수용하지 않는다. 현재 검증 대상은 MC-1 자체 로더 패키지이며, 순정 V15
-복귀에는 별도의 검증된 복구 경로가 필요하다.
+수용하지 않는다.
+
+The 1.0.2 installer verifies the original official V15 file's SHA256 and layout,
+then preserves its official `flash.bin` while pairing it with the verified small
+MC-1 RAM loader. Existing MC-1 installations can therefore restore the app without
+widening size limits or flash-write allowlists. This does not execute the large
+official loader, back up user data, rewrite the separate factory USR patch bank
+or perform a factory reset.
 
 재생 정지 상태에서 OCT−/OCT+를 5초 누르면 UBOOT로 진입하는 코드는
 유지한다. 이번 수정본에서 그 물리 복구 경로는 미검증이다. 패키지 빌드는
@@ -132,6 +138,7 @@ The builder checks the package CRCs and loader before producing any site output.
 ```sh
 python3 tools/make_site.py --out build/site
 node tests/firmware-ota.mjs
+node tests/firmware-stock.mjs
 node tests/firmware-install.mjs
 python3 tests/site_test.py build/site
 ```
@@ -144,10 +151,25 @@ Like ORBIT, the workflow runs for a published release or a manual main-branch
 dispatch, so a main push does not race an unpublished package. Publish after
 main CI passes. The builder fails closed until the pinned release asset exists.
 
-The 1.0.1 candidate pin names the performance-probe build, with diagnostics
+The 1.0.2 candidate pin names the performance-probe build, with diagnostics
 inactive during normal use. Reproduce it using
 `MC_PERF_PROBE=1 MC_PLAY_LED_PULSE=0 python3 tools/build_package.py`.
 The default non-probe target/package reports are separate compiled-only evidence;
 their hashes are not substituted for the candidate pin. See VALIDATION.md for
 candidate-specific hardware status; the measured 1.0.0 results do not establish
 device timing for a newly compiled image.
+
+For a private, offline V15 restore package, use the same browser implementation:
+
+```sh
+node tools/prepare_stock.mjs /path/to/FM-1.fwsc /path/to/mc-1-1.0.2.fwsc build/stock-v15-restore.fwsc
+node tests/firmware-stock.mjs /path/to/FM-1.fwsc /path/to/mc-1-1.0.2.fwsc
+make build/test-ota build/ldr-test
+build/test-ota build/stock-v15-restore.fwsc
+build/ldr-test /path/to/mc-1-1.0.2.fwsc build/stock-v15-restore.fwsc
+```
+
+Preparation never accesses a device and refuses to overwrite an existing output.
+It requires the exact official file and the MC-1 package pinned in `FIRMWARE.json`.
+The output contains M-VAVE application bytes: keep it private and do not commit or
+publish it. Normal users select their own official file in the web installer.
