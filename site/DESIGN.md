@@ -5,7 +5,7 @@
 - Product references: the thirteen actual 240 × 240 shared-C display captures from the 0.2.0 firmware validation run, including the 64-pattern counter. The same thirteen states were regenerated with the current C renderer. Preserve their bytes, aspect ratio, and pixel rendering.
 - Embedded references: frontend design-system architecture, industrial-brutalist and image-to-code guidance; use a dark instrument surface, decisive type scale, aligned grids, and large unmodified screenshots. Product imagery takes precedence over generated mockups.
 - Palette sanity check: UI/UX database music/synthesizer color search; the instrument's specified orange and green remain authoritative.
-- Skipped lanes: generated imagery and external design research are unnecessary for these supplied product references. Browser rendering, interaction automation, and Lighthouse are excluded by the user's standing no-browser constraint.
+- Skipped lanes: generated imagery and external design research are unnecessary for these supplied product references. Early static-only review is historical; the 1.1.0 release adds direct Chrome viewport and interaction verification.
 
 ## 1. Atmosphere and identity
 
@@ -59,6 +59,18 @@ Body measure is 62 characters; labels may wrap. No text hidden behind ellipses.
 
 No automatic animation, parallax, or scroll reveal. Link hover/active feedback is immediate and changes no geometry. Native audio is the only on-page stateful control; navigation, emulator, source, and manual links are ordinary anchors. Reduced-motion users receive the same static layout.
 
+### Firmware installer
+
+Preserve the installer's existing inline dark technical theme, monospace type,
+yellow action/focus token and native 44px controls. The release selector reuses
+the button surface, border, type and disabled opacity, with a visible label.
+Metadata and download/release links always describe the selected version, even
+while verification is pending. Pending or failed verification disables device
+actions. Changing versions clears V15 preparation and acknowledgement. Device
+connection, installation and V15 restoration lock the selector; stale package
+or V15 verification must never replace the current selection. Status and error
+feedback retain the existing live regions; no new animation or palette.
+
 ## 7. Depth and surface
 
 Borders and tonal shifts only, with square corners and no drop shadows. Screens have a black surround and neutral inset padding. Orange is used as action fill, never as a decorative card outline. Actual screenshot pixels keep their original palette.
@@ -69,9 +81,9 @@ Target WCAG AA text contrast, visible keyboard focus, logical heading order, des
 
 | Item | Reason and exit |
 | --- | --- |
-| Browser visual and keyboard verification not executed | Explicit user restriction. Static HTML/CSS, asset integrity, contrast calculations, and local HTTP fetches are checked; a later authorized browser pass can assess final viewport composition. |
+| Historical static-only review | Superseded by the 1.1.0 Chrome desktop/mobile release checks; do not interpret earlier missing browser evidence as a current verification claim. |
 | Single dark theme | Matches the supplied instrument identity; system controls remain native. |
 
 ## 0.3.0 screen provenance
 
-The Song and MIDI gallery uses fresh 240 × 240 RGB565 frames from `mc_ui_strip`, captured with the native shared C engine. Song shows position 128, pattern 64 and 16 repeats while playing; MIDI shows four channel controls, clock source and transport state. Orange marks selection and green marks playback or loop on. Capture source and inspected states are recorded in `.omo/evidence/ui-030/` in the development workspace. BLE is explicitly unavailable; no device connection or hardware timing is implied. Existing responsive grid and image styles are reused. Browser verification remains excluded by the user's restriction.
+The Song and MIDI gallery originally used 240 × 240 RGB565 frames from `mc_ui_strip`. The 1.1.0 release refreshes all 26 screenshots from the current shared C renderer. BLE is explicitly unavailable; no device connection or hardware timing is implied. Existing responsive grid and image styles are reused. Release media and direct browser captures are retained in `build/release110-media/` and `build/release110/`.

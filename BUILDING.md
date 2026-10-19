@@ -29,6 +29,42 @@ and exposes only fixed loopback endpoints; it does not accept local filesystem p
 
 ## Raw FM-1 target app
 
+Version 1.1.0 defaults to `MC_DUAL_CORE=1`, eight melodic / three worker voices.
+CPU1 renders three melodic voices, six drums and all four FX banks while CPU0
+keeps sequencing, controls and five melodic voices. Other target voice counts
+are rejected. Original single-core 1.0.2 is an immutable release asset, not a
+single-core rebuild of the newer format-8 engine.
+`MC_RENDER_PROFILE=1` adds separate synthesis/four-bank/wait/transfer measurements,
+exported alongside `MC_PERF_PROBE=1` using stage schema 5 (42 words / 7 pages).
+Both default to 1 for the release configuration used in device trials;
+diagnostics remain inactive until explicitly requested. Trace and voice probing
+remain off. PLAY pulse is on.
+See [four-bank design and test procedure](docs/FOUR_BANKS.md); the earlier
+[two-bank report](docs/DUAL_CORE.md) is historical.
+These flags do not install firmware or alter clock/voltage/flash partitions.
+
+## Current demo audio
+
+Both updated demos emphasize warm Analog variance plus simultaneous reverb and
+delay on the second melodic part. The third part uses a recorded piano or
+marimba with PCM mix 108/127, retaining a small LA oscillator contribution.
+The native renderer plays 32 bars and five seconds of release/FX tail:
+
+```sh
+make build/render-demos
+mkdir -p build/demos
+build/render-demos 0 build/demos/night-circuit-fourfx-analog.wav
+build/render-demos 1 build/demos/neon-spiral-fourfx-analog.wav
+lame -b 320 build/demos/night-circuit-fourfx-analog.wav build/demos/night-circuit-fourfx-analog.mp3
+lame -b 320 build/demos/neon-spiral-fourfx-analog.wav build/demos/neon-spiral-fourfx-analog.mp3
+```
+
+LAME is only an offline host export tool, not a firmware dependency. The WAVs
+come from the shared C synth/FX engine without external mastering or synthetic
+placeholder audio. These renders do not measure the FM-1's real-time performance.
+The 1.1.0 site exports are stereo 44.1 kHz/320 kbps; encoder-specific MP3 bytes
+need not match another encoder's output, while source PCM remains reproducible.
+
 The CPU is the AC791N/WL82 pi32v2. Use JieLi's official Linux toolchain, with
 `JIELI_TOOLCHAIN` pointing to the directory containing `pi32v2/` and `common/`.
 On native Linux x86-64 it runs directly. On macOS it runs in Docker's Linux x86-64 container.
@@ -144,20 +180,30 @@ python3 tests/site_test.py build/site
 ```
 
 Use Node.js 22+ and Python 3. For offline preview, add `--package` with a local
-copy of the exact pinned release. A different rebuilt package is rejected.
+copy of the exact pinned current release and `--alternative-package` with the
+original 1.0.2 package. A different rebuilt package is rejected.
 Pages includes the product page, installer, package metadata, release `.fwsc`,
 license notices and `SHA256SUMS`; no SDK or compiler is needed to assemble it.
-Like ORBIT, the workflow runs for a published release or a manual main-branch
-dispatch, so a main push does not race an unpublished package. Publish after
-main CI passes. The builder fails closed until the pinned release asset exists.
+The workflow assembles and checks a published release or a manual main-branch
+dispatch, so a main push does not race an unpublished package. The Pages
+environment accepts only main: after publishing, dispatch `pages.yml` on main
+to deploy; tag-triggered runs validate without deploying. Publish after main
+CI passes. The builder fails closed until both pinned release assets exist.
 
-The 1.0.2 candidate pin names the performance-probe build, with diagnostics
-inactive during normal use. Reproduce it using
-`MC_PERF_PROBE=1 MC_PLAY_LED_PULSE=0 python3 tools/build_package.py`.
-The default non-probe target/package reports are separate compiled-only evidence;
-their hashes are not substituted for the candidate pin. See VALIDATION.md for
-candidate-specific hardware status; the measured 1.0.0 results do not establish
-device timing for a newly compiled image.
+The 1.1.0 pin uses dual core, stage/performance probes and PLAY pulse enabled,
+with CPU1 trace and voice probing disabled. Reproduce the release configuration:
+
+```sh
+MC_DUAL_CORE=1 MC_PERF_PROBE=1 MC_RENDER_PROFILE=1 MC_PLAY_LED_PULSE=1 \
+MC_CPU1_TRACE=0 MC_VOICE_PROBE=0 python3 tools/build_package.py
+```
+
+The builder's internal file remains `build/mc-1-EXPERIMENTAL.fwsc`; publish its
+verified bytes as `mc-1-1.1.0.fwsc`, never under the experimental filename.
+The retained 1.0.2 SHA256 is
+`a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5`.
+Do not reproduce 1.0.2 by selecting single core in current source: its original
+format-7 code and package are preserved under tag v1.0.2.
 
 For a private, offline V15 restore package, use the same browser implementation:
 

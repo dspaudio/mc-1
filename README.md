@@ -1,6 +1,19 @@
-# MC-1 1.0.2
+# MC-1 1.1.0
 
 **An original four-part groovebox for the M-VAVE FM-1.**
+
+**Dual-core firmware for the FM-1:** CPU0 handles sequencing, controls and five
+melodic DSP voices; CPU1 handles three melodic voices, six drums and four shared
+FX banks. Version 1.1.0 adds per-part Analog variance and refreshed PCM-forward
+demos while retaining eight melodic voices. The installer also offers the
+unchanged **1.0.2 single-core** release. See [release notes](docs/RELEASE_1.1.0.md),
+[four-bank design](docs/FOUR_BANKS.md) and [device validation](docs/VALIDATION.md).
+
+Version 1.1.0 uses readable white 6x9 small text and flowing green playback
+underlines only below populated tracks/drum rows. All twelve menu buttons and both OCT buttons are lit;
+selected menus blink at 2 Hz, and running PLAY blinks green at the sequencer BPM.
+HOME remains steadily lit during playback.
+These controls replace 1.0.2's steady PLAY indication.
 
 Build a pattern, play a chord and shape it with the panel. MC-1 combines three
 melodic parts with a sixteen-lane drum part, 128 melodic presets, eight drum
@@ -38,12 +51,12 @@ hits and lane levels in the sixteen-lane drum grid.
 MIXER keeps all four part levels together.
 
 <p>
-<img src="site/assets/screens/v1-fx-sends.png" width="240" height="240" alt="MC-1 FX SENDS page with independent R/D and C/F sends">
-<img src="site/assets/screens/v1-fx-types.png" width="240" height="240" alt="MC-1 FX TYPES page selecting the two shared bank algorithms">
+<img src="site/assets/screens/v1-fx-sends.png" width="240" height="240" alt="MC-1 FX SENDS page with four independent bank sends">
+<img src="site/assets/screens/v1-fx-types.png" width="240" height="240" alt="MC-1 FX TYPES page selecting the four shared bank algorithms">
 </p>
 
-**Shared effects.** Each part sends independently to the R/D and C/F banks.
-ENV switches between the selected part's sends and the two global FX types.
+**Shared effects.** Each part sends independently to R/D1, C/F1, R/D2 and C/F2.
+ENV switches between the selected part's four sends and the four global FX types.
 
 <p>
 <img src="site/assets/screens/v1-arp.png" width="240" height="240" alt="MC-1 arpeggiator mode, rate, octave and gate controls">
@@ -63,7 +76,7 @@ notes, controllers and clock through the supported MIDI connections.
 
 ## What is included
 
-| Area | MC-1 1.0.2 |
+| Area | MC-1 1.1.0 |
 |---|---|
 | Melodic sound | LA-inspired dual oscillators with PCM attacks/recordings, or a monophonic 303-inspired saw/square engine with accent and slide |
 | Presets | 64 original synthesis patches and 64 presets from 16 CC0 instrument recordings, in 14 families |
@@ -71,15 +84,15 @@ notes, controllers and clock through the supported MIDI connections.
 | Patterns | 64 patterns, 16 steps and four parts; three-note melodic steps; 40-240 BPM, swing, gate, accent and slide |
 | Songs | Up to 128 ordered pattern/repeat entries, 1-16 repeats each, with end stop or looping |
 | Performance | Live playing, queued pattern changes, part mute, six ARP modes, note recording and 384 step-quantized automation events |
-| Effects | Two global eight-type banks, independent R/D and C/F sends on every part; master volume and stereo-linked limiter |
+| Effects | Four global eight-type banks (R/D1, C/F1, R/D2, C/F2), four sends per part, melodic Analog variance; master volume and stereo-linked limiter |
 | Connections | USB MIDI input/output, TRS MIDI input and stereo USB Audio output at 44.1 kHz/16-bit |
 | Display | Shared 240x240 RGB565 renderer; device rendering uses a 240x8 strip buffer |
-| Storage | Version 7 project format with CRC and commit-last A/B storage in two 36 KiB banks; explicit SAVE only |
+| Storage | Version 8 projects, imports versions 1–7, CRC and commit-last A/B storage in two 36 KiB banks; explicit SAVE only |
 
 Eight melodic voices are shared across the three melodic parts, with oldest-voice
 stealing. Six drum voices are shared across the sixteen lanes. Each Acid part
-is monophonic. Sixteen FX types means two banks with eight choices each, not
-sixteen effects running in series.
+is monophonic. The two R/D banks each choose one of eight delay/reverb types;
+the two C/F banks each choose one of eight chorus/flanger types.
 
 No sample streaming, SD support, flash expansion, onboard BLE MIDI, TRS MIDI
 output, computer-to-device USB audio or USB host mode is implemented. The
@@ -95,7 +108,8 @@ to this repository's GitHub Pages site. **mc-1-web is only the emulator.**
 2. Open the installer in a secure browser with Web MIDI SysEx support, such as
    desktop Chrome or Edge. Choose **Connect FM-1** to discover the instrument
    automatically and read its identity; no MIDI port selection is needed.
-3. Check the identified device and verified release, then choose **Install firmware**.
+3. Choose **1.1.0 dual-core** or **1.0.2 single-core**, check the verified package,
+   then choose **Install firmware**.
    Keep the page, USB and power connected until restart verification finishes.
 
 The page verifies the pinned package's SHA256, CRCs, product identity and update
@@ -108,6 +122,25 @@ path for browsers without Web MIDI SysEx.
 A raw `.app.bin` is not an installer. Updating does not reformat MC-1's project
 banks, but it is not a backup or a saved-data verification protocol. Electrical
 power-loss recovery remains unverified. See [the package boundary](BUILDING.md#experimental-fwsc-package).
+
+**Downgrading is not project conversion:** 1.1.0 saves format 8; 1.0.2 cannot
+load those saves. The firmware switch retains the project banks, but saving
+after a downgrade can overwrite earlier projects. Keep a compatible backup
+where available and do not assume the older firmware will open a newer save.
+
+### Runtime faults and rebooting
+
+A CPU1 job timeout or invalid result disables the worker and recomputes its work
+on CPU0; heavy loads can then miss audio deadlines. CPU1 is not automatically
+restarted. A fatal system exception stops audio and attempts UBOOT entry after
+holding CPU1; if that hold cannot be confirmed, it stops audio without forcing
+the transition. Power cycling runs the same installed app, not an automatic
+rollback. A recurring startup fault can therefore return to UBOOT again.
+
+`WL80UBOOT1.00` is the ROM USB mode, not the MIDI update loader. The web installer
+cannot recover that mode. It needs a separate, device-verified recovery procedure;
+do not try a generic whole-flash/factory erase. See the installer recovery
+guidance and [the measured recovery record](docs/FOUR_BANK_HARDWARE_2026-10-19.md).
 
 ### Restore official V15
 
@@ -222,7 +255,7 @@ build/mc1-host                 # Interactive command help
 | ARP | Open/close the melodic arpeggiator; in GLOBAL MIXER, mute the selected part |
 | LFO | Accent, or LATCH on the ARP page; LOOP in SONG |
 | SEQ / EDIT | Switch PATTERN / SONG; toggle step entry or song editing |
-| GLO | Cycle GLOBAL MIXER, GROOVE, DEMO LIBRARY, KNOB AUTOMATION and MIDI |
+| GLO | Cycle GLOBAL MIXER, GROOVE, DEMO LIBRARY, KNOB AUTOMATION, MIDI and ANALOG |
 | OCT- / OCT+ | Change keyboard octave; hold both five seconds while stopped for UBOOT |
 | SAVE twice while stopped | Explicitly save the project to the A/B banks |
 
@@ -250,8 +283,8 @@ with the project, and PLAY + REC records their knob changes as automation.
 
 For Acid sounds, overlap keys for legato glide. HOME's GLIDE knob controls speed;
 zero disables live glide. Releasing the active key returns to the highest remaining
-held key. Overlapping recorded destinations receive SLIDE. PLAY stays steadily
-green during playback; it does not blink to the beat. Held-key LEDs coexist
+held key. Overlapping recorded destinations receive SLIDE. PLAY blinks green
+at the sequencer BPM; HOME stays lit during playback. Held-key LEDs coexist
 with the playback cursor.
 
 ## Song arrangement
@@ -265,10 +298,10 @@ provides ATK / DEC / SUS / REL for melodic sounds.
 
 ## Shared FX
 
-Each part has two independent 0-127 sends: **R/D** for reverb/delay and **C/F** for
-chorus/flanger. From HOME press FX. SENDS edits the selected part; ENV switches
-to TYPES, which selects the two banks globally. Knobs 1 and 2 edit the values;
-knobs 3 and 4 are unused. Zero send is dry. Pressing FX again does not open a
+Each part has four independent 0-127 sends: **R/D1**, **C/F1**, **R/D2** and
+**C/F2**. From HOME press FX. SENDS edits the selected part; ENV switches
+to TYPES, which selects the four banks globally. Knobs 1-4 follow that order.
+Zero send is dry. Pressing FX again does not open a
 master-effects page.
 
 | Type | R/D bank | C/F bank |
@@ -282,10 +315,15 @@ master-effects page.
 | 6 | DELAY | SHORT DLY |
 | 7 | PANNING DLY | FB SHORT DLY |
 
-Both banks return wet signal; dry parts are mixed separately. Changing a type
+All four banks return wet signal; dry parts are mixed separately. Changing a type
 resets only that bank. These are original compact fixed-point effects, not
 emulations of Roland algorithms or specific hardware. After the sum, the master
 stage contains only volume and the linked limiter.
+
+Press GLO six times from HOME for ANALOG. Knob 1 sets the selected melodic
+part's variance from 0-127: zero retains the original sound; larger values add
+bounded voice tuning variation and slow drift. Drums are excluded. PLAY + REC
+records amount changes as automation.
 
 ## Arpeggiator and knob recording
 
@@ -335,11 +373,12 @@ work first. Flash changes only after explicit SAVE. NIGHT CIRCUIT restores the
 original pattern bank. Reloading a demo restores its original mix.
 
 NEON SPIRAL is an original 140 BPM, 32-bar psy-trance performance with rolling
-bass, acid, LA arpeggios, mutes, pattern changes and filter movement. It stops
+bass, acid, recorded marimba, mutes, pattern changes and filter movement. It stops
 with FX tails. Its broad style reference is the opening Psy Trance chapter of
 the [MC-505 demo video](https://www.youtube.com/watch?v=d9VYCMy6IOc), not a recreation
 or listening-match claim.
 
+- [NIGHT CIRCUIT with FX, 320 kbps MP3](docs/audio/mc-1-night-circuit-fx.mp3)
 - [NEON SPIRAL with FX, 320 kbps MP3](docs/audio/mc-1-neon-spiral-fx.mp3)
 - [NEON SPIRAL WAV](docs/audio/neon-spiral.wav)
 - [LA lead, pad and bell](docs/audio/la-showcase.wav)

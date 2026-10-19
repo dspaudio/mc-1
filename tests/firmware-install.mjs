@@ -8,8 +8,11 @@ import {FirmwareInstaller as ProtocolInstaller} from '../site/firmware-ota.js';
 const source = fs.readFileSync('site/firmware-install.js', 'utf8')
     .replace(/^import .+;$/gm, '')
     .replace('void fetchRelease();', 'globalThis.boot = fetchRelease();');
-const manifest = {version: '0.3.1', identity: 'FM-1_900', file: 'mc-1-0.3.1.fwsc',
-    bytes: 960, sha256: 'a'.repeat(64)};
+const original = {version: '1.0.2', core_mode: 'single', identity: 'FM-1_900',
+    file: 'mc-1-1.0.2.fwsc', bytes: 610089,
+    sha256: 'a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5'};
+const manifest = {version: '1.1.0', core_mode: 'dual', identity: 'FM-1_900', file: 'mc-1-1.1.0.fwsc',
+    bytes: 960, sha256: 'a'.repeat(64), alternatives: [original]};
 const deferred = () => {
     let resolve, reject;
     const promise = new Promise((yes, no) => { resolve = yes; reject = no; });
@@ -23,9 +26,10 @@ function element() {
         removeAttribute(name) { delete this.attributes[name]; },
         replaceChildren(...options) { this.options = options; this.value = options[0]?.value || ''; }};
 }
-function fixture(initial = 'ready') {
+function fixture(initial = 'ready', metadata = manifest) {
     let mode = initial, requests = 0, starts = 0, opens = 0, closes = 0;
-    let verifiedBytes;
+    const records = [manifest, original], verified = new Map(), downloads = [];
+    const fetchQueue = [], verifyQueue = [], identityQueue = [];
     const preparations = [], preparationQueue = [], installs = [];
     const stockRaw = new Uint8Array(1024), stockHash = 'b'.repeat(64);
     const elements = new Map();
@@ -67,21 +71,32 @@ function fixture(initial = 'ready') {
             assert(options.signal instanceof AbortSignal);
             if (url === 'firmware-release.json') return {
                 ok: mode !== 'http', status: 503,
-                json: async () => ({...manifest, ...(mode === 'bad-metadata' ? {file: '../outside.fwsc'} : {})}),
+                json: async () => ({...metadata, ...(mode === 'bad-metadata' ? {file: '../outside.fwsc'} : {})}),
             };
-            assert.equal(url, manifest.file);
-            return {ok: true, arrayBuffer: async () => new Uint8Array(mode === 'short' ? 959 : 960).buffer};
+            const record = records.find(value => value.file === url);
+            assert(record);
+            downloads.push(url);
+            const gate = fetchQueue.shift();
+            if (gate) { gate.started.resolve(); await gate.finished.promise; }
+            return {ok: true, arrayBuffer: async () => {
+                const bytes = new Uint8Array(mode === 'short' ? 959 : record.bytes);
+                bytes[0] = record === original ? 2 : 11;
+                return bytes.buffer;
+            }};
         },
         async loadPackage(bytes, options) {
-            assert.equal(bytes.length, manifest.bytes);
-            assert.equal(options.sha256, manifest.sha256);
+            const record = bytes[0] === 2 ? original : manifest;
+            assert.equal(bytes.length, record.bytes);
+            assert.equal(options.sha256, record.sha256);
+            const gate = verifyQueue.shift();
+            if (gate) { gate.started.resolve(); await gate.finished.promise; }
             if (mode === 'checksum') throw new Error('CHECKSUM_SENTINEL');
-            verifiedBytes = bytes;
-            return {product: manifest.identity};
+            verified.set(bytes, record);
+            return {product: record.identity};
         },
         async prepareStockRestore(bytes, loaderBytes, options) {
-            assert.equal(loaderBytes, verifiedBytes);
-            assert.equal(options.loaderSha256, manifest.sha256);
+            assert(verified.has(loaderBytes));
+            assert.equal(options.loaderSha256, verified.get(loaderBytes).sha256);
             preparations.push(bytes);
             const gate = preparationQueue.shift();
             if (gate) { gate.started.resolve(); await gate.finished.promise; }
@@ -97,6 +112,8 @@ function fixture(initial = 'ready') {
                 return {async close() { closes++; }};
             }
             async handshake() {
+                const gate = identityQueue.shift();
+                if (gate) { gate.started.resolve(); await gate.finished.promise; }
                 return {text: mode === 'wrong-model' ? 'OTHER_001' : mode === 'loader' ? 'ota-FM-1_900' : manifest.identity,
                     model: mode === 'wrong-model' ? 'OTHER' : mode === 'loader' ? 'ota-FM-1' : 'FM-1',
                     loader: mode === 'loader'};
@@ -108,8 +125,8 @@ function fixture(initial = 'ready') {
             async install(bytes, options) {
                 starts++;
                 const stock = bytes === stockRaw;
-                assert.equal(bytes, stock ? stockRaw : verifiedBytes);
-                assert.equal(options.sha256, stock ? stockHash : manifest.sha256);
+                if (!stock) assert(verified.has(bytes));
+                assert.equal(options.sha256, stock ? stockHash : verified.get(bytes).sha256);
                 installs.push({bytes, sha256: options.sha256});
                 this.onProgress({stage: 'write', end: 480, total: 960});
                 started.resolve();
@@ -125,7 +142,26 @@ function fixture(initial = 'ready') {
     };
     vm.runInNewContext(source, sandbox);
     return {get, access, input, output, started, finished, windowHandlers,
-        preparations, installs, stockRaw, stockHash,
+        preparations, installs, stockRaw, stockHash, downloads,
+        queueFetch() {
+            const gate = {started: deferred(), finished: deferred()};
+            fetchQueue.push(gate);
+            return gate;
+        },
+        queueVerification() {
+            const gate = {started: deferred(), finished: deferred()};
+            verifyQueue.push(gate);
+            return gate;
+        },
+        queueIdentity() {
+            const gate = {started: deferred(), finished: deferred()};
+            identityQueue.push(gate);
+            return gate;
+        },
+        choose(version) {
+            get('firmware-version').value = version;
+            return get('firmware-version').handlers.change();
+        },
         queuePreparation() {
             const gate = {started: deferred(), finished: deferred()};
             preparationQueue.push(gate);
@@ -301,10 +337,140 @@ for (const mode of ['ready', 'loader', 'recovery']) {
     for (const listener of f.access.listeners) listener({port: f.input});
     assert(f.get('restore-firmware').disabled);
 }
+{
+    const f = fixture(); await f.boot;
+    assert.deepEqual(f.get('firmware-version').options.map(option => option.value), ['1.1.0', '1.0.2']);
+    assert.equal(f.get('firmware-version').value, '1.1.0');
+    assert.equal(f.get('package-download').href, manifest.file);
+    await f.choose('1.0.2');
+    assert.equal(f.get('package-hash').textContent, original.sha256);
+    assert.equal(f.get('package-download').href, original.file);
+    assert.equal(f.get('package-download').download, original.file);
+    assert.equal(f.get('release-link').href, 'https://github.com/dspaudio/mc-1/releases/tag/v1.0.2');
+    assert.equal(f.get('package-size').textContent, '610,089 bytes');
+    assert.equal(f.get('package-version').textContent.includes(original.version), true);
+    assert.equal(f.get('install-firmware').textContent.includes(original.version), true);
+    await f.click('connect-device');
+    const running = f.click('install-firmware');
+    await f.started.promise;
+    assert(f.get('firmware-version').disabled);
+    await f.choose('1.1.0');
+    assert.equal(f.get('firmware-version').value, original.version);
+    assert.equal(f.get('package-hash').textContent, original.sha256);
+    assert.equal(f.installs[0].sha256, original.sha256);
+    assert.equal(f.installs[0].bytes.length, original.bytes);
+    assert.equal(f.installs[0].bytes[0], 2);
+    f.finished.resolve(); await running;
+    assert.equal(f.get('firmware-version').disabled, false);
+}
+{
+    const f = fixture(); await f.boot;
+    const gate = f.queueIdentity();
+    const connecting = f.click('connect-device');
+    await gate.started.promise;
+    assert(f.get('firmware-version').disabled);
+    await f.choose('1.0.2');
+    assert.equal(f.get('firmware-version').value, manifest.version);
+    gate.finished.resolve(); await connecting;
+    assert.equal(f.get('firmware-version').disabled, false);
+}
+{
+    const f = fixture(); await f.boot;
+    await f.choose('1.0.2'); await f.select(stockFile()); f.acknowledge();
+    await f.click('connect-device');
+    const running = f.click('restore-firmware');
+    await f.started.promise;
+    assert(f.get('firmware-version').disabled);
+    await f.choose('1.1.0');
+    assert.equal(f.get('firmware-version').value, original.version);
+    assert.equal(f.installs[0].sha256, f.stockHash);
+    f.finished.resolve(); await running;
+}
+{
+    const f = fixture(); await f.boot;
+    const gate = f.queueFetch();
+    const old = f.choose('1.0.2');
+    await gate.started.promise;
+    assert(f.get('connect-device').disabled);
+    assert(f.get('restore-file').disabled);
+    await f.choose('1.1.0');
+    gate.finished.resolve(); await old;
+    assert.equal(f.get('package-hash').textContent, manifest.sha256);
+    assert.equal(f.get('package-download').href, manifest.file);
+    assert.equal(f.get('connect-device').disabled, false);
+}
+for (const fails of [false, true]) {
+    const f = fixture(); await f.boot;
+    const gate = f.queueVerification();
+    const old = f.choose('1.0.2');
+    await gate.started.promise;
+    await f.choose('1.1.0');
+    if (fails) gate.finished.reject(new Error('STALE_VERIFICATION_SENTINEL'));
+    else gate.finished.resolve();
+    await old;
+    assert.equal(f.get('package-hash').textContent, manifest.sha256);
+    assert.equal(f.get('package-status').attributes.role, 'status');
+    await f.click('connect-device');
+    const running = f.click('install-firmware');
+    await f.started.promise;
+    assert.equal(f.installs[0].sha256, manifest.sha256);
+    assert.equal(f.installs[0].bytes[0], 11);
+    f.finished.resolve(); await running;
+}
+for (const fails of [false, true]) {
+    const f = fixture(); await f.boot; await f.click('connect-device');
+    const gate = f.queuePreparation();
+    const old = f.select(stockFile());
+    await gate.started.promise;
+    await f.choose('1.0.2');
+    if (fails) gate.finished.reject(new Error('STALE_RESTORE_SENTINEL'));
+    else gate.finished.resolve();
+    await old;
+    assert(f.get('restore-firmware').disabled);
+    assert(f.get('restore-ack').disabled);
+    assert.equal(f.get('restore-ack').checked, false);
+    assert.equal(f.get('restore-status').dataset.state, '');
+    await f.select(stockFile()); f.acknowledge();
+    assert.equal(f.get('restore-firmware').disabled, false);
+}
+{
+    const f = fixture(); await f.boot; await f.click('connect-device');
+    const gate = f.queuePreparation();
+    const old = f.select(stockFile());
+    await gate.started.promise;
+    const running = f.click('install-firmware');
+    await f.started.promise;
+    gate.finished.resolve(); await old;
+    f.finished.resolve(); await running;
+    assert(f.get('restore-ack').disabled);
+    assert(f.get('restore-firmware').disabled);
+}
+const invalidAlternatives = [null, {}, [], [original, original], [null],
+    ...Object.keys(original).map(key => [{...original, [key]: null}]),
+    [{...original, file: '../outside.fwsc'}], [{...original, bytes: 1048577}],
+    [{...original, bytes: 959}], [{...original, bytes: 610089.5}],
+    [{...original, sha256: 'b'.repeat(64)}]];
+for (const alternatives of invalidAlternatives) {
+    const f = fixture('ready', {...manifest, alternatives}); await f.boot;
+    assert(f.get('connect-device').disabled);
+    assert(f.get('install-firmware').disabled);
+    assert.equal(f.get('package-status').attributes.role, 'alert');
+    assert.equal(f.downloads.length, 0);
+}
+{
+    const f = fixture('ready', {...manifest, version: '1.0.2', file: original.file});
+    await f.boot;
+    assert.equal(f.get('package-status').attributes.role, 'alert');
+    assert.equal(f.downloads.length, 0);
+}
 console.log(JSON.stringify({firmwareInstallUI: 'PASS', hardwareAccess: false,
     scenarios: ['unsupported', 'insecure', 'metadata HTTP', 'invalid metadata', 'short package',
         'checksum rejection', 'permission retry', 'SysEx retry', 'model rejection',
         'no automatic install', 'unplug', 'progress', 'page retention', 'verified after re-enumeration', 'recovery',
         'V15 acknowledgement', 'V15 verified loader input', 'V15 transfer lock', 'V15 loader resume',
         'V15 recovery retry', 'V15 validation rejection', 'V15 stale validation success',
-        'V15 stale validation failure', 'V15 stale file read', 'V15 selection cleared']}));
+        'V15 stale validation failure', 'V15 stale file read', 'V15 selection cleared',
+        '1.0.2 package and SHA', 'selected metadata links', 'connection selection lock',
+        'install selection lock', 'restore selection lock', 'stale package fetch',
+        'stale package verification success/failure', 'V15 version-change invalidation',
+        'V15 transfer invalidation', 'alternative boundaries and uniqueness']}));

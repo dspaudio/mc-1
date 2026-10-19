@@ -38,6 +38,8 @@ jobs:
         with:
           path: _site
   deploy:
+    # The Pages environment permits main, not release-tag deployment subjects.
+    if: github.ref == 'refs/heads/main'
     needs: package
     runs-on: ubuntu-latest
     permissions:

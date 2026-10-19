@@ -28,12 +28,13 @@ h2 { margin: 0 0 var(--s4); font-size: 16px; line-height: 1.5; }
 p { margin: var(--s3) 0; }
 .intro, .hint, footer { color: var(--muted); }
 section { background: var(--surface); border-radius: var(--s2); padding: var(--s6); margin-top: var(--s6); }
-button {
+button, select {
   min-height: 44px; padding: var(--s2) var(--s3); border: 1px solid var(--border);
   border-radius: 5px; background: var(--control); color: var(--txt); font: inherit;
 }
 button { cursor: pointer; }
-button:disabled { cursor: not-allowed; opacity: .6; }
+button:disabled, select:disabled { cursor: not-allowed; opacity: .6; }
+select { width: 100%; }
 button.primary { color: var(--ink); background: var(--accent); border-color: var(--accent); font-weight: bold; }
 button:enabled:hover { border-color: var(--accent); }
 button.primary:enabled:hover { border-color: var(--txt); }
@@ -64,6 +65,9 @@ footer { margin-top: var(--s6); font-size: 12px; }
 <p class="intro">Update your M-VAVE FM-1 over its USB MIDI connection. The emulator and the physical instrument are separate.</p>
 <section aria-labelledby="package-heading">
   <h2 id="package-heading">1. Verified release</h2>
+  <label class="file-label" for="firmware-version">Firmware version</label>
+  <select id="firmware-version" aria-describedby="version-guidance" disabled></select>
+  <p id="version-guidance">1.1.0 dual-core is the default: eight melodic voices, six drum voices, four FX banks and optional Analog variance. Choose the immutable original 1.0.2 single-core release as a fallback.</p>
   <p id="package-status" role="status">Loading release metadata…</p>
   <dl id="package-details" hidden>
     <dt>Version</dt><dd id="package-version"></dd>
@@ -72,6 +76,8 @@ footer { margin-top: var(--s6); font-size: 12px; }
     <dt>SHA256</dt><dd id="package-hash"></dd>
   </dl>
   <p><a id="release-link" href="https://github.com/dspaudio/mc-1/releases">Release notes and desktop installer</a></p>
+  <p><a id="package-download">Download selected firmware package</a></p>
+  <p class="hint">FM-1_900 is a protocol identity shared by MC-1 builds. It does not identify the installed build version.</p>
 </section>
 <section aria-labelledby="device-heading">
   <h2 id="device-heading">2. Connect your instrument</h2>
@@ -82,7 +88,8 @@ footer { margin-top: var(--s6); font-size: 12px; }
 </section>
 <section aria-labelledby="install-heading">
   <h2 id="install-heading">3. Install and verify</h2>
-  <p>Keep USB and power connected until the instrument has restarted and verification is complete. MC-1's saved project banks are not reformatted; an update is not a backup.</p>
+  <p>Keep USB and power connected until the instrument has restarted and verification is complete.</p>
+  <p>1.1.0 saves projects in format 8. 1.0.2 cannot load format 8. Switching firmware is not project conversion or a backup; saving after a downgrade can overwrite prior project banks. Preserve your projects before switching versions.</p>
   <div class="actions"><button id="install-firmware" class="primary" type="button" disabled>Install firmware</button></div>
   <progress id="install-progress" max="100" value="0" aria-label="Firmware installation progress" hidden></progress>
   <p id="install-status" role="status" aria-live="polite">Verify a release and connect an instrument to continue.</p>
@@ -100,8 +107,14 @@ footer { margin-top: var(--s6); font-size: 12px; }
   <progress id="restore-progress" max="100" value="0" aria-label="Official V15 restoration progress" hidden></progress>
   <p class="hint">Connect your instrument above before restoring. Keep USB and power connected until restart verification completes. If interrupted in the update loader, reconnect and retry the same restore.</p>
 </section>
+<section aria-labelledby="recovery-title">
+  <h2 id="recovery-title">Crashes, restart and recovery</h2>
+  <p>A catchable CPU1 timeout or worker protocol failure disables the worker and recomputes the failed work on CPU0. Single-core fallback is not guaranteed to sustain full-load real-time audio.</p>
+  <p>A fatal system fault stops audio and attempts UBOOT only when CPU1 is held safely. A power cycle retries the same installed image, not an automatic rollback. Startup faults can persist after restarting.</p>
+  <p>If the MIDI update loader is still available, reconnect and retry the same selected package. ROM WL80UBOOT is not the Web MIDI update loader: this page cannot recover a device in that state. Expert app-only recovery is required; do not treat the web installer or V15 restore as ROM recovery.</p>
+</section>
 <footer>Code: <a href="LICENSE.txt">GPL-3.0-only</a>. USB MIDI update protocol derived from Felucca / ORBIT. <a href="NOTICE.md">Licenses and source notices</a>. Not affiliated with M-VAVE.</footer>
 </main>
-<script type="module" src="firmware-install.js"></script>
+<script type="module" src="firmware-install.js?v=1.1.0"></script>
 </body>
 </html>
