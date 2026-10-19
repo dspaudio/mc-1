@@ -246,7 +246,7 @@ static void legacy_master(void) {
     e.recording=1;mc_start(&e);legacy=e.project;
     unsigned midi_count=e.midi.count;
     for(unsigned param=0;param<MC_PARAMETERS;param++) {
-        if(param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE)continue;
+        if(param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE||param==MC_PARAM_RD2_TYPE||param==MC_PARAM_CF2_TYPE)continue;
         assert(mc_parameter_get(&e,4,param)==-1);
         assert(mc_parameter_set(&e,4,param,0)==-1);
     }

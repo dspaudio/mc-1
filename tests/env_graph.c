@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define GUARD 64
-#define G_TOP 56
+#define G_TOP 58
 #define G_BOT 150
 #define COL_A 0x3317u
 #define COL_D 0x3d48u

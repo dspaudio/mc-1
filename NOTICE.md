@@ -1,5 +1,21 @@
 # Licensing and provenance
 
+## Optional dual-core HAL (2026-10-19)
+
+`firmware/hal/fm1_cpu1.S` and `fm1_cpu1.h` adapt the CPU1 startup, stack entry,
+boot self-test and safe hold from SLOOP v2.7.1, commit
+`4ec1ac829fd2bdf2c571ea215fb3d62477d01220`:
+https://github.com/isod89/sloop-fm1/tree/4ec1ac829fd2bdf2c571ea215fb3d62477d01220
+
+The GPL-3.0-only notices retain Copyright (C) 2026 Charles Vestal (X0X
+`00bff73`, after Melodee dual-core audio by Kerem Kilic), Leo Kuroshita
+(@kurogedelic), Hügelton Instruments (safe hold, after Felucca 1.6.1), and
+Andre Rezemini (SLOOP boot integration). MC-1 changes are Copyright (C) 2026
+dspaudio: private C/F job payload, transactional completion, failure quarantine,
+bounded waits, memory/stack guards and integration. SLOOP's shared track state,
+voice shedding, power settings and DSP are not imported. See `docs/DUAL_CORE.md`
+for the pinned version comparison and official SDK synchronization references.
+
 MC-1 is GPL-3.0-only; the complete license is in LICENSE.
 New engine, sequencer, project format, UI, host harness, presets and mathematical assets:
 Copyright (C) 2026 dspaudio. These are original implementations, not copies of Roland sound algorithms or content.

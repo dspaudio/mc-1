@@ -13,10 +13,13 @@ static void mc_perf_fixture(McEngine *e,unsigned acid_parts) {
     e->project.demo=0;e->project.bpm=240;e->project.swing=0;
     e->project.drum_kit=6;
     e->project.fx_bus_type[0]=4;e->project.fx_bus_type[1]=5;
+    e->project.fx_bus_type[2]=e->project.fx_bus_type[3]=0;
     for(unsigned part=0;part<MC_PARTS;part++) {
         e->project.level[part]=127;e->project.pan[part]=64;
         e->project.fx_send[part][0]=e->project.fx_send[part][1]=127;
+        e->project.fx_send[part][2]=e->project.fx_send[part][3]=0;
         if(part==3)continue;
+        e->project.analog[part]=0;
         e->project.patch[part]=mc_presets[part<acid_parts?MC_PRESET_ACID_SAW:programs[part]];
         e->project.preset[part]=(uint8_t)(part<acid_parts?MC_PRESET_ACID_SAW:programs[part]);
         McPatch *p=&e->project.patch[part];
@@ -40,4 +43,11 @@ static void mc_perf_fixture(McEngine *e,unsigned acid_parts) {
         unsigned part=acid_parts+i%(3u-acid_parts);
         mc_note(e,part,peak_note[part]-i/(3u-acid_parts),127,MC_ACCENT,0);
     }
+}
+/* Explicit four-bank stress; the original fixture remains the historical two-bank load. */
+static inline void mc_perf_fixture_four(McEngine *e,unsigned acid_parts) {
+    mc_perf_fixture(e,acid_parts);
+    e->project.fx_bus_type[2]=5;e->project.fx_bus_type[3]=5;
+    for(unsigned part=0;part<MC_PARTS;part++)
+        e->project.fx_send[part][2]=e->project.fx_send[part][3]=127;
 }

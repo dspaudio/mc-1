@@ -36,6 +36,9 @@
 
 extern char _guard0[], _ustack_lo[], _guard1[], _sstack_lo[], _sstack_top[], _etext[];
 extern uint32_t _rt_start[], _rt_end[];
+#if MC_DUAL_CORE == 1
+extern uint32_t _c1_end[];
+#endif
 
 enum { FM1_GUARD_STACK = 1, FM1_GUARD_WRITE = 2, FM1_GUARD_BUS = 4, FM1_GUARD_PC = 8 };
 
@@ -77,6 +80,9 @@ static void fm1_guard_enable(uint32_t which)
         FM1_PC_LIMIT0_H = (uint32_t)(uintptr_t)_etext;
         {   /* RAM flash-off 코드만 실행을 허용한다. */
             volatile uint32_t rs = (uint32_t)(uintptr_t)_rt_start, re = (uint32_t)(uintptr_t)_rt_end;
+#if MC_DUAL_CORE == 1
+            re=(uint32_t)(uintptr_t)_c1_end;
+#endif
             FM1_PC_LIMIT1_L = re > rs ? rs : 0x02000120u;
             FM1_PC_LIMIT1_H = re > rs ? re - 1u : (uint32_t)(uintptr_t)_etext;
         }

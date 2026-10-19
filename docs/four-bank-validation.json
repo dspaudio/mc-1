@@ -1,0 +1,180 @@
+{
+  "format": "mc1-four-bank-validation/1",
+  "date": "2026-10-19",
+  "source_commit": "869ed1265000075d0a52011d379e3da8060fcd70",
+  "branch": "fix/1.0.1",
+  "source_dirty": true,
+  "committed": false,
+  "source_input_sha256": "837e9986cc7bde553a9a4e0c9cc007a968cb9662c9382cf33167530b8b016792",
+  "source_fingerprint_definition": "tools/build_target.py: sorted src/firmware C,H,S,ld paths, NUL, raw bytes, NUL, then tools/build_target.py",
+  "hardware_installed": false,
+  "hardware_performance_verified": false,
+  "additional_fx_budget_verified_ticks": null,
+  "invariants": {
+    "melodic_voices": 8,
+    "drum_voices": 6,
+    "acid_is_monophonic_per_part": true,
+    "shared_fx_banks": 4,
+    "normal_dual_worker": "all shared FX on CPU1; next-slice synthesis on CPU0; same-call drain",
+    "analog_processor": "CPU0 per-voice pitch variance and smoothed random drift",
+    "automatic_voice_shedding": false,
+    "automatic_fx_bypass": false,
+    "project_version": 8,
+    "project_payload_bytes": 35117,
+    "project_record_bytes": 35137,
+    "storage_bank_bytes": 36864,
+    "bootloader_partition_recovery_frequency_voltage_changes": false
+  },
+  "memory": {
+    "engine_bytes": 114288,
+    "worker_host_bytes": 74520,
+    "worker_target_pool_bytes": 74504,
+    "history_snapshot_bytes_per_render": 73888,
+    "maximum_dirty_history_bytes_per_16_frame_slice": 384,
+    "dirty_commit_adds_metadata": true,
+    "pool_policy_ceiling_bytes": 335872,
+    "pool_region_bytes": 344064,
+    "cpu1_user_stack_bytes": 4096,
+    "cpu1_supervisor_stack_bytes": 512,
+    "cpu1_stack_guard_bytes": 96,
+    "hardware_stack_high_water_verified": false
+  },
+  "build_settings": {
+    "toolchain": "jieli-linux-toolchains-20260730.1; clang 4.0.1 pi32v2 in linux/amd64 Docker",
+    "app_optimization": "-Os",
+    "dsp_optimization": "-O2",
+    "play_led_pulse": false,
+    "default_dual_core": false,
+    "stage_schema": 5,
+    "stage_words": 42,
+    "stage_pages": 7
+  },
+  "builds": [
+    {
+      "MC_DUAL_CORE": 0,
+      "MC_RENDER_PROFILE": 0,
+      "MC_PERF_PROBE": 0,
+      "app_bytes": 509568,
+      "data_bss_bytes": 50068,
+      "pool_bytes": 114288,
+      "app_sha256": "23a7eecb17d0de80d91e95a9e2f9e1215bc539cdf19452f7c236143c235cae0b"
+    },
+    {
+      "MC_DUAL_CORE": 0,
+      "MC_RENDER_PROFILE": 1,
+      "MC_PERF_PROBE": 1,
+      "app_bytes": 513008,
+      "data_bss_bytes": 50840,
+      "pool_bytes": 114288,
+      "app_sha256": "48d45d6b79734f1954590d7f6c1418f1e938644ec4fb7d30fbba4d26165aba80"
+    },
+    {
+      "MC_DUAL_CORE": 1,
+      "MC_RENDER_PROFILE": 0,
+      "MC_PERF_PROBE": 0,
+      "app_bytes": 510860,
+      "data_bss_bytes": 54840,
+      "pool_bytes": 188792,
+      "app_sha256": "fc5c926e60890523096e7094100fa3a11dcc32465b7c79c5c2edfac312a949f3"
+    },
+    {
+      "MC_DUAL_CORE": 1,
+      "MC_RENDER_PROFILE": 1,
+      "MC_PERF_PROBE": 1,
+      "app_bytes": 514444,
+      "data_bss_bytes": 55564,
+      "pool_bytes": 188792,
+      "app_sha256": "ca3a42041d3e3ce0246307df7201d7edda5b9ab068172de987a04087340faace"
+    }
+  ],
+  "checks": {
+    "native_c_executables": 28,
+    "python_tests": 51,
+    "native_exit_code": 0,
+    "asan_ubsan_all_c_exit_code": 0,
+    "thread_sanitizer_exit_code": 0,
+    "single_dual_frames_bit_identical": 3695350,
+    "complete_engine_bytes_compared": 114288,
+    "four_bank_type_combinations": 4096,
+    "legacy_two_bank_type_pairs": 64,
+    "event_gated_actual_overlap": true,
+    "fault_injection_and_quarantined_slot": true,
+    "analog_disabled_and_enabled_render_partition_identity": true,
+    "legacy_preset_pcm_and_reconstructed_demo_snapshots": true,
+    "interrupted_storage_cut_positions": 463,
+    "ota_entry_and_usb_midi_regressions": "pass",
+    "target_build_configurations": 4,
+    "target_raw_app_hashes_rechecked": true,
+    "visual_actual_c_captures": 24,
+    "independent_read_only_visual_reviews": 2,
+    "visual_verdict": "pass; fixed 240x240 embedded UI, inherited bitmap/DIM style",
+    "source_lsp": "changed shared C sources and Analog test have no errors; several existing test contexts lack -Isrc; basedpyright unavailable",
+    "factory_default_16_second_wav_bytes_identical_to_saved_prior_host": true,
+    "factory_default_comparison_frames": 705600,
+    "saved_prior_host_sha256": "8e985b4ec6fb4a97e74d0306f2a895e2a31ae410db65410ac71900ac4bb61068"
+  },
+  "logs": {
+    "native": {
+      "path": "build/four-bank-native.log",
+      "sha256": "ec245ac1c2bf0f19efc4802e628ade34d8b630ab4f69e0d890adaf4d818fed7a"
+    },
+    "asan_ubsan": {
+      "path": "build/fourfx-sanitized.log",
+      "sha256": "80632f54f950cf8a57b5e96144b93cf54c58bc634317d9b246cfd51e73467b8c"
+    },
+    "thread_sanitizer": {
+      "path": "build/fourfx-tsan.log",
+      "sha256": "801bb2eebe9dbac5d4feb327a457b03623d2e505c6fc858c3d4e12a91a396a43"
+    }
+  },
+  "demo_exports": [
+    {
+      "name": "NIGHT CIRCUIT",
+      "frames": 3090737,
+      "seconds": 70.084739229,
+      "source_peak": 27003,
+      "source_clips": 0,
+      "source_voice_steals": 0,
+      "last_half_second_source_peak": 0,
+      "part2_analog": 52,
+      "part2_reverb": "HALL1 send 52",
+      "part2_delay": "PANNING DLY send 38",
+      "part3_preset": "PIANO STEPS",
+      "part3_pcm": 24,
+      "part3_pcm_mix": 108,
+      "mp3_path": "build/demos/night-circuit-fourfx-analog.mp3",
+      "mp3_bytes": 2244760,
+      "mp3_sha256": "39e5fd4b6515dfe6088c2431923f3aef7220978b194bbe0778ae254149ed1a5d",
+      "decoded_frames": 3090737,
+      "decoded_peak": 27464
+    },
+    {
+      "name": "NEON SPIRAL",
+      "frames": 2639700,
+      "seconds": 59.857142857,
+      "source_peak": 17400,
+      "source_clips": 0,
+      "source_voice_steals": 0,
+      "last_half_second_source_peak": 0,
+      "part2_analog": 60,
+      "part2_reverb": "PLATE send 40",
+      "part2_delay": "DELAY send 44",
+      "part3_preset": "MARIMBA RUN",
+      "part3_pcm": 26,
+      "part3_pcm_mix": 108,
+      "mp3_path": "build/demos/neon-spiral-fourfx-analog.mp3",
+      "mp3_bytes": 1917912,
+      "mp3_sha256": "6d4c0f68c987e2cc7950c7d3182b7756df6d6f38755d110b7abc1971a2cac5d8",
+      "decoded_frames": 2639700,
+      "decoded_peak": 18419
+    }
+  ],
+  "mp3_encoding": "LAME 3.100 in ephemeral Debian bookworm container; 256 kbps stereo 44.1 kHz; decoded to verify exact source frame counts; no external mastering",
+  "unverified": [
+    "Real CPU1 startup, bus-drain and cache/bus contention behavior",
+    "Whole ISR timing, per-core timing, wait/transfer cost, deadline/DMA/USB counters",
+    "Real stack high-water and four-bank fallback meeting the audio deadline",
+    "Subjective listening evaluation of warmth and PCM timbre",
+    "New hardware installation or new installer package"
+  ]
+}

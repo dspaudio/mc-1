@@ -15,7 +15,21 @@ static uint8_t mc_hw_snapshot(uint32_t out[6])
     for(unsigned i=0;i<6;i++)out[i]=values[i];
     return status;
 }
-static uint8_t mc_hw_control(unsigned action) { assert(action<8);controls++;return control_status; }
+static uint8_t mc_hw_worker_snapshot(uint32_t out[6]) {
+    for(unsigned i=0;i<6;i++)out[i]=0x100u+i;
+    return 0;
+}
+static uint8_t mc_hw_panel_snapshot(uint32_t out[6]) {
+    for(unsigned i=0;i<6;i++)out[i]=0x200u+i;
+    return 0;
+}
+#if MC_VOICE_PROBE == 1
+static uint8_t mc_hw_voice_snapshot(uint32_t out[6]) {
+    for(unsigned i=0;i<6;i++)out[i]=0x300u+i;
+    return 0;
+}
+#endif
+static uint8_t mc_hw_control(unsigned action) { assert(action<17);controls++;return control_status; }
 static uint8_t mc_hw_control_done(void) { return control_done; }
 static int mc_hw_send(const uint8_t *p,uint32_t n)
 {
@@ -55,11 +69,11 @@ int main(void)
     assert(mc_hw_request(request,8));mc_hw_invalidate();
     unsigned sent=sends;mc_hw_service();assert(sends==sent&&!mc_hw.pending);
     request[4]=3;
-    for(unsigned action=4;action<8;action++) {
+    for(unsigned action=4;action<17;action++) {
         request[5]=(uint8_t)action;control_status=0;
         assert(mc_hw_request(request,8));mc_hw_service();assert(wire[6]==3&&wire[7]==0);
     }
-    request[5]=8;assert(!mc_hw_request(request,8));
+    request[5]=17;assert(!mc_hw_request(request,8));
     sent=sends;unsigned before_controls=controls;
     request[5]=2;control_status=control_done=2;
     assert(mc_hw_request(request,8)&&controls==before_controls+1&&mc_hw.pending==2);
@@ -67,6 +81,32 @@ int main(void)
     control_done=0;mc_hw_service();
     assert(sends==sent+1&&!mc_hw.pending&&wire[6]==3&&wire[7]==0);
     control_status=1;assert(mc_hw_request(request,8));mc_hw_service();assert(wire[7]==1);
+    request[4]=6;request[5]=0;
+    assert(mc_hw_request(request,8));mc_hw_service();assert(wire[6]==6&&!wire[7]);
+    for(unsigned i=0;i<6;i++) {
+        uint32_t value=wire[8+4*i]|(uint32_t)wire[9+4*i]<<8|
+            (uint32_t)wire[10+4*i]<<16|(uint32_t)wire[11+4*i]<<24;
+        assert(value==0x100u+i);
+    }
+    request[4]=7;
+    assert(mc_hw_request(request,8));mc_hw_service();assert(wire[6]==7&&!wire[7]);
+    for(unsigned i=0;i<6;i++) {
+        uint32_t value=wire[8+4*i]|(uint32_t)wire[9+4*i]<<8|
+            (uint32_t)wire[10+4*i]<<16|(uint32_t)wire[11+4*i]<<24;
+        assert(value==0x200u+i);
+    }
+    request[4]=8;
+#if MC_VOICE_PROBE == 1
+    request[5]=1;assert(!mc_hw_request(request,8));request[5]=0;
+    assert(mc_hw_request(request,8));mc_hw_service();assert(wire[6]==8&&!wire[7]);
+    for(unsigned i=0;i<6;i++) {
+        uint32_t value=wire[8+4*i]|(uint32_t)wire[9+4*i]<<8|
+            (uint32_t)wire[10+4*i]<<16|(uint32_t)wire[11+4*i]<<24;
+        assert(value==0x300u+i);
+    }
+#else
+    assert(!mc_hw_request(request,8));
+#endif
     puts("hardware probe: bounded version2 reads, nonce, status, backpressure and OTA invalidation PASS");
     return 0;
 }

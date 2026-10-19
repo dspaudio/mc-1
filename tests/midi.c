@@ -9,7 +9,7 @@ static McEngine e,a;
 static int16_t buffer[4096];
 static int16_t split[4096];
 _Static_assert(offsetof(McEngine,live_keys)==offsetof(McEngine,pcm_cache)+2112,"Transient state must follow the PCM cache");
-_Static_assert(sizeof(McEngine)-offsetof(McEngine,pcm_cache)<=2400+sizeof(McReverb)+sizeof(McDelay)+8,"Transient state budget exceeded");
+_Static_assert(sizeof(McEngine)-offsetof(McEngine,pcm_cache)<=2400+2*sizeof(McSharedFx)+sizeof(((McEngine *)0)->analog_voice),"Transient state budget exceeded");
 _Static_assert(sizeof(McVoice)==84,"Voice layout must not change");
 static void render(unsigned n) { while(n) { unsigned k=n>2048?2048:n;mc_render(&e,buffer,k);n-=k; } }
 static void input(unsigned s,unsigned status,unsigned x,unsigned y) {
@@ -43,8 +43,12 @@ static void demo_cleanup(void) {
     McMidiMessage m;
     for(unsigned demo=0;demo<2;demo++) {
         mc_init(&e);mc_demo_load(&e,demo);unsigned programs=0;
-        while(mc_midi_pop(&e,&m)) { assert((m.data[0]&0xf0)==0xc0);programs++; }
-        assert(programs==(demo?3u:0u));
+        while(mc_midi_pop(&e,&m)) {
+            assert((m.data[0]&0xf0)==0xc0);
+            if(!demo)assert(m.data[0]==0xc2&&m.data[1]==MC_PRESET_PIANO_STEPS);
+            programs++;
+        }
+        assert(programs==(demo?3u:1u));
     }
     for(unsigned demo=0;demo<2;demo++) for(unsigned mode=0;mode<4;mode++) {
         mc_init(&e);e.project.midi_channel[0]=14;
@@ -77,12 +81,15 @@ static void demo_cleanup(void) {
     mc_demo_load(&e,1);cleanup((1u<<4)|(1u<<15),0);drain();
     mc_note(&e,0,60,100,0,0);e.project.midi_channel[1]=15;mc_note(&e,1,64,100,0,0);drain();
     mc_demo_load(&e,0);for(unsigned i=0;i<4;i++)assert(mc_midi_pop(&e,&m));
-    mc_demo_load(&e,0);cleanup(1u<<15,0);assert(!mc_midi_pop(&e,&m));
+    mc_demo_load(&e,0);cleanup(1u<<15,0);
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xc2&&m.data[1]==MC_PRESET_PIANO_STEPS);
+    assert(!mc_midi_pop(&e,&m));
     /* 이미 출력된 Start만 Stop으로 마감하며 새 Start는 정리 뒤에 전달한다. */
     mc_init(&e);memset(e.project.step,0,sizeof e.project.step);mc_start(&e);drain();
     mc_stop(&e);mc_demo_load(&e,0);mc_demo_load(&e,1);cleanup(0,1);drain();
     memset(e.project.step,0,sizeof e.project.step);mc_start(&e);mc_note(&e,0,60,100,0,0);mc_drum(&e,0,100);
     drain();mc_demo_load(&e,0);mc_start(&e);cleanup((1u<<0)|(1u<<9),1);
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xc2&&m.data[1]==MC_PRESET_PIANO_STEPS);
     assert(mc_midi_pop(&e,&m)&&m.data[0]==0xfa);drain();
     /* 정리 도중 overflow도 정리를 유지하며 기존 16채널 복구 정책을 따른다. */
     mc_init(&e);e.project.midi_channel[0]=14;mc_note(&e,0,60,100,0,0);drain();mc_demo_load(&e,0);
@@ -145,12 +152,25 @@ static void shared_fx_controls(void) {
     assert(!e.project.fx_send[1][0]&&!e.project.fx_send[0][1]);
     assert(e.project.fx_bus_type[0]==7&&e.project.fx_bus_type[1]==5&&!e.midi.count);
     input(1,0xb0,20,8);assert(e.project.fx_bus_type[0]==7);
+    input(1,0xb2,92,55);input(1,0xb9,95,44);
+    input(1,0xb0,21,6);input(1,0xb1,24,7);
+    assert(e.project.fx_send[2][2]==55&&e.project.fx_send[3][3]==44);
+    assert(e.project.fx_bus_type[2]==6&&e.project.fx_bus_type[3]==7&&!e.midi.count);
+    input(1,0xb0,24,8);assert(e.project.fx_bus_type[3]==7);
     input(1,0xb0,12,127);assert(!e.project.track_fx[0][2]);
     assert(!mc_parameter_set(&e,2,MC_PARAM_RD_SEND,88));
     McMidiMessage m;
     assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb2&&m.data[1]==91&&m.data[2]==88);
     assert(!mc_parameter_set(&e,3,MC_PARAM_CF_TYPE,7));
     assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb0&&m.data[1]==23&&m.data[2]==7);
+    assert(!mc_parameter_set(&e,1,MC_PARAM_RD2_SEND,91));
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb1&&m.data[1]==92&&m.data[2]==91);
+    assert(!mc_parameter_set(&e,3,MC_PARAM_CF2_SEND,83));
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb9&&m.data[1]==95&&m.data[2]==83);
+    assert(!mc_parameter_set(&e,2,MC_PARAM_RD2_TYPE,5));
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb0&&m.data[1]==21&&m.data[2]==5);
+    assert(!mc_parameter_set(&e,MC_PARTS,MC_PARAM_CF2_TYPE,3));
+    assert(mc_midi_pop(&e,&m)&&m.data[0]==0xb0&&m.data[1]==24&&m.data[2]==3);
     assert(!mc_midi_pop(&e,&m));
     puts("PASS MIDI FX: independent part sends, global types, strict bounds and output CC routing");
 }

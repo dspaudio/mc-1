@@ -8,7 +8,7 @@
 
 _Static_assert(sizeof(((McEngine *)0)->pcm_cache)<=2400,"추가 풀 한도");
 _Static_assert(offsetof(McEngine,live_keys)==offsetof(McEngine,pcm_cache)+sizeof(((McEngine *)0)->pcm_cache),"Transient state must follow the cache");
-_Static_assert(sizeof(McEngine)<=offsetof(McEngine,pcm_cache)+2400+sizeof(McReverb)+sizeof(McDelay)+8,"All appended transient state must fit the pool budget");
+_Static_assert(sizeof(McEngine)<=offsetof(McEngine,pcm_cache)+2400+2*sizeof(McSharedFx)+sizeof(((McEngine *)0)->analog_voice),"All appended transient state must fit the pool budget");
 
 static McEngine eng;
 static uint32_t rng=0x1234abcdu;
@@ -36,7 +36,8 @@ static int32_t oracle(McVoice *v,uint32_t ratio) {
 static void both(McPcmCache *c,McVoice *v,McVoice *o,uint32_t ratio) {
     McPcmCache before=*c;
     const McRecordedLevel *level=level_of(v->patch.pcm-MC_PCM_ATTACKS,v->sample_level);
-    int32_t got=recorded(c,v,ratio,level),want=oracle(o,ratio);
+    uint32_t pcm_step=(uint32_t)(((uint64_t)v->sample_step*ratio)>>16);
+    int32_t got=recorded(c,v,pcm_step,level),want=oracle(o,ratio);
     assert(got==want);
     assert(v->pcm_pos==o->pcm_pos);
     calls++;

@@ -1,5 +1,19 @@
 # Architecture and budgets
 
+## Version 1.1.0 dual-core audio
+
+Version 1.1.0 adds R/D1, C/F1, R/D2 and C/F2, preserving old project imports
+and the original eight melodic / six drum voices. The default target uses
+CPU1 for all shared FX, six drums and three melodic DSP voices.
+CPU0 keeps five melodic DSP voices and every MIDI/gate control in original order.
+FX(slice n) and private synthesis(slice n+1) overlap CPU0, draining within each
+render call. Analog variance follows each voice's DSP owner.
+See [FOUR_BANKS.md](FOUR_BANKS.md) for ownership,
+format-8 migration, controls, memory costs and explicit hardware limitations.
+The current hardware evidence is in
+[the four-bank device report](FOUR_BANK_HARDWARE_2026-10-19.md).
+Older two-bank measurements below do not establish four-bank deadlines.
+
 ## Product boundary
 
 `src/` is a small, original allocation-free C11 core, built unchanged by the host and FM-1.
@@ -69,9 +83,11 @@ FM-1 입력 HAL은 일반 quadrature 전이를 첫 샘플부터 누적한다. �
 안정 확정과 정지 1초 후 rest 재학습은 유지하고, 완전한 detent 복귀 때만
 클릭을 게시한다. 빠른 상태를 2샘플 미만이라는 이유로 버리지 않는다.
 melodic ENV 화면은 실제 ADSR 계수에 대응하는 곡선과 네 제어점을 그린다.
-Mode LEDs update only when their state changes. PLAY remains steadily lit during
-playback; the pulsing diagnostic option defaults off after the user's physical
-pop-noise comparison. Keyboard LEDs show the union of physically held keys and
+Mode LEDs update only when their state changes. All twelve menu buttons and
+both OCT buttons remain lit; selected menus blink at 2 Hz. PLAY blinks green
+at the audio sequencer BPM, while HOME stays lit during playback. These 1.1.0
+controls replace the historical 1.0.2 steady-PLAY setting.
+Keyboard LEDs show the union of physically held keys and
 the white-key playback cursor, so releasing a key does not erase that cursor.
 
 The physical button-edge API defers an OCT- tap until release. While held, the
@@ -115,6 +131,14 @@ additional engine state or serialized fields. Drum reciprocal products preserve
 signed truncation over the full bounded numerator range of every kit.
 
 ## Timing
+
+The optional CPU1 path uses private synthesis and sparse FX-read snapshots at
+event-bounded slices, followed by transactional canonical-state commit. A
+completed result view is consumed before the next submission; failed payloads
+remain quarantined. The default single-core route remains available and the
+engine/project format gains no shared thread state. See
+[FOUR_BANKS.md](FOUR_BANKS.md) for the current schedule and
+[DUAL_CORE.md](DUAL_CORE.md) for the historical two-bank design.
 
 Song mode references the same 64 patterns through 128 `{pattern, repeats}` entries.
 It advances only at bar boundaries, stops at the end or loops, and keeps runtime

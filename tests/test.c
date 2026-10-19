@@ -205,9 +205,10 @@ static void phrase_grid(void) {
     u.message="SAVED";screen(&e,&u,previous);e.pattern=3;screen(&e,&u,current);
     assert(!memcmp(previous+171*240,current+171*240,12*240*sizeof(uint16_t)));
     u.message=0;e.selected=3;u.sound=15;e.project.step[3][3][0].drums=32768;e.project.step[3][3][0].velocity=100;
-    screen(&e,&u,previous);assert(previous[162*240+32]==0x67e8);
+    screen(&e,&u,previous);assert(previous[177*240+32]==0xfb20);
+    assert(previous[182*240+32]==0x67e8);
     mc_queue(&e,0);screen(&e,&u,current);
-    assert(!memcmp(previous+159*240,current+159*240,8*240*sizeof(uint16_t)));
+    assert(!memcmp(previous+174*240,current+174*240,9*240*sizeof(uint16_t)));
     assert(!memcmp(previous+173*240,current+173*240,7*240*sizeof(uint16_t)));
     assert(memcmp(previous+14*240+163,current+14*240+163,7*240*sizeof(uint16_t)));
     puts("PASS: demo pattern progression changes pitch grid; chord and non-leading notes rendered");
@@ -225,19 +226,26 @@ static void mixer(void) {
     const char *hint="SELECT-ARP to mute";
     for(unsigned letter=0;hint[letter];letter++) {
         unsigned ink=0;
-        for(unsigned row=0;row<7;row++) for(unsigned col=0;col<5;col++)
-            if(pixels[(173+row)*240+66+letter*6+col]!=0x0841) ink++;
+        for(unsigned row=0;row<9;row++) for(unsigned col=0;col<6;col++)
+            if(pixels[(173+row)*240+14+letter*7+col]!=0x0841) ink++;
         assert(hint[letter]==' '?ink==0:ink>0);
     }
-    assert(pixels[173*240+139]==0x0841&&pixels[175*240+139]==0xdefb);
-    u.message="SAVED";screen(&e,&u,pixels);assert(pixels[175*240+139]==0x0841);u.message=0;
+    unsigned hint_ink=0;
+    for(unsigned row=0;row<9;row++)for(unsigned x=60;x<130;x++)
+        if(pixels[(173+row)*240+x]==0xdefb)hint_ink++;
+    assert(hint_ink);
+    u.message="SAVED";screen(&e,&u,pixels);
+    for(unsigned row=0;row<9;row++)for(unsigned x=60;x<130;x++)assert(pixels[(173+row)*240+x]==0x0841);
+    u.message=0;
     mc_ui_button(&e,&u,UI_ARP);screen(&e,&u,pixels);assert(pixels[120*240+26]==0x4208);
     mc_ui_encoder(&e,&u,3,-127);screen(&e,&u,pixels);assert(pixels[120*240+26]==0x2104);
     uint8_t blob[MC_RECORD_BYTES];McProject project;uint32_t sequence;
     assert(mc_encode(&e.project,1,blob,sizeof blob)>0&&!mc_decode(&project,&sequence,blob,sizeof blob));
     assert(!memcmp(project.level,e.project.level,sizeof levels));
     mc_ui_button(&e,&u,UI_GLO);assert(u.page==2);mc_ui_button(&e,&u,UI_GLO);assert(u.page==4);
-    mc_ui_button(&e,&u,UI_GLO);assert(u.page==7);mc_ui_button(&e,&u,UI_GLO);assert(u.page==9);mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==7);mc_ui_button(&e,&u,UI_GLO);assert(u.page==9);
+    mc_ui_button(&e,&u,UI_GLO);assert(u.page==10);mc_ui_button(&e,&u,UI_GLO);assert(u.page==5);
+    mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
     for(unsigned part=0;part<4;part++) {
         mc_init(&a);b=a;mc_ui_init(&u);mc_ui_button(&a,&u,UI_GLO);mc_ui_encoder(&a,&u,part+3,-127);
         if(part<3) { mc_note(&a,part,60,100,0,0);mc_note(&b,part,60,100,0,0); }
@@ -270,7 +278,7 @@ static void panel(void) {
     mc_ui_encoder(&e,&u,6,3);assert(e.project.step[e.pattern][0][step].flags<4);
     mc_ui_key(&e,&u,4,1);assert(e.project.step[e.pattern][0][step].note[0]==57);
     uint16_t pixels[240*8+2];pixels[0]=123;pixels[240*8+1]=456;
-    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<10;page++) for(unsigned row=0;row<240;row+=8) {
+    for(unsigned part=0;part<4;part++) for(unsigned page=0;page<11;page++) for(unsigned row=0;row<240;row+=8) {
         e.selected=(uint8_t)part;u.page=(uint8_t)page;mc_ui_strip(&e,&u,row,8,pixels+1);
         assert(pixels[0]==123&&pixels[240*8+1]==456);
     }
@@ -291,7 +299,7 @@ static void effects_demo(void) {
         assert(changed>0);if(fx!=2)assert(tail>0);assert(endpeak<32);
     }
     mc_demo_load(&a,1);assert(a.project.demo&&a.project.fx[0]&&mc_project_valid(&a.project));b=a;
-    mc_start(&a);mc_start(&b);assert(a.pattern==0&&a.mute==6);
+    mc_start(&a);mc_start(&b);assert(a.pattern==0&&a.mute==2);
     mc_render(&a,x,4096);for(unsigned i=0;i<4096;i+=64)mc_render(&b,y+i*2,64);
     assert(!memcmp(x,y,sizeof x));
     render_n(&a,MC_RATE*60);assert(!a.playing&&a.events>=512&&a.clips==0);
@@ -406,7 +414,24 @@ static void sorted_bank(void) {
         assert(mc_crc(x,sizeof x)==presets_012[old].pcm_crc);
     }
     uint8_t record[MC_RECORD_BYTES];for(unsigned demo=0;demo<2;demo++) {
+        McProject roundtrip;uint32_t sequence;
         mc_demo_load(&e,demo);assert(mc_encode(&e.project,1,record,sizeof record)>0);
+        assert(!mc_decode(&roundtrip,&sequence,record,sizeof record)&&sequence==1);
+        assert(!memcmp(&roundtrip,&e.project,sizeof roundtrip));
+        /* Keep the independent 0.1.2 composition fixture despite the requested
+         * new PCM/Analog demos; the original patch/PCM snapshots stay exact. */
+        if(!demo)mc_factory(&e.project);
+        else {
+            e.project.patch[2]=mc_presets[MC_PRESET_VECTOR_LEAD];
+            e.project.patch[2].attack=1;e.project.patch[2].decay=35;
+            e.project.patch[2].sustain=15;e.project.patch[2].release=22;e.project.patch[2].pcm_mix=30;
+            e.project.level[1]=112;e.project.level[2]=82;
+            for(unsigned pattern=0;pattern<4;pattern++)for(unsigned step=0;step<16;step++) {
+                McStep *s=&e.project.step[pattern][2][step];
+                if(s->note[0]){s->velocity=88;s->gate=35;}
+            }
+        }
+        assert(mc_encode(&e.project,1,record,sizeof record)>0);
         memcpy(record+2140,record+20+72+MC_PATTERNS*MC_PARTS*MC_STEPS*8,16);
         record[4]=3;record[6]=88;record[7]=8;record_crc(record,2136);
         assert(mc_crc(record,2156)==demo_012_crc[demo]);
@@ -423,7 +448,7 @@ static void sorted_bank(void) {
         assert(!mc_decode(&e.project,&seq,record,sizeof record));e.selected=(uint8_t)part;mc_ui_init(&u);
         mc_ui_encoder(&e,&u,2,1);assert(u.preset[part]==0);
     }
-    puts("PASS: 128 presets in14 contiguous families, original64 patch/PCM snapshots at legacy master=28000 and both demo project snapshots unchanged");
+    puts("PASS: 128 presets in14 families, original64 patch/PCM and legacy demo snapshots exact; new demos roundtrip");
     puts("PASS: all128 preset forward/backward wrap on each melodic part and browsing relative to loaded patch");
 }
 static void recorded_samples(void) {
@@ -521,6 +546,6 @@ static void q15_truncation(void) {
     puts("PASS: Q15 filter products preserve zero-directed truncation for both signs");
 }
 int main(void) {
-    assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35488&&MC_PROJECT_BYTES==35104);
+    assert(sizeof(McPatch)==12&&sizeof(McStep)==8&&sizeof(McProject)==35502&&MC_PROJECT_BYTES==35117);
     phrase_grid();mixer();engines();knob_audio();sequence();persistence();panel();effects_demo();kits_and_tracks();cascaded_gain();sorted_bank();recorded_samples();recorded_mix_transitions();q15_truncation();stress();puts("ALL TESTS PASSED");return 0;
 }

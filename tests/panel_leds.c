@@ -71,8 +71,27 @@ static void play_green(void) {
     puts("PASS: physical green PLAY, red die off, independent REC and held/cursor preservation");
 }
 
+static void button_backlights(void) {
+    static const uint8_t columns[14]={0,1,6,4,2,0,9,8,7,5,3,1,8,7};
+    static const uint8_t rows[14]={4,4,1,1,1,1,2,2,1,1,1,1,1,2};
+    for(unsigned state=0;state<16;state++) {
+        uint16_t mask=state==0?0:state==1?0x3fffu:(uint16_t)(0x3fffu^(1u<<(state-2)));
+        uint8_t expected[FM1_NCOL];memset(expected,0x1e,sizeof expected);
+        expected[10]&=(uint8_t)~4u;
+        for(unsigned id=0;id<14;id++) {
+            expected[columns[id]]&=(uint8_t)~(1u<<rows[id]);
+            if(mask&(1u<<id))expected[columns[id]]|=(uint8_t)(1u<<rows[id]);
+        }
+        memset(fm1_led,0x1e,sizeof fm1_led);
+        mc_panel_button_leds(mask,fm1_led_key);
+        for(unsigned col=0;col<FM1_NCOL;col++)assert(fm1_led[col]==expected[col]);
+    }
+    puts("PASS: all14 physical button backlights including both OCT, each blink-off, PLAY green/red wiring and keyboard LED isolation");
+}
+
 int main(void) {
     play_green();
+    button_backlights();
     for(unsigned id=0;id<41u;id++)leds[id]=1u;
     check(0,0,0);
     for(unsigned step=0;step<16u;step++)check(1,step,0);

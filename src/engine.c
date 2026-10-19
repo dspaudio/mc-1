@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 dspaudio */
 #include "mcfm.h"
+#include "parallel.h"
 #include "tables.h"
 #include "recorded_pcm.h"
 #include "fixed.h"
@@ -50,8 +51,21 @@ static int32_t mul(int32_t x,int32_t y) {
     int32_t product=x*y;
     return (product+(product<0?32767:0))>>15;
 }
-static uint32_t random32(McEngine *e) {
-    uint32_t r=e->random; r^=r<<13; r^=r>>17; r^=r<<5; return e->random=r;
+static uint32_t random32(uint32_t *state) {
+    uint32_t r=*state; r^=r<<13; r^=r>>17; r^=r<<5; return *state=r;
+}
+static uint32_t analog_random(McAnalogVoice *a) {
+    uint32_t r=a->random;r^=r<<13;r^=r>>17;r^=r<<5;return a->random=r;
+}
+static void analog_trigger(McAnalogVoice *a,unsigned index,unsigned note) {
+    if(!a->random)a->random=0x56415231u^(index*0x9e3779b9u)^note;
+    a->tuning=((int32_t)(analog_random(a)&1023u)-512)*3/5;
+    a->drift=0;a->target=0;a->clock=0;
+}
+static uint32_t analog_increment(uint32_t base,int32_t adjustment) {
+    int32_t delta=(int32_t)(base>>16)*adjustment+
+        mc_div_pow2((int32_t)(base&65535u)*adjustment,16);
+    return base+(uint32_t)delta;
 }
 void mc_init(McEngine *e) {
     zero(e,sizeof *e); mc_factory(&e->project); e->random=0x4d43464d;
@@ -63,6 +77,7 @@ void mc_project_defaults(McProject *p) {
     zero(p->track_fx_type,sizeof p->track_fx_type); zero(p->filter,sizeof p->filter);
     zero(p->track_filter,sizeof p->track_filter); zero(p->automation,sizeof p->automation);
     zero(p->fx_send,sizeof p->fx_send);zero(p->fx_bus_type,sizeof p->fx_bus_type);
+    zero(p->analog,sizeof p->analog);
     p->automation_count=0;p->metronome=0;
     for(unsigned i=0;i<MC_SONG_ENTRIES;i++) { p->song[i].pattern=0;p->song[i].repeats=1; }
     p->song_length=0;p->song_loop=0;p->song_mode=0;p->clock_source=0;
@@ -120,6 +135,9 @@ void mc_note(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned 
     if(!v->attack_step) v->attack_step=1;
     v->decay_step=1+32767/(880+p->decay*p->decay*6);
     v->release_step=1+32767/(440+p->release*p->release*6);
+    unsigned index=(unsigned)(v-e->voice);
+    if(e->project.analog[part])analog_trigger(&e->analog_voice[index],index,note);
+    else zero(&e->analog_voice[index],sizeof e->analog_voice[index]);
 }
 void mc_drum(McEngine *e,unsigned sound,unsigned velocity) {
     if(sound>=MC_DRUMS||!velocity||velocity>127||(e->mute&8)) return;
@@ -255,9 +273,13 @@ static void arp_trigger(McEngine *e,unsigned part,uint32_t interval) {
 static uint8_t *parameter(McProject *p,unsigned part,unsigned param) {
     if(param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE)
         return part<=MC_PARTS?&p->fx_bus_type[param-MC_PARAM_RD_TYPE]:0;
+    if(param==MC_PARAM_RD2_TYPE||param==MC_PARAM_CF2_TYPE)
+        return part<=MC_PARTS?&p->fx_bus_type[2+param-MC_PARAM_RD2_TYPE]:0;
     if(part>=MC_PARTS||param>=MC_PARAMETERS) return 0;
+    if(param==MC_PARAM_ANALOG)return part<3?&p->analog[part]:0;
     if(param==MC_PARAM_RD_SEND||param==MC_PARAM_CF_SEND) return &p->fx_send[part][param-MC_PARAM_RD_SEND];
-    if(param>=MC_PARAM_DRUM_LEVEL) return part==3?&p->drum_level[param-MC_PARAM_DRUM_LEVEL]:0;
+    if(param==MC_PARAM_RD2_SEND||param==MC_PARAM_CF2_SEND) return &p->fx_send[part][2+param-MC_PARAM_RD2_SEND];
+    if(param>=MC_PARAM_DRUM_LEVEL&&param<MC_PARAM_RD_SEND) return part==3?&p->drum_level[param-MC_PARAM_DRUM_LEVEL]:0;
     if(param<12) return part<3?((uint8_t *)&p->patch[part])+param:0;
     if(param==MC_PARAM_LEVEL) return &p->level[part];
     if(param==MC_PARAM_PAN) return &p->pan[part];
@@ -269,7 +291,8 @@ int mc_parameter_get(const McEngine *e,unsigned part,unsigned param) {
 static int parameter_apply(McEngine *e,unsigned part,unsigned param,unsigned value) {
     uint8_t *v=parameter(&e->project,part,param);
     unsigned maximum=param==0?1:param==1?2:param==2?MC_PCM_SOURCES-1:
-        param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE?7:127;
+        param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE||
+        param==MC_PARAM_RD2_TYPE||param==MC_PARAM_CF2_TYPE?7:127;
     if(!v||value>maximum) return -1;
     if(part<3&&((param==0&&value==MC_ACID&&e->project.patch[part].pcm>=MC_PCM_ATTACKS)||
        (param==2&&value>=MC_PCM_ATTACKS&&e->project.patch[part].engine==MC_ACID))) return -1;
@@ -282,7 +305,8 @@ static int parameter_apply(McEngine *e,unsigned part,unsigned param,unsigned val
     return 0;
 }
 int mc_parameter_set(McEngine *e,unsigned part,unsigned param,unsigned value) {
-    if(part<=MC_PARTS&&(param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE))part=MC_PARTS;
+    if(part<=MC_PARTS&&(param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE||
+       param==MC_PARAM_RD2_TYPE||param==MC_PARAM_CF2_TYPE))part=MC_PARTS;
     if(parameter_apply(e,part,param,value)) return -1;
     mc_midi_parameter(e,part,param,value);
     if(!e->playing||!e->recording) return 0;
@@ -478,7 +502,7 @@ static void pcm_fill(McPcmCache *c,const McRecordedLevel *level,unsigned id,unsi
     for(unsigned i=0;i<n;i++) c->data[i]=level->data[base+i];
     c->window=(uint16_t)base;c->count=(uint16_t)n;c->pcm=(uint16_t)id;c->level=(uint16_t)mip;
 }
-static inline __attribute__((always_inline)) int32_t recorded(McPcmCache *c,McVoice *v,uint32_t ratio,const McRecordedLevel *level) {
+static inline __attribute__((always_inline)) int32_t recorded(McPcmCache *c,McVoice *v,uint32_t pcm_step,const McRecordedLevel *level) {
     unsigned id=v->patch.pcm-MC_PCM_ATTACKS,mip=v->sample_level;
     unsigned pos=v->pcm_pos>>16;
     if(pos>=level->length) return 0;
@@ -496,21 +520,27 @@ static inline __attribute__((always_inline)) int32_t recorded(McPcmCache *c,McVo
     unsigned after_offset=next-c->window;
     int32_t after=after_offset<c->count?c->data[after_offset]:level->data[next];
     sample+=mc_div_pow2((after-sample)*(int32_t)(v->pcm_pos&65535),16);
-    v->pcm_pos+=(uint32_t)(((uint64_t)v->sample_step*ratio)>>16);
+    v->pcm_pos+=pcm_step;
     if(level->loop_end&&v->pcm_pos>=((uint32_t)level->loop_end<<16))
         v->pcm_pos-=((uint32_t)(level->loop_end-level->loop_start)<<16);
     return sample;
 }
 typedef struct {
     const int16_t *table;
+    McPcmCache *cache;
+    McPitchCache *pitch;
+    McAnalogVoice *analog;
     McRecordedLevel pcm;
-    uint32_t ratio,increment,second;
-    int32_t cutoff,sustain;
-    uint8_t fixed_pitch,refresh;
+    uint32_t ratio,increment,second,pcm_step;
+    uint32_t analog_increment,analog_second,analog_ratio;
+    int32_t cutoff,sustain,analog_adjustment;
+    uint8_t fixed_pitch,refresh,analog_ready,analog_amount,amount;
 } McVoiceRender;
-static void prepare_voice(const McEngine *e,const McVoice *v,unsigned index,uint32_t ratio,McVoiceRender *r) {
+static void prepare_voice(const McVoice *v,McPcmCache *cache,McPitchCache *pitch,
+    McAnalogVoice *analog,unsigned amount,uint32_t ratio,McVoiceRender *r) {
     const McPatch *p=&v->patch;
-    r->ratio=ratio;r->refresh=1;
+    r->cache=cache;r->pitch=pitch;r->analog=analog;r->amount=(uint8_t)amount;
+    r->ratio=ratio;r->refresh=1;r->analog_ready=0;r->pcm_step=0;
     r->cutoff=250+mc_div_pow2(p->cutoff*p->cutoff,1);
     if(p->engine!=MC_ACID)r->cutoff=clamp(r->cutoff,250,14000);
     r->sustain=p->sustain*258;
@@ -519,11 +549,12 @@ static void prepare_voice(const McEngine *e,const McVoice *v,unsigned index,uint
         unsigned note=v->note,band=note>=96?6:note<36?0:(((note-36)*171u)>>11)+1;
         r->table=p->wave?mc_square[band]:mc_saw[band];
     }
-    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS)
+    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS) {
         r->pcm=mc_recorded[p->pcm-MC_PCM_ATTACKS].levels[v->sample_level];
+        r->pcm_step=(uint32_t)(((uint64_t)v->sample_step*ratio)>>16);
+    }
     r->fixed_pitch=(uint8_t)(p->engine==MC_LA&&v->increment==v->target);
     if(r->fixed_pitch) {
-        const McPitchCache *pitch=&e->pitch_cache[index];
         if(pitch->base==v->increment&&pitch->ratio==ratio) {
             r->increment=pitch->increment;r->second=pitch->second;
         } else {
@@ -532,22 +563,24 @@ static void prepare_voice(const McEngine *e,const McVoice *v,unsigned index,uint
         }
     }
 }
-static __attribute__((noinline)) int32_t melodic(McEngine *e,McVoice *v,unsigned index,McVoiceRender *r) {
-    McPatch *p=&v->patch;
+static int voice_envelope(McVoice *v,int32_t sustain) {
     if(v->gate_left&&!--v->gate_left) {
-        if(v->midi_out) mc_midi_release(e,v->part,v->note);
         v->midi_out=0;v->stage=2;
     }
     if(v->stage==0) {
         v->envelope+=v->attack_step;
         if(v->envelope>=32767) { v->envelope=32767; v->stage=1; }
     } else if(v->stage==1) {
-        int32_t sustain=r->sustain;
         if(v->envelope>sustain) v->envelope=clamp(v->envelope-v->decay_step,sustain,32767);
     } else {
         v->envelope-=v->release_step;
         if(v->envelope<=0) { v->active=0; return 0; }
     }
+    return 1;
+}
+static __attribute__((noinline)) int32_t melodic(McVoice *v,unsigned index,McVoiceRender *r) {
+    McPatch *p=&v->patch;
+    if(!voice_envelope(v,r->sustain))return 0;
     unsigned moving=v->increment!=v->target;
     if(moving) {
         int32_t diff=(int32_t)v->target-(int32_t)v->increment;
@@ -555,7 +588,7 @@ static __attribute__((noinline)) int32_t melodic(McEngine *e,McVoice *v,unsigned
         if(!step) step=diff>0?1:-1;
         v->increment=(uint32_t)((int32_t)v->increment+step);
     }
-    McPitchCache *pitch=&e->pitch_cache[index];
+    McPitchCache *pitch=r->pitch;
     uint32_t increment,second;
     uint32_t ratio=r->ratio;
     if(r->fixed_pitch) {
@@ -571,17 +604,42 @@ static __attribute__((noinline)) int32_t melodic(McEngine *e,McVoice *v,unsigned
         second=increment+increment/401;
         if(!moving)*pitch=(McPitchCache){v->increment,ratio,increment,second};
     }
+    unsigned analog=r->amount;
+    if(analog) {
+        McAnalogVoice *a=r->analog;
+        if(!a->random)analog_trigger(a,index,v->note);
+        /* Q16 tuning offsets; drift carries eight fractional bits.
+         * Independent control-rate noise never consumes the drum/sequencer PRNG. */
+        if(!(a->clock&16383u))a->target=((int32_t)(analog_random(a)&255u)-128)*256;
+        unsigned update=!(a->clock&63u);
+        if(update)a->drift+=(a->target-a->drift)/64;
+        a->clock++;
+        if(!r->analog_ready||update||r->analog_amount!=analog) {
+            r->analog_adjustment=mc_div127_signal((a->tuning+mc_div_pow2(a->drift,8))*(int32_t)analog);
+            r->analog_ratio=analog_increment(ratio,r->analog_adjustment);
+            if(r->fixed_pitch) {
+                r->analog_increment=analog_increment(increment,r->analog_adjustment);
+                r->analog_second=analog_increment(second,r->analog_adjustment);
+            }
+            if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS)
+                r->pcm_step=(uint32_t)(((uint64_t)v->sample_step*r->analog_ratio)>>16);
+            r->analog_ready=1;r->analog_amount=(uint8_t)analog;
+        }
+        increment=r->fixed_pitch?r->analog_increment:analog_increment(increment,r->analog_adjustment);
+        second=r->fixed_pitch?r->analog_second:analog_increment(second,r->analog_adjustment);
+        ratio=r->analog_ratio;
+    }
     v->phase+=increment;v->phase2+=second;
     int32_t sample;
     if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS&&p->pcm_mix==127) {
-        sample=recorded(&e->pcm_cache[index],v,ratio,&r->pcm);
+        sample=recorded(r->cache,v,r->pcm_step,&r->pcm);
     } else {
         sample=oscillator(v->phase,p->wave,r->table);
         if(p->engine==MC_LA) {
             sample=mc_div_pow2(sample+oscillator(v->phase2,p->wave,r->table),1);
             unsigned pos=v->pcm_pos>>16;
             if(p->pcm>=MC_PCM_ATTACKS) {
-                int32_t pcm=recorded(&e->pcm_cache[index],v,ratio,&r->pcm);
+                int32_t pcm=recorded(r->cache,v,r->pcm_step,&r->pcm);
                 sample=mc_div127_signal(sample*(127-p->pcm_mix)+pcm*p->pcm_mix);
             } else if(pos<511) {
                 int32_t pcm=mc_attack[p->pcm][pos];
@@ -612,11 +670,11 @@ static __attribute__((noinline)) int32_t melodic(McEngine *e,McVoice *v,unsigned
     if(v->accent) x=mc_div_pow2(x*5,2);
     return x;
 }
-static int32_t percussion(McEngine *e,McDrum *d) {
+static int32_t percussion(uint32_t *random,const uint8_t level[MC_DRUMS],McDrum *d) {
     if(!d->env) return 0;
     unsigned sound=d->sound;
     const DrumKit *kit=&kits[d->kit];
-    int32_t noise=(int32_t)(random32(e)>>17)-16384, s=0;
+    int32_t noise=(int32_t)(random32(random)>>17)-16384, s=0;
     /* BD, SN, CH, OH, CP, LT, B2, RS, S2, HT, CR, RD, SH, CB, CL, MT. */
     if(sound==0||sound==6||sound==5||sound==9||sound==15) {
         unsigned hz=kit->hz[sound];
@@ -642,10 +700,28 @@ static int32_t percussion(McEngine *e,McDrum *d) {
         s=mc_div_pow2(noise-d->noise_lp,1)+((d->phase&0x80000000u)?3500:-3500);
     }
     s=mc_div127_signal(mul(s,d->env)*d->velocity);
-    s=mc_div127_signal(s*e->project.drum_level[sound]);
+    s=mc_div127_signal(s*level[sound]);
     d->env=mul(d->env,kit->decay[sound]); d->age++;
     if(d->env<16) d->env=0;
     return s;
+}
+void mc_synth_job_run(McSynthJob *job) {
+    McVoiceRender render[MC_WORKER_VOICES];
+    for(unsigned i=0;i<MC_WORKER_VOICES;i++) {
+        McWorkerVoice *v=&job->melodic[i];
+        if(v->voice.active)prepare_voice(&v->voice,&v->pcm,&v->pitch,&v->analog,v->amount,v->ratio,&render[i]);
+    }
+    for(unsigned f=0;f<job->frames;f++) {
+        for(unsigned p=0;p<3;p++)job->part[p][f]=0;
+        for(unsigned i=0;i<MC_WORKER_VOICES;i++) {
+            McVoice *v=&job->melodic[i].voice;
+            if(v->active)job->part[v->part][f]+=melodic(v,MC_LOCAL_VOICES+i,&render[i]);
+        }
+        int32_t sample=0;
+        for(unsigned i=0;i<MC_DRUM_VOICES;i++)
+            sample+=percussion(&job->random,job->level,&job->voice[i]);
+        job->sample[f]=sample;
+    }
 }
 static uint32_t limiter_target(int64_t peak) {
     uint32_t ceiling=MC_OUTPUT_CEILING;
@@ -681,19 +757,49 @@ void mc_output(McEngine *e,int32_t *left,int32_t *right) {
     if((uint32_t)ar>e->peak)e->peak=(uint32_t)ar;
     *left=clamp((int32_t)l,-32767,32767);*right=clamp((int32_t)r,-32767,32767);
 }
-void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
-    /* MIDI/tempo input precedes rendering; sequencing does not change BPM or pitch bend. */
-    uint32_t ratio[3];
-    for(unsigned part=0;part<3;part++) {
-        int bend=e->midi.bend[part];
-        ratio[part]=(uint32_t)(65536+bend*(bend<0?7150:8026)/8192);
+typedef struct {
+    McFxJob fx;
+    McSynthJob drums;
+    int32_t dry[16][2],click[16];
+    int32_t part[MC_PARTS][16];
+    uint8_t mute[16];
+    unsigned offset;
+} McRenderSlice;
+
+static unsigned render_control(McEngine *e) {
+    unsigned prepare=0;
+    for(unsigned p=0;p<3;p++) if(!e->playing&&e->project.arp[p].enabled&&e->arp[p].count) {
+        McArpState *a=&e->arp[p];
+        if(!a->clock) arp_trigger(e,p,MC_RATE*60u/(e->project.bpm*(1u<<e->project.arp[p].rate)));
+        a->clock+=e->project.bpm*(1u<<e->project.arp[p].rate);
+        if(a->clock>=MC_RATE*60u) a->clock-=MC_RATE*60u;
+        if(a->clock<e->project.bpm*(1u<<e->project.arp[p].rate)) a->clock=0;
     }
-    int32_t slice[4][16][2],click[16];uint8_t mute[16];McVoiceRender voice_render[MC_VOICES];
-    for(unsigned offset=0;offset<frames;) {
+    mc_midi_sample(e);
+    if(e->playing&&e->project.demo&&!e->project.song_mode) {
+        prepare=(e->demo_frame&63u)==0;
+        mc_demo_tick(e);e->demo_frame++;
+    }
+    if(e->playing&&!e->project.clock_source) {
+        unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
+        e->clock+=e->project.bpm*400u;
+        if(e->clock>=MC_RATE*60u*swing) {
+            e->clock-=MC_RATE*60u*swing;advance(e);
+        }
+    }
+    return prepare;
+}
+static void render_prepare(McEngine *e,McRenderSlice *out,unsigned offset,unsigned frames,
+    const uint32_t ratio[3],McRenderContext *context) {
+        uint32_t mark=mc_render_tick(context);
         unsigned count=frames-offset;if(count>16)count=16;
         /* Stopped arpeggiators may change notes on any frame; keep their preparation exact. */
         if(!e->playing)for(unsigned p=0;p<3;p++)
             if(e->project.arp[p].enabled&&e->arp[p].count)count=1;
+        if(e->playing&&e->project.demo&&!e->project.song_mode) {
+            unsigned before=64u-(e->demo_frame&63u);
+            if(count>before)count=before;
+        }
         /* FX automation changes only at a sequencer step; never cross it in a slice. */
         if(count>1&&e->playing&&!e->project.clock_source&&e->project.bpm) {
             unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
@@ -704,86 +810,193 @@ void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
                 if(count>before)count=before;
             }
         }
+        /* Control precedes the snapshot; no later frame in this slice can
+         * trigger/choke drums, change their controls, or consume their PRNG. */
+        (void)render_control(e);
+        out->offset=offset;out->fx.frames=count;out->drums.frames=0;
+        if(context&&context->dual&&context->dual->status==MC_DUAL_READY&&!MC_PROBE_SKIP(8)) {
+            for(unsigned i=0;i<MC_DRUM_VOICES;i++)out->drums.voice[i]=e->drum[i];
+            for(unsigned i=0;i<MC_DRUMS;i++)out->drums.level[i]=e->project.drum_level[i];
+            out->drums.random=e->random;out->drums.frames=count;
+            for(unsigned i=0;i<MC_WORKER_VOICES;i++) {
+                unsigned index=MC_LOCAL_VOICES+i;
+                McWorkerVoice *v=&out->drums.melodic[i];
+                v->voice=e->voice[index];v->pcm=e->pcm_cache[index];
+                v->pitch=e->pitch_cache[index];v->analog=e->analog_voice[index];
+                v->ratio=ratio[v->voice.part];v->amount=e->project.analog[v->voice.part];
+            }
+        }
+        mc_render_time(context,MC_TIME_SYNTH,mark);
+}
+static void render_synthesize(McEngine *e,McRenderSlice *out,const uint32_t ratio[3],
+    unsigned offload,McRenderContext *context) {
+        uint32_t mark=mc_render_tick(context);
+        McVoiceRender voice_render[MC_VOICES];
+        unsigned count=out->fx.frames;
         for(unsigned f=0;f<count;f++) {
             unsigned prepare=!f;
-            for(unsigned p=0;p<3;p++) if(!e->playing&&e->project.arp[p].enabled&&e->arp[p].count) {
-                McArpState *a=&e->arp[p];
-                if(!a->clock) arp_trigger(e,p,MC_RATE*60u/(e->project.bpm*(1u<<e->project.arp[p].rate)));
-                a->clock+=e->project.bpm*(1u<<e->project.arp[p].rate);
-                if(a->clock>=MC_RATE*60u) a->clock-=MC_RATE*60u;
-                if(a->clock<e->project.bpm*(1u<<e->project.arp[p].rate)) a->clock=0;
-            }
-            mc_midi_sample(e);
-            if(e->playing&&e->project.demo&&!e->project.song_mode) {
-                /* Demo controls update every 64 frames, independently of sequencer steps. */
-                prepare|=(e->demo_frame&63u)==0;
-                mc_demo_tick(e);e->demo_frame++;
-            }
-            if(e->playing&&!e->project.clock_source) {
-                unsigned swing=e->step&1?100-e->project.swing:100+e->project.swing;
-                e->clock+=e->project.bpm*400u;
-                if(e->clock>=MC_RATE*60u*swing) {
-                    e->clock-=MC_RATE*60u*swing;
-                    advance(e);
-                }
-            }
+            if(f)prepare|=render_control(e);
             int32_t part[4]={0,0,0,0};
             if(!MC_PROBE_SKIP(8)) {
-                if(prepare)for(unsigned i=0;i<MC_VOICES;i++)if(e->voice[i].active)
-                    prepare_voice(e,&e->voice[i],i,ratio[e->voice[i].part],&voice_render[i]);
-                for(unsigned i=0;i<MC_VOICES;i++)if(e->voice[i].active)
-                    part[e->voice[i].part]+=melodic(e,&e->voice[i],i,&voice_render[i]);
-                for(unsigned i=0;i<MC_DRUM_VOICES;i++) part[3]+=percussion(e,&e->drum[i]);
+                if(prepare)for(unsigned i=0;i<(offload?MC_LOCAL_VOICES:MC_VOICES);i++)if(e->voice[i].active)
+                    prepare_voice(&e->voice[i],&e->pcm_cache[i],&e->pitch_cache[i],
+                        &e->analog_voice[i],e->project.analog[e->voice[i].part],ratio[e->voice[i].part],&voice_render[i]);
+                for(unsigned i=0;i<MC_VOICES;i++)if(e->voice[i].active) {
+                    McVoice *v=&e->voice[i];
+                    if(v->gate_left==1&&v->midi_out)mc_midi_release(e,v->part,v->note);
+                    /* MIDI and envelope control stay in original per-frame order.
+                     * The private worker mirrors envelope math without MIDI I/O. */
+                    if(offload&&i>=MC_LOCAL_VOICES)(void)voice_envelope(v,v->patch.sustain*258);
+                    else part[v->part]+=melodic(v,i,&voice_render[i]);
+                }
+                if(!offload)for(unsigned i=0;i<MC_DRUM_VOICES;i++)
+                    part[3]+=percussion(&e->random,e->project.drum_level,&e->drum[i]);
             }
-            for(unsigned p=0;p<4;p++) {
-                int32_t v=mc_div127_signal(part[p]*e->project.level[p]);
-                slice[p][f][0]=mc_div127_signal(v*(127-e->project.pan[p]));
-                slice[p][f][1]=mc_div127_signal(v*e->project.pan[p]);
-            }
-            mute[f]=e->mute;click[f]=0;
+            for(unsigned p=0;p<MC_PARTS;p++)out->part[p][f]=part[p];
+            out->mute[f]=e->mute;out->click[f]=0;
             if(!e->playing||!e->recording||!e->project.metronome)e->metro_left=0;
             if(e->metro_left) {
                 e->metro_phase+=(e->metro_accent?1760u:1320u)*97392u;
                 int32_t sample=mc_sine[e->metro_phase>>22]*(e->metro_accent?1600:1200)/32768;
-                click[f]=sample*e->metro_left/(MC_RATE/50);e->metro_left--;
+                out->click[f]=sample*e->metro_left/(MC_RATE/50);e->metro_left--;
             }
             e->elapsed++;
         }
-        int32_t rd[16][2],cf[16][2];
-        unsigned rd_active=e->shared_fx.rd_active,cf_active=e->shared_fx.cf_active;
-        for(unsigned p=0;p<MC_PARTS;p++) {
-            rd_active|=e->project.fx_send[p][0];
-            cf_active|=e->project.fx_send[p][1];
+        mc_render_time(context,MC_TIME_SYNTH,mark);
+}
+static void render_route(McEngine *e,McRenderSlice *out,const McSynthJob *synth,McRenderContext *context) {
+        uint32_t mark=mc_render_tick(context);
+        unsigned count=out->fx.frames;
+        if(synth)for(unsigned f=0;f<count;f++) {
+            for(unsigned p=0;p<3;p++)out->part[p][f]+=synth->part[p][f];
+            out->part[3][f]=synth->sample[f];
+        }
+        /* Freeze every effect parameter before the next slice can advance automation. */
+        uint8_t sends[MC_PARTS][MC_FX_BANKS];
+        out->fx.bpm=e->project.bpm;out->fx.sends=0;
+        out->fx.skip=(uint8_t)((MC_PROBE_SKIP(1)?1u:0u)|(MC_PROBE_SKIP(2)?2u:0u));
+        for(unsigned bank=0;bank<MC_FX_BANKS;bank++) {
+            out->fx.type[bank]=e->project.fx_bus_type[bank];
+            for(unsigned part=0;part<MC_PARTS;part++) {
+                sends[part][bank]=e->project.fx_send[part][bank];
+                if(sends[part][bank])out->fx.sends|=(uint8_t)(1u<<bank);
+            }
         }
         for(unsigned f=0;f<count;f++) {
-            int32_t l=0,r=0,rl=0,rr=0,cl=0,cr=0;
-            for(unsigned p=0;p<MC_PARTS;p++) if(!((mute[f]>>p)&1)) {
-                int32_t pl=slice[p][f][0],pr=slice[p][f][1];
-                l+=pl;r+=pr;
-                if(e->project.fx_send[p][0]) {
-                    rl+=mc_div127_signal(pl*(int32_t)e->project.fx_send[p][0]);
-                    rr+=mc_div127_signal(pr*(int32_t)e->project.fx_send[p][0]);
+            out->dry[f][0]=out->dry[f][1]=0;
+            for(unsigned bank=0;bank<MC_FX_BANKS;bank++)out->fx.bus[bank][f][0]=out->fx.bus[bank][f][1]=0;
+        }
+        for(unsigned p=0;p<MC_PARTS;p++) {
+            int32_t part[16][2];
+            for(unsigned f=0;f<count;f++) {
+                int32_t pl=0,pr=0;
+                if(!((out->mute[f]>>p)&1)) {
+                    int32_t v=mc_div127_signal(out->part[p][f]*e->project.level[p]);
+                    pl=mc_div127_signal(v*(127-e->project.pan[p]));
+                    pr=mc_div127_signal(v*e->project.pan[p]);
                 }
-                if(e->project.fx_send[p][1]) {
-                    cl+=mc_div127_signal(pl*(int32_t)e->project.fx_send[p][1]);
-                    cr+=mc_div127_signal(pr*(int32_t)e->project.fx_send[p][1]);
+                part[f][0]=pl;part[f][1]=pr;
+                out->dry[f][0]+=pl;out->dry[f][1]+=pr;
+            }
+            /* Sends are fixed for the slice. Hoist their cases, rather than
+             * adding a gain==127 branch to every sample's hot arithmetic. */
+            for(unsigned bank=0;bank<MC_FX_BANKS;bank++) {
+                unsigned amount=sends[p][bank];
+                if(amount==127)for(unsigned f=0;f<count;f++) {
+                    out->fx.bus[bank][f][0]+=part[f][0];
+                    out->fx.bus[bank][f][1]+=part[f][1];
+                } else if(amount)for(unsigned f=0;f<count;f++) {
+                    out->fx.bus[bank][f][0]+=mc_div127_signal(part[f][0]*(int32_t)amount);
+                    out->fx.bus[bank][f][1]+=mc_div127_signal(part[f][1]*(int32_t)amount);
                 }
             }
-            slice[0][f][0]=l;slice[0][f][1]=r;
-            rd[f][0]=rl;rd[f][1]=rr;cf[f][0]=cl;cf[f][1]=cr;
         }
-        if(rd_active&&!MC_PROBE_SKIP(2))
-            mc_fx_rd_block(&e->shared_fx,e->project.bpm,e->project.fx_bus_type[0],rd,count);
-        else zero(rd,sizeof rd);
-        if(cf_active&&!MC_PROBE_SKIP(1))
-            mc_fx_cf_block(&e->shared_fx,e->project.fx_bus_type[1],cf,count);
-        else zero(cf,sizeof cf);
-        for(unsigned f=0;f<count;f++) {
-            int32_t l=mc_div3(slice[0][f][0]+mc_div_pow2(rd[f][0],1)+mc_div_pow2(cf[f][0],1))+click[f];
-            int32_t r=mc_div3(slice[0][f][1]+mc_div_pow2(rd[f][1],1)+mc_div_pow2(cf[f][1],1))+click[f];
-            mc_output(e,&l,&r);
-            stereo[(offset+f)*2]=(int16_t)l;stereo[(offset+f)*2+1]=(int16_t)r;
-        }
-        offset+=count;
+        mc_render_time(context,MC_TIME_ROUTE,mark);
+}
+void mc_render_ex(McEngine *e,int16_t *stereo,unsigned frames,McRenderContext *context) {
+    McDual *dual=context?context->dual:0;
+    if(context)for(unsigned i=0;i<MC_TIME_COUNT;i++)context->time[i]=0;
+    if(!frames)return;
+    uint32_t mark=mc_render_tick(context);
+    mc_dual_begin(dual,(unsigned)(context&&context->ticks));
+    mc_render_time(context,MC_TIME_TRANSFER,mark);
+    /* Input MIDI precedes rendering; sequencing does not alter the pitch-bend ratio.
+     * Output reads only master/limiter state, not the lookahead sequencer position. */
+    uint32_t ratio[3];
+    for(unsigned part=0;part<3;part++) {
+        int bend=e->midi.bend[part];
+        ratio[part]=(uint32_t)(65536+bend*(bend<0?7150:8026)/8192);
     }
+    McRenderSlice slice[2];
+    unsigned current=0,offset=0;
+    McRenderSlice *previous=0;
+    for(;;) {
+        McRenderSlice *next=offset<frames?&slice[current]:0;
+        if(next)render_prepare(e,next,offset,frames,ratio,context);
+        McFxJob *fx=previous?&previous->fx:0;
+        McSynthJob *drums=next&&next->drums.frames?&next->drums:0;
+        unsigned active=fx?(fx->sends|(unsigned)e->shared_fx.rd_active|
+            ((unsigned)e->shared_fx.cf_active<<1)|((unsigned)e->extra_fx.rd_active<<2)|
+            ((unsigned)e->extra_fx.cf_active<<3)):0;
+        unsigned skipped=fx?((fx->skip&1u?10u:0u)|(fx->skip&2u?5u:0u)):0;
+        McFxJob *work_fx=active&~skipped?fx:0;
+        mark=mc_render_tick(context);
+        int submitted=mc_dual_submit(dual,work_fx,&e->shared_fx,&e->extra_fx,drums);
+        mc_render_time(context,MC_TIME_TRANSFER,mark);
+        unsigned offload=(unsigned)(submitted&&drums);
+        const McSynthJob *rendered=offload?drums:0;
+        if(next)render_synthesize(e,next,ratio,offload,context);
+        uint32_t bank_ticks[MC_FX_BANKS];
+        int completed=0;
+        if(submitted) {
+            mark=mc_render_tick(context);
+            completed=mc_dual_join(dual,&e->shared_fx,&e->extra_fx,work_fx,offload?&rendered:0);
+            mc_render_time(context,MC_TIME_TRANSFER,mark);
+            if(context&&context->ticks) {
+                context->time[MC_TIME_WAIT]+=dual->wait_ticks;
+                context->time[MC_TIME_TRANSFER]-=dual->wait_ticks;
+                if(completed)for(unsigned bank=0;bank<MC_FX_BANKS;bank++)
+                    context->time[mc_fx_stage(bank)]+=dual->bank_ticks[bank];
+            }
+        }
+        if(offload) {
+            if(!completed) {
+                mark=mc_render_tick(context);mc_synth_job_run(drums);
+                mc_render_time(context,MC_TIME_SYNTH,mark);
+            }
+            mark=mc_render_tick(context);
+            for(unsigned i=0;i<MC_DRUM_VOICES;i++)e->drum[i]=rendered->voice[i];
+            e->random=rendered->random;
+            for(unsigned i=0;i<MC_WORKER_VOICES;i++) {
+                unsigned index=MC_LOCAL_VOICES+i;
+                const McWorkerVoice *v=&rendered->melodic[i];
+                e->voice[index]=v->voice;e->pcm_cache[index]=v->pcm;
+                e->pitch_cache[index]=v->pitch;e->analog_voice[index]=v->analog;
+            }
+            mc_render_time(context,MC_TIME_TRANSFER,mark);
+        }
+        if(previous&&(!completed||!work_fx)) {
+            /* This slice's input/parameters and canonical history survived partial work. */
+            mc_fx_job_run(&e->shared_fx,&e->extra_fx,fx,bank_ticks,context?context->ticks:0);
+            if(context)for(unsigned bank=0;bank<MC_FX_BANKS;bank++)
+                context->time[mc_fx_stage(bank)]+=bank_ticks[bank];
+        }
+        mark=mc_render_tick(context);
+        for(unsigned f=0;previous&&f<fx->frames;f++) {
+            int32_t l=previous->dry[f][0],r=previous->dry[f][1];
+            for(unsigned bank=0;bank<MC_FX_BANKS;bank++) {
+                l+=mc_div_pow2(fx->bus[bank][f][0],1);r+=mc_div_pow2(fx->bus[bank][f][1],1);
+            }
+            l=mc_div3(l)+previous->click[f];r=mc_div3(r)+previous->click[f];
+            mc_output(e,&l,&r);
+            stereo[(previous->offset+f)*2]=(int16_t)l;stereo[(previous->offset+f)*2+1]=(int16_t)r;
+        }
+        mc_render_time(context,MC_TIME_OUTPUT,mark);
+        if(!next)break;
+        render_route(e,next,rendered,context);
+        offset+=next->fx.frames;previous=next;current^=1u;
+    }
+}
+void mc_render(McEngine *e,int16_t *stereo,unsigned frames) {
+    mc_render_ex(e,stereo,frames,0);
 }

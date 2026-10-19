@@ -50,6 +50,10 @@ void mc_midi_parameter(McEngine *e,unsigned part,unsigned parameter,unsigned val
         mc_midi_send(e,0xb0u+e->project.midi_channel[part],parameter==MC_PARAM_RD_SEND?91u:93u,value,3);
     else if(part==4&&(parameter==MC_PARAM_RD_TYPE||parameter==MC_PARAM_CF_TYPE))
         mc_midi_send(e,0xb0u+e->project.midi_channel[0],parameter==MC_PARAM_RD_TYPE?20u:23u,value,3);
+    else if(part<4&&(parameter==MC_PARAM_RD2_SEND||parameter==MC_PARAM_CF2_SEND))
+        mc_midi_send(e,0xb0u+e->project.midi_channel[part],parameter==MC_PARAM_RD2_SEND?92u:95u,value,3);
+    else if(part==4&&(parameter==MC_PARAM_RD2_TYPE||parameter==MC_PARAM_CF2_TYPE))
+        mc_midi_send(e,0xb0u+e->project.midi_channel[0],parameter==MC_PARAM_RD2_TYPE?21u:24u,value,3);
     else if(part<4&&parameter<MC_PARAM_DRUM_LEVEL&&controls[parameter]!=255)
         mc_midi_send(e,0xb0u+e->project.midi_channel[part],controls[parameter],value,3);
 }
@@ -110,6 +114,8 @@ static void dispatch(McEngine *e,unsigned status,unsigned a,unsigned b) {
             if(a==91||a==94) { (void)mc_parameter_set(e,part,MC_PARAM_RD_SEND,b);break; }
             if(a==93) { (void)mc_parameter_set(e,part,MC_PARAM_CF_SEND,b);break; }
             if(a==20||a==23) { (void)mc_parameter_set(e,MC_PARTS,a==20?MC_PARAM_RD_TYPE:MC_PARAM_CF_TYPE,b);break; }
+            if(a==92||a==95) { (void)mc_parameter_set(e,part,a==92?MC_PARAM_RD2_SEND:MC_PARAM_CF2_SEND,b);break; }
+            if(a==21||a==24) { (void)mc_parameter_set(e,MC_PARTS,a==21?MC_PARAM_RD2_TYPE:MC_PARAM_CF2_TYPE,b);break; }
             if(a==120||a==123) {
                 mc_midi_all_off(e,part);
                 if(a==120) for(unsigned i=0;i<MC_VOICES;i++) if(e->voice[i].part==part) e->voice[i].active=0;

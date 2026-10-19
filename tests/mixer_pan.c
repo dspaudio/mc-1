@@ -25,7 +25,7 @@ static void view_toggle(void) {
     mc_ui_button(&e,&u,UI_ENV);assert(u.page==5&&u.mixer_pan==1);
     mc_ui_button(&e,&u,UI_ENV);assert(u.page==5&&u.mixer_pan==0);
     mc_ui_button(&e,&u,UI_ENV);mc_ui_button(&e,&u,UI_GLO);assert(u.page==2&&!u.mixer_pan);
-    for(unsigned i=0;i<4;i++)mc_ui_button(&e,&u,UI_GLO);
+    for(unsigned i=0;i<5;i++)mc_ui_button(&e,&u,UI_GLO);
     assert(u.page==5&&!u.mixer_pan);
     mc_ui_button(&e,&u,UI_ENV);mc_ui_button(&e,&u,UI_HOME);assert(u.page==0);
     mc_ui_button(&e,&u,UI_GLO);assert(u.page==5&&!u.mixer_pan);

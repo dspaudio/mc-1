@@ -47,18 +47,21 @@ no synth destination.
 | 7 / 10 | Track level / pan |
 | 74 / 71 | Cutoff / resonance |
 | 73 / 75 / 70 / 72 | Attack / decay / sustain / release |
-| 91 / 94 | Selected channel's R/D send (94 is an input alias) |
-| 93 | Selected channel's C/F send |
-| 20 / 23 | Global R/D / C/F type, 0–7 |
+| 91 / 94 | Selected channel's R/D1 send (94 is an input alias) |
+| 93 | Selected channel's C/F1 send |
+| 92 / 95 | Selected channel's R/D2 / C/F2 send |
+| 20 / 23 | Global R/D1 / C/F1 type, 0–7 |
+| 21 / 24 | Global R/D2 / C/F2 type, 0–7 |
 | 64 | Sustain pedal |
 | 120 / 123 | All Sound Off / All Notes Off |
 
-The two sends range from 0 to 127. Outgoing send edits use CC 91 and 93 on the
-part's configured channel. Type edits received on any configured part channel
+The four sends range from 0 to 127. Outgoing send edits use CC 91, 93, 92 and 95
+on the part's configured channel. Type edits received on any configured part channel
 select the same global bank; outgoing type edits use part 1's configured channel.
 Types use enumeration values 0–7, not a scaled 0–127 bank; larger values are
-ignored. Legacy drive, extra type and filter CCs 12, 21, 22, 24 and 25 are
-inactive. Other unmapped controls are ignored. Drum lanes map to MIDI notes
+ignored. CC 21 and 24 now select the second bank pair; hosts sending their
+formerly inactive legacy controls should remove those mappings. Legacy drive
+and filter CCs 12, 22 and 25 remain inactive. Other unmapped controls are ignored. Drum lanes map to MIDI notes
 `36, 38, 42, 46, 39, 45, 35, 37, 40, 50, 49, 51, 70, 56, 75, 47` in panel order.
 
 The selected external clock source accepts Clock (24 pulses per quarter note),

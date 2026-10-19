@@ -1,5 +1,189 @@
 # MC-1 validation record
 
+## Version 1.1.0 release identity (2026-10-19)
+
+The release configuration is dual-core 8 melodic / 3 worker, PLAY pulse on,
+performance/stage probes enabled but inactive unless requested, trace and
+voice probing off. Rebuilding after the 1.1.0 version declaration produces the
+same app SHA256 `d7654e41eb9ef375339127abed6b8bc8da026d59560d694001fbe72ba80e177f`
+and package SHA256 `e0afbf5254eb910133cfab170928dd306d5d9e8eb5a47afc29094c4906649228`
+as the independently restored and tested eight-voice image.
+The package remains 610,089 bytes; the app is 521,784 bytes. MC_VERSION is not
+an installed-version handshake: FM-1_900 remains the protocol identity.
+
+The installer additionally retains the original 1.0.2 single-core package,
+SHA256 `a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5`,
+not a single-core rebuild of the format-8 source. Version 1.1.0 project writes
+are not readable by 1.0.2. The immutable historical evidence below remains
+separate from release and deployment checks.
+
+## Authorized four-bank device trials and display revisions (2026-10-19)
+
+The subsequent authorized installation, CPU1 synthesis/FX ownership changes,
+complete maximum-load USB cohort, live program-change passes and rejected
+hardware candidates are recorded in
+[the source-pinned hardware trial history](FOUR_BANK_HARDWARE_2026-10-19.md).
+Its image/source identities are separate from the earlier host-only record below.
+
+## Historical four-bank FX-only CPU1 host candidate (2026-10-19)
+
+Current uncommitted candidate on `fix/1.0.1`, HEAD
+`869ed1265000075d0a52011d379e3da8060fcd70`. Target input fingerprint:
+`837e9986cc7bde553a9a4e0c9cc007a968cb9662c9382cf33167530b8b016792`.
+The [design](FOUR_BANKS.md) and [machine-readable record](four-bank-validation.json)
+supersede the earlier two-bank candidate below. No install, commit or publication
+was performed. Hardware performance, additional FX budget and subjective listening
+remain unverified.
+
+Implemented: four independent banks R/D1, C/F1, R/D2, C/F2. CPU1 runs all shared
+bank DSP while CPU0 synthesizes the next at-most-16-frame slice; each render call
+joins/drains before returning, without adding a block of output latency. Private
+worker state is quarantined on failure; canonical CPU0 fallback retains all eight
+melodic voices, six drums and FX. Analog is optional CPU0 voice-level tuning
+variance and smoothed random drift, not a replacement shared-bank effect.
+
+Executed checks:
+
+- A complete `make test` invocation passes: 28 native C executables and
+  47+4 Python tests. A fresh separate ASan/UBSan build of all 28 C executables
+  passes; the page-cycle test compiled before its fixture update was rebuilt
+  with identical sanitizer flags, then the complete sanitizer set passed.
+- Native and ThreadSanitizer comparisons cover **3,695,350 frames**, with exact
+  PCM and every byte of the 114,288-byte engine. All 4,096 four-bank type
+  combinations and the original 64 two-bank pairs are covered, including
+  0/1/2 Acid at eight voices and separate three-Acid monophonic operation.
+- Deterministic event gates prove FX(n)/synthesis(n+1) overlap. Small/partial
+  render calls, long tails, all-bank automation snapshots, Analog, MIDI/UI,
+  repeated start/stop/preset/demo resets, sequence wrap and partial-worker
+  failures preserve the reference output and quarantined-buffer ownership.
+- Analog zero/enabled renders are partition-independent. Live changes preserve
+  envelopes; Acid legato preserves voice identity and the original drum PRNG is
+  unaffected. Old preset PCM and reconstructed 0.1.2 demo snapshots stay exact.
+- Version 8 (35,117-byte body / 35,137-byte record) imports versions 1..7.
+  Existing A/B storage addresses and 36 KiB banks remain unchanged; 463 sampled
+  interrupted erase/page/header positions preserve the prior complete project.
+- USB audio, MIDI routing/cleanup, save isolation and OTA-entry fault tests pass.
+  Diagnostic actions 4..7 retain the original two-bank load; 8..11 explicitly
+  select four banks. Both leave Analog off for reproducible comparison.
+- Four actual pi32v2 configurations pass. Stored raw apps were independently
+  rehashed against their reports, with one identical target source fingerprint.
+  HAL/app remain `-Os`, DSP `-O2`, PLAY pulse off. Flash-off code remains
+  5,568 bytes; the CPU1 RAM idle/acknowledgement loop remains 56 bytes.
+- Twenty-four actual C-renderer captures cover SENDS/TYPES/Analog, all four
+  selected parts and zero/max values. Manual inspection and two independent
+  read-only reviews pass for new layout/state defects. Fixed bitmap fonts and
+  inherited DIM styling are not a claim of web/mobile accessibility compliance.
+- The saved prior host's 16-second factory render and the new factory render
+  match byte-for-byte (705,600 frames). This is the factory baseline, not an
+  assertion that the intentionally changed demo arrangements sound unchanged.
+
+| Build | App bytes | Globals bytes | Pool bytes |
+|---|---:|---:|---:|
+| Single, normal | 509,568 | 50,068 | 114,288 |
+| Single, profile/probe | 513,008 | 50,840 | 114,288 |
+| Dual, normal | 510,860 | 54,840 | 188,792 |
+| Dual, profile/probe | 514,444 | 55,564 | 188,792 |
+
+Normal dual versus normal single adds 1,292 app bytes, 4,772 globals bytes and
+74,504 pool bytes. The largest app leaves 67,120 bytes in the unchanged
+581,564-byte app slot. Pool use is below the 335,872-byte policy ceiling; this
+is not a statement of total free RAM. Full FX snapshot transfer is 73,888 bytes
+per render; normal 16-frame dirty history commit is at most 384 bytes plus
+metadata. Copy cost and bus/XIP contention still need real-device measurement.
+
+Both demo MP3s are generated from the actual shared engine, at 256 kbps stereo
+44.1 kHz, for 32 bars plus five seconds of tail. NIGHT CIRCUIT is 70.085 seconds;
+NEON SPIRAL is 59.857 seconds. Each original render has zero clips and voice
+steals, and zero signal in its final half-second. Re-decoding each MP3 reproduces
+the exact source frame count with nonzero audio. See the JSON for hashes:
+
+- `build/demos/night-circuit-fourfx-analog.mp3`: second part Analog 52,
+  HALL1 send 52 + PANNING DLY send 38; third part PIANO STEPS, PCM mix 108/127.
+- `build/demos/neon-spiral-fourfx-analog.mp3`: second part Analog 60,
+  PLATE send 40 + DELAY send 44; third part MARIMBA RUN, PCM mix 108/127.
+
+Shared changed C sources have clean language-server diagnostics. Existing test
+contexts that lack `-Isrc` and unavailable Python `basedpyright` are not claimed
+clean; strict native/target compilation and executed Python tests are the proof.
+The host MP3 encoder was unavailable locally and Homebrew preparation timed out;
+an ephemeral existing Linux container provided LAME 3.100 instead. No toolchain
+or encoder is bundled into the firmware.
+
+## Dual-core candidate (2026-10-19)
+
+Implemented on the existing clean `fix/1.0.1` HEAD
+`869ed1265000075d0a52011d379e3da8060fcd70`, with no commit or hardware install.
+Final uncommitted C/H/S/linker/build-script fingerprint:
+`5de4d5d1d9950f41306009a65695298138cc6a660565f6e27dfdea2f6ca09a12`.
+The fingerprint definition, every app/package hash, settings, test identities
+and log hashes are retained in [dual-core-validation.json](dual-core-validation.json).
+The [design report](DUAL_CORE.md) explains the pinned SLOOP comparison,
+ownership, synchronization basis, failure policy and hardware procedure.
+
+CPU1 executes C/F on private state while CPU0 executes R/D. Completed changes
+are committed before the existing integer mix. Failure quarantines the worker
+and re-renders from canonical state on CPU0, retaining eight melody voices,
+six drums and both FX banks. No clock-frequency, voltage, partition,
+bootloader, recovery algorithm or project-format change was made.
+
+Executed checks:
+
+- `make test render`: 27 C executables and 50 Python tests pass. Actual shared-C
+  audio is 705,600 frames, peak 26,649, zero clips and zero steals. The 0.114 s
+  host CPU time is not a device timing measurement.
+- The new actual two-thread test compares PCM and every byte of the 77,168-byte
+  engine over **1,303,670 frames**. It covers 8+6, 0/1/2 Acid, separate 3-Acid
+  mono, eight kits, all 64 FX pairs, long release/tails, glide, live ARP, demos,
+  MIDI/UI activity, repeated STOP/PLAY and presets.
+- No-start, delayed/partial work, wrong completion/result, stopped timer,
+  invalid job and sequence-wrap tests pass without consuming partial output.
+  The failed private slot remains untouched by subsequent engine resets.
+- A forced fresh ASan/UBSan build of all 27 C executables passes, including
+  recipes with their own CFLAGS. The dual-core ThreadSanitizer run passes with
+  the same 1,303,670-frame comparison. Initial sanitizer commands failed
+  because Homebrew's default compiler config named an absent MacOSX27 SDK;
+  using `--no-default-config`, the installed MacOSX15.1 SDK and deployment
+  target 15.0 resolved that environment issue without suppressing warnings.
+- Stage profiling's C/Python protocol tests pass, including frozen-window
+  identity, stale/OTA rejection, backpressure and complete page assembly.
+  Existing USB ring/publication-order, MIDI, storage and OTA entry tests pass.
+- Four pi32v2 builds pass with app/HAL `-Os`, DSP `-O2` and LED pulse off.
+  Flash-off call checks, section bounds and CPU1 RAM-loop call checks pass.
+  Disassembly shows the idle polling/acknowledgement remains in 56 bytes of
+  internal RAM and completion follows return from the indirect XIP worker.
+- The actual dual-profile package passes SDK hash, CRC and LZ4 checks, and
+  native OTA/loader fault simulations. It is **not installed**:
+  `build/dualcore-package/mc-1-EXPERIMENTAL.fwsc`, 610,089 bytes,
+  SHA256 `d38f476719ed6f50e089653c3b7f5a8fd2c43b73ecd692d4f53c58cd861bfe13`.
+
+| Build | App bytes | Globals bytes | Pool bytes | Flash-off RAM | CPU1 RAM |
+|---|---:|---:|---:|---:|---:|
+| Pre-change HEAD, non-probe | 505,004 | 50,052 | 77,168 | 5,568 | 0 |
+| Current single, non-probe | 506,140 | 50,052 | 77,168 | 5,568 | 0 |
+| Current dual, non-probe | 507,212 | 59,176 | 77,168 | 5,568 | 56 |
+| Current single, stage/probe | 509,276 | 50,776 | 77,168 | 5,568 | 0 |
+| Current dual, stage/probe | 510,524 | 59,852 | 77,168 | 5,568 | 56 |
+
+Non-probe dual versus current single adds 1,072 app bytes and 9,124 globals
+bytes, including CPU1's 4,096/512-byte user/supervisor stacks and 96 guard
+bytes. The largest app has 71,040 bytes left in the unchanged 581,564-byte
+slot. Globals remain below the 65,536-byte release ceiling; pool remains
+77,168 bytes against the 335,872-byte policy ceiling. These are static sizes,
+not free RAM or observed stack high-water.
+
+Shared C and new C tests have clean language-server diagnostics. The host
+language server cannot compile pi32v2 sections/includes and Python's
+basedpyright is unavailable; actual target warnings-as-errors builds and
+Python execution are the evidence, not a claim that those LSP checks passed.
+
+**Hardware and FX budget:** no CPU1 boot, real-time timing, bus/cache contention,
+stack high-water, safe-hold fault, actual USB or save/update device test was
+performed. The default remains `MC_DUAL_CORE=0`; enable the candidate only
+for separately approved testing. No measured extra FX budget or speedup is
+claimed. Both the old failing `c5940277...` record and the later successful
+`a09e763e...` records were read from the parent workspace's raw evidence and
+kept distinct; neither validates this new binary.
+
 ## 1.0.2 official V15 application restore (2026-10-18)
 
 The installer accepts the user's original V15 file only at 699,956 bytes and
@@ -505,8 +689,10 @@ During this earlier comparison, the device ran the XIP, steady-PLAY-LED diagnost
 Installation and reboot completed successfully. The user reports that the
 PLAY/STOP pop on the headphone/line output is not audible with this comparison
 build and explicitly chose steady PLAY illumination for this release.
-`MC_PLAY_LED_PULSE` now defaults to 0; pulsing remains an explicit diagnostic
-option. The observation does not distinguish LED current coupling from execution
+At that revision, `MC_PLAY_LED_PULSE` defaulted to 0; pulsing was an explicit diagnostic
+option. The user's October 19 request supersedes that choice: the current default
+is 1, using quarter-note sequencer-synchronized green PLAY blinking.
+The earlier observation does not distinguish LED current coupling from execution
 timing, nor establish that every noise condition is resolved.
 
 The user also reports that GLASS BELL currently sounds acceptable and playback

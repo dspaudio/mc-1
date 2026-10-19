@@ -82,15 +82,17 @@ static void demos(void) {
         assert(gain>14.0&&gain<15.7&&!a.clips&&a.peak<=MC_OUTPUT_CEILING);
         {
             for(unsigned part=0;part<4;part++)assert(a.project.fx_send[part][0]);
-            assert(a.project.fx_send[1][0]==112);
-            assert(a.project.fx_send[1][1]&&a.project.fx_send[2][1]);
+            assert(a.project.fx_bus_type[0]<6&&a.project.fx_bus_type[2]>=6);
+            assert(a.project.fx_send[1][0]&&a.project.fx_send[1][2]&&a.project.analog[1]);
+            assert(a.project.patch[2].engine==MC_LA&&a.project.patch[2].pcm>=MC_PCM_ATTACKS);
+            assert(a.project.patch[2].pcm_mix>=96&&a.project.patch[2].pcm_mix<127);
             mc_demo_load(&a,demo);mc_demo_load(&b,demo);
             memset(b.project.fx_send,0,sizeof b.project.fx_send);
             mc_start(&a);mc_start(&b);uint64_t dry=0,difference=0;
             for(unsigned offset=0;offset<frames;) {
                 unsigned n=frames-offset>4096?4096:frames-offset;
                 mc_render(&a,x,n);mc_render(&b,y,n);
-                if(!offset)assert(a.shared_fx.rd_active&&a.shared_fx.cf_active);
+                if(!offset)assert(a.shared_fx.rd_active&&a.shared_fx.cf_active&&a.extra_fx.rd_active&&a.extra_fx.cf_active);
                 for(unsigned i=0;i<n*2;i++) {
                     int32_t delta=(int32_t)x[i]-y[i];
                     dry+=(uint64_t)((int32_t)y[i]*y[i]);
@@ -98,9 +100,9 @@ static void demos(void) {
                 }
                 offset+=n;
             }
-            /* The dry control retains the independent pre-removal reference. */
+            /* Golden dry level for the requested PCM/Analog demo arrangement. */
             double dry_rms=10*log10((double)dry/(frames*2.0*32768.0*32768.0));
-            if(demo==1)assert(fabs(dry_rms+23.071376477)<0.1);
+            if(demo==1)assert(fabs(dry_rms+22.756273789)<0.1);
             assert(difference>dry/10000&&!a.clips&&!b.clips);
             printf("Demo %u wet/dry difference energy=%.6f, both shared banks active\n",
                 demo,(double)difference/(double)dry);

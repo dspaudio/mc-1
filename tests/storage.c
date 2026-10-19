@@ -56,11 +56,14 @@ static void cut_at(unsigned cutoff) {
     assert(!memcmp(&loaded,&original,sizeof loaded));guards();
 }
 int main(void) {
-    assert(MC_RECORD_BYTES==35124&&MC_STORE_BYTES==36864);
+    assert(MC_RECORD_BYTES==35137&&MC_STORE_BYTES==36864);
     assert(MC_STORE_A==0x99000&&MC_STORE_B==0xa2000&&MC_STORE_END==0xab000);
     mc_factory(&original);
     original.fx_send[0][0]=127;original.fx_send[3][1]=93;
     original.fx_bus_type[0]=7;original.fx_bus_type[1]=5;
+    original.fx_send[1][2]=127;original.fx_send[2][3]=84;
+    original.fx_bus_type[2]=6;original.fx_bus_type[3]=7;
+    original.analog[0]=127;original.analog[1]=73;original.analog[2]=31;
     changed=original;changed.bpm=142;
     changed.step[63][2][15].note[0]=99;changed.step[63][2][15].velocity=101;changed.step[63][2][15].gate=75;
     assert(mc_project_valid(&original)&&mc_project_valid(&changed));
@@ -112,7 +115,7 @@ int main(void) {
     changed=loaded;
     assert(!mc_store_save(&io,&loaded));
     assert(mc_store_load(&io,&loaded,&seq)==1&&seq==43&&!memcmp(&loaded,&changed,sizeof loaded));
-    assert(flash[MC_STORE_B-BASE+4]==7);guards();
-    puts("PASS: fixed-size v6 bank migrates and saves as v7 without changing storage ranges");
+    assert(flash[MC_STORE_B-BASE+4]==8);guards();
+    puts("PASS: fixed-size v6 bank migrates and saves as v8 without changing storage ranges");
     return 0;
 }

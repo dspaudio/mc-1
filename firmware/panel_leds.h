@@ -2,6 +2,10 @@
 #pragma once
 #include <stdint.h>
 
+static inline void mc_panel_button_leds(uint16_t mask,void (*set_key)(uint32_t,int)) {
+    for(unsigned id=0;id<14u;id++)set_key(id,(int)((mask>>id)&1u));
+}
+
 static inline void mc_panel_key_leds(unsigned playing,unsigned step,uint32_t held,
                                      void (*set_key)(uint32_t,int)) {
     /* Held keys and the white-key step cursor share the same physical LEDs. */

@@ -5,18 +5,21 @@
 #include <stdint.h>
 #include "presets.h"
 #include "midi.h"
-#define MC_VERSION "1.0.2"
+#define MC_VERSION "1.1.0"
 #define MC_RATE 44100
 #define MC_MASTER_MAX (6u*32768u)
 #define MC_MASTER_DEFAULT (6u*28000u)
 #define MC_PCM_WINDOW 128
 #define MC_OUTPUT_CEILING 30000
+#ifndef MC_VOICES
 #define MC_VOICES 8
+#endif
 #define MC_DRUMS 16
 #define MC_DRUM_VOICES 6
 #define MC_PATTERNS 64
 #define MC_STEPS 16
 #define MC_PARTS 4
+#define MC_FX_BANKS 4
 #define MC_PRESETS 128
 #define MC_PCM_ATTACKS 24
 #define MC_RECORDED_SAMPLES 16
@@ -25,8 +28,8 @@
 #define MC_AUTOMATION 384
 #define MC_ARP_KEYS 32
 #define MC_SONG_ENTRIES 128
-#define MC_PROJECT_BYTES 35104
-#define MC_PROJECT_VERSION 7
+#define MC_PROJECT_BYTES 35117
+#define MC_PROJECT_VERSION 8
 #define MC_RECORD_BYTES (MC_PROJECT_BYTES + 20)
 enum { MC_LA, MC_ACID };
 enum { MC_ACCENT=1, MC_SLIDE=2, MC_TIE=4 };
@@ -35,7 +38,9 @@ enum { MC_PARAM_LEVEL=12, MC_PARAM_PAN, MC_PARAM_DELAY, MC_PARAM_REVERB,
     MC_PARAM_DRIVE, MC_PARAM_MOD, MC_PARAM_DELAY_TYPE, MC_PARAM_REVERB_TYPE,
     MC_PARAM_DRIVE_TYPE, MC_PARAM_MOD_TYPE, MC_PARAM_HPF, MC_PARAM_LPF, MC_PARAM_DRUM_LEVEL,
     MC_PARAM_RD_SEND=MC_PARAM_DRUM_LEVEL+MC_DRUMS, MC_PARAM_CF_SEND,
-    MC_PARAM_RD_TYPE, MC_PARAM_CF_TYPE, MC_PARAMETERS };
+    MC_PARAM_RD_TYPE, MC_PARAM_CF_TYPE,
+    MC_PARAM_RD2_SEND, MC_PARAM_CF2_SEND, MC_PARAM_RD2_TYPE, MC_PARAM_CF2_TYPE,
+    MC_PARAM_ANALOG, MC_PARAMETERS };
 typedef struct { uint8_t enabled, mode, rate, octaves, gate, latch; } McArp;
 typedef struct { uint16_t address; uint8_t step, parameter, value; } McAutomation;
 typedef struct {
@@ -66,7 +71,8 @@ typedef struct {
     McAutomation automation[MC_AUTOMATION];
     McSongEntry song[MC_SONG_ENTRIES];
     uint8_t song_length, song_loop, song_mode, midi_channel[4], clock_source;
-    uint8_t fx_send[MC_PARTS][2], fx_bus_type[2];
+    uint8_t fx_send[MC_PARTS][MC_FX_BANKS], fx_bus_type[MC_FX_BANKS];
+    uint8_t analog[3];
 } McProject;
 typedef struct {
     uint32_t phase, phase2, increment, target, pcm_pos, gate_left, age, sample_step;
@@ -102,6 +108,11 @@ typedef struct {
 typedef struct { int16_t data[MC_PCM_WINDOW]; uint16_t window, count, pcm, level; } McPcmCache;
 /* Exact phase increments keyed by the source increment and Q16 bend ratio. */
 typedef struct { uint32_t base, ratio, increment, second; } McPitchCache;
+typedef struct {
+    uint32_t random;
+    int32_t tuning,drift,target;
+    uint16_t clock;
+} McAnalogVoice;
 typedef struct McEngine {
     McProject project;
     McVoice voice[MC_VOICES];
@@ -123,6 +134,8 @@ typedef struct McEngine {
     uint8_t live_keys[3][16], key_slide[3];
     McPitchCache pitch_cache[MC_VOICES];
     McSharedFx shared_fx;
+    McSharedFx extra_fx;
+    McAnalogVoice analog_voice[MC_VOICES];
 } McEngine;
 extern const McPatch mc_presets[MC_PRESETS];
 extern const char *const mc_preset_names[MC_PRESETS];

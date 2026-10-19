@@ -72,8 +72,7 @@ jobs:
           git -C /tmp/mcfm-sdk sparse-checkout set cpu/wl82/tools
           test "$(git -C /tmp/mcfm-sdk rev-parse HEAD)" = d179b4484759423312073f5fbb232501aa491047
           python3 tools/build_package.py
-          diff docs/target-report.json build/target-report.json
-          diff docs/package-report.json build/package-report.json
+          python3 tools/check_target_reports.py
           cc -O1 -g -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ldr_test.c -o build/ldr-test
           build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
           cc -O1 -g -std=c11 -Wall -Wextra -Werror -Wno-unused-function -fsanitize=address,undefined -fno-sanitize-recover=all tests/ota_test.c -o build/test-ota-sanitized

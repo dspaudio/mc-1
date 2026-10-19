@@ -15,7 +15,7 @@ static void crc(void) {
     v=mc_crc(record,16);for(unsigned i=0;i<4;i++) record[16+i]=(uint8_t)(v>>(i*8));
 }
 static unsigned legacy(unsigned version) {
-    static const unsigned sizes[6]={2112,2120,2136,3726,34830,35094};
+    static const unsigned sizes[7]={2112,2120,2136,3726,34830,35094,35104};
     unsigned body=sizes[version-1];
     assert(mc_encode(&e.project,77,current,sizeof current)==MC_RECORD_BYTES);
     memset(record,0,sizeof record);
@@ -37,20 +37,26 @@ static unsigned legacy(unsigned version) {
     return body+20;
 }
 static void shared_fx_validation(void) {
+    static const unsigned sends[MC_FX_BANKS]={MC_PARAM_RD_SEND,MC_PARAM_CF_SEND,MC_PARAM_RD2_SEND,MC_PARAM_CF2_SEND};
+    static const unsigned types[MC_FX_BANKS]={MC_PARAM_RD_TYPE,MC_PARAM_CF_TYPE,MC_PARAM_RD2_TYPE,MC_PARAM_CF2_TYPE};
     uint32_t seq=0;
     mc_init(&e);
-    for(unsigned t=0;t<MC_PARTS;t++) for(unsigned bus=0;bus<2;bus++) {
-        e.project.fx_send[t][bus]=(uint8_t)(t*32+bus*31);
+    for(unsigned t=0;t<MC_PARTS;t++) for(unsigned bus=0;bus<MC_FX_BANKS;bus++) {
+        e.project.fx_send[t][bus]=(uint8_t)(t*27+bus*13);
     }
-    e.project.fx_bus_type[0]=7;e.project.fx_bus_type[1]=6;
-    e.project.automation_count=10;
-    for(unsigned t=0;t<4;t++) for(unsigned bus=0;bus<2;bus++)
-        e.project.automation[t*2+bus]=(McAutomation){(uint16_t)(63*5+t),15,(uint8_t)(MC_PARAM_RD_SEND+bus),127};
-    for(unsigned bus=0;bus<2;bus++)
-        e.project.automation[8+bus]=(McAutomation){319,15,(uint8_t)(MC_PARAM_RD_TYPE+bus),7};
-    assert(mc_encode(&e.project,99,record,sizeof record)==35124&&record[4]==7);
-    assert(!memcmp(record+20+35094,e.project.fx_send,8));
+    for(unsigned bus=0;bus<MC_FX_BANKS;bus++) e.project.fx_bus_type[bus]=(uint8_t)(7-bus);
+    e.project.automation_count=20;
+    for(unsigned t=0;t<4;t++) for(unsigned bus=0;bus<MC_FX_BANKS;bus++)
+        e.project.automation[t*MC_FX_BANKS+bus]=(McAutomation){(uint16_t)(63*5+t),15,(uint8_t)sends[bus],127};
+    for(unsigned bus=0;bus<MC_FX_BANKS;bus++)
+        e.project.automation[16+bus]=(McAutomation){319,15,(uint8_t)types[bus],7};
+    assert(mc_encode(&e.project,99,record,sizeof record)==35137&&record[4]==8);
+    for(unsigned t=0;t<MC_PARTS;t++) {
+        assert(!memcmp(record+20+35094+t*2,e.project.fx_send[t],2));
+        assert(!memcmp(record+20+35104+t*2,e.project.fx_send[t]+2,2));
+    }
     assert(!memcmp(record+20+35102,e.project.fx_bus_type,2));
+    assert(!memcmp(record+20+35112,e.project.fx_bus_type+2,2));
     assert(!mc_decode(&p,&seq,record,sizeof record)&&seq==99&&!memcmp(&p,&e.project,sizeof p));
     McAutomation saved=e.project.automation[9];
     e.project.automation[9]=e.project.automation[8];
@@ -59,42 +65,52 @@ static void shared_fx_validation(void) {
     memcpy(record+20+32910+9*5,record+20+32910+8*5,5);crc();
     assert(mc_record_valid(record,sizeof record,0)<0);
     assert(mc_encode(&e.project,99,record,sizeof record)>0);
-    for(unsigned i=0;i<10;i++) {
+    for(unsigned i=0;i<20;i++) {
         unsigned off=20+35094+i;uint8_t saved=record[off];
-        record[off]=(uint8_t)(i<8?128:8);crc();
+        record[off]=(uint8_t)(i%10<8?128:8);crc();
         assert(mc_record_valid(record,sizeof record,0)<0&&mc_decode(&p,&seq,record,sizeof record)<0);
         record[off]=saved;crc();
     }
-    for(unsigned t=0;t<4;t++) for(unsigned bus=0;bus<2;bus++) {
+    for(unsigned t=0;t<4;t++) for(unsigned bus=0;bus<MC_FX_BANKS;bus++) {
         uint8_t saved=e.project.fx_send[t][bus];e.project.fx_send[t][bus]=128;
         assert(!mc_project_valid(&e.project)&&mc_encode(&e.project,0,record,sizeof record)<0);
         e.project.fx_send[t][bus]=saved;
     }
-    for(unsigned bus=0;bus<2;bus++) {
+    for(unsigned bus=0;bus<MC_FX_BANKS;bus++) {
         e.project.fx_bus_type[bus]=8;assert(!mc_project_valid(&e.project));e.project.fx_bus_type[bus]=7;
     }
     e.project.automation_count=1;memset(e.project.automation,0,sizeof e.project.automation);
     for(unsigned param=MC_PARAM_DRUM_LEVEL;param<MC_PARAMETERS;param++) for(unsigned part=0;part<5;part++) {
-        int valid=param<MC_PARAM_RD_SEND?part==3:param<MC_PARAM_RD_TYPE?part<4:part==4;
-        e.project.automation[0]=(McAutomation){(uint16_t)part,0,(uint8_t)param,(uint8_t)(param<MC_PARAM_RD_TYPE?127:7)};
+        unsigned type=param==MC_PARAM_RD_TYPE||param==MC_PARAM_CF_TYPE||param==MC_PARAM_RD2_TYPE||param==MC_PARAM_CF2_TYPE;
+        int valid=param<MC_PARAM_RD_SEND?part==3:type?part==4:param==MC_PARAM_ANALOG?part<3:part<4;
+        e.project.automation[0]=(McAutomation){(uint16_t)part,0,(uint8_t)param,(uint8_t)(type?7:127)};
         assert(mc_project_valid(&e.project)==valid);
         if(valid) {
             assert(mc_encode(&e.project,0,record,sizeof record)>0);
             assert(!mc_record_valid(record,sizeof record,0));
-            record[20+32910]=(uint8_t)(param<MC_PARAM_RD_SEND?0:param<MC_PARAM_RD_TYPE?4:3);crc();
+            record[20+32910]=(uint8_t)(param<MC_PARAM_RD_SEND?0:type?3:4);crc();
             assert(mc_record_valid(record,sizeof record,0)<0);
             assert(mc_encode(&e.project,0,record,sizeof record)>0);
-            record[20+32910+4]=(uint8_t)(param<MC_PARAM_RD_TYPE?128:8);crc();
+            record[20+32910+4]=(uint8_t)(type?8:128);crc();
             assert(mc_record_valid(record,sizeof record,0)<0);
-            e.project.automation[0].value=(uint8_t)(param<MC_PARAM_RD_TYPE?128:8);
+            e.project.automation[0].value=(uint8_t)(type?8:128);
             assert(!mc_project_valid(&e.project));
         }
     }
-    puts("PASS: v7 FX wire append, full roundtrip, send/type bounds and canonical automation scope");
+    puts("PASS: v8 four-bank FX append, full roundtrip, send/type bounds and canonical automation scope");
 }
 static void fx_migration(void) {
     static const uint8_t rd[2][4]={{6,6,7,6},{0,3,5,2}},cf[3]={0,1,5};
     uint32_t seq=0;
+    mc_init(&e);e.project.fx_send[3][0]=93;e.project.fx_bus_type[0]=7;
+    e.project.fx_send[2][1]=82;e.project.fx_bus_type[1]=5;
+    unsigned v7_bytes=legacy(7);
+    assert(!mc_decode(&p,&seq,record,v7_bytes)&&seq==77);
+    assert(!memcmp(&p,&e.project,sizeof p));
+    assert(!p.fx_send[0][2]&&!p.fx_send[3][3]&&!p.fx_bus_type[2]&&!p.fx_bus_type[3]);
+    e.project.automation_count=1;
+    e.project.automation[0]=(McAutomation){0,0,MC_PARAM_RD2_SEND,90};
+    v7_bytes=legacy(7);assert(mc_record_valid(record,v7_bytes,0)<0);
     for(unsigned version=1;version<=6;version++) {
         mc_init(&e);e.project.drum_kit=0;
         memset(e.project.track_fx,0,sizeof e.project.track_fx);
@@ -199,7 +215,7 @@ int main(void) {
     mc_stop(&e);assert(!mc_song_length(&e,128));
     for(unsigned i=0;i<128;i++) assert(!mc_song_set(&e,i,i%64,i%16+1));
     e.project.song_mode=1;e.project.midi_channel[0]=15;e.project.clock_source=2;
-    assert(mc_encode(&e.project,99,record,sizeof record)==MC_RECORD_BYTES&&record[4]==7);
+    assert(mc_encode(&e.project,99,record,sizeof record)==MC_RECORD_BYTES&&record[4]==MC_PROJECT_VERSION);
     uint32_t sequence=0;assert(!mc_decode(&p,&sequence,record,sizeof record)&&sequence==99);
     assert(!memcmp(&p,&e.project,sizeof p));
     record[20+34830+1]=0;crc();assert(mc_decode(&p,&sequence,record,sizeof record)<0);
@@ -222,5 +238,5 @@ int main(void) {
         }
         assert(found);
     }
-    printf("PASS song: repeats, bar boundaries, end, loop, continue, 128 entries, v7 roundtrip/v5 import; record=%u\n",MC_RECORD_BYTES);
+    printf("PASS song: repeats, bar boundaries, end, loop, continue, 128 entries, current roundtrip/v5 import; record=%u\n",MC_RECORD_BYTES);
 }

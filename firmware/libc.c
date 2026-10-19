@@ -2,9 +2,19 @@
  * Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments */
 /* The few libc routines the compiler may call implicitly (struct copies,
  * zeroing). Freestanding: no other libc. */
+#include <stdint.h>
+typedef uint64_t McMemoryWord __attribute__((__may_alias__));
+typedef uint32_t McMemoryHalf __attribute__((__may_alias__));
 void *memset(void *d, int c, unsigned n)
 {
     unsigned char *p = d;
+    while(n&&((uintptr_t)p&7u)){*p++=(unsigned char)c;n--;}
+    uint64_t word=(unsigned char)c;
+    word|=word<<8;word|=word<<16;word|=word<<32;
+    McMemoryWord *wide=(McMemoryWord *)p;
+    while(n>=32){wide[0]=word;wide[1]=word;wide[2]=word;wide[3]=word;wide+=4;n-=32;}
+    while(n>=8){*wide++=word;n-=8;}
+    p=(unsigned char *)wide;
     while (n--)
         *p++ = (unsigned char)c;
     return d;
@@ -14,6 +24,25 @@ void *memcpy(void *d, const void *s, unsigned n)
 {
     unsigned char *p = d;
     const unsigned char *q = s;
+    if(n>=4&&((uintptr_t)p&7u)==4u&&((uintptr_t)q&7u)==4u) {
+        *(McMemoryHalf *)p=*(const McMemoryHalf *)q;p+=4;q+=4;n-=4;
+    }
+    if(!(((uintptr_t)p|(uintptr_t)q)&7u)) {
+        McMemoryWord *wide=(McMemoryWord *)p;
+        const McMemoryWord *read=(const McMemoryWord *)q;
+        while(n>=32) {
+            wide[0]=read[0];wide[1]=read[1];wide[2]=read[2];wide[3]=read[3];
+            wide+=4;read+=4;n-=32;
+        }
+        while(n>=8){*wide++=*read++;n-=8;}
+        p=(unsigned char *)wide;q=(const unsigned char *)read;
+    }
+    if(!(((uintptr_t)p|(uintptr_t)q)&3u)) {
+        McMemoryHalf *half=(McMemoryHalf *)p;
+        const McMemoryHalf *read=(const McMemoryHalf *)q;
+        while(n>=4){*half++=*read++;n-=4;}
+        p=(unsigned char *)half;q=(const unsigned char *)read;
+    }
     while (n--)
         *p++ = *q++;
     return d;

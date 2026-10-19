@@ -1,0 +1,147 @@
+{
+  "format": "mc1-dual-core-validation/1",
+  "date": "2026-10-19",
+  "source_commit": "869ed1265000075d0a52011d379e3da8060fcd70",
+  "source_dirty": true,
+  "source_input_sha256": "5de4d5d1d9950f41306009a65695298138cc6a660565f6e27dfdea2f6ca09a12",
+  "source_fingerprint_definition": "build_target.py: sorted src/firmware C,H,S,ld files, then tools/build_target.py; each relative path, NUL, raw bytes, NUL",
+  "branch": "fix/1.0.1",
+  "committed": false,
+  "hardware_installed": false,
+  "hardware_performance_verified": false,
+  "additional_fx_budget_verified_ticks": null,
+  "invariants": {
+    "melodic_voices": 8,
+    "drum_voices": 6,
+    "acid_is_monophonic_per_part": true,
+    "project_version": 7,
+    "engine_bytes": 77168,
+    "voice_shedding": false,
+    "automatic_fx_bypass": false,
+    "frequency_voltage_partition_bootloader_changes": false
+  },
+  "toolchain": {
+    "archive": "jieli-linux-toolchains-20260730.1",
+    "compiler": "clang 4.0.1 pi32v2",
+    "host": "Darwin arm64; target compiler in linux/amd64 Docker",
+    "app_optimization": "-Os",
+    "dsp_optimization": "-O2",
+    "play_led_pulse": false
+  },
+  "builds": [
+    {
+      "configuration": "single",
+      "MC_DUAL_CORE": 0,
+      "MC_RENDER_PROFILE": 0,
+      "MC_PERF_PROBE": 0,
+      "app_bytes": 506140,
+      "data_bss_bytes": 50052,
+      "pool_bytes": 77168,
+      "ram_text_bytes": 5568,
+      "cpu1_ram_text_bytes": 0,
+      "app_sha256": "ed3706747761c9418089e0cf22e12998fad35924d1ea13abfb93e8e23dc8ad42"
+    },
+    {
+      "configuration": "dual",
+      "MC_DUAL_CORE": 1,
+      "MC_RENDER_PROFILE": 0,
+      "MC_PERF_PROBE": 0,
+      "app_bytes": 507212,
+      "data_bss_bytes": 59176,
+      "pool_bytes": 77168,
+      "ram_text_bytes": 5568,
+      "cpu1_ram_text_bytes": 56,
+      "app_sha256": "df74bc4fe2438c564cf3d87060e8419fe3d10b895bd678c3692fdb67f6f4575a"
+    },
+    {
+      "configuration": "single-profile",
+      "MC_DUAL_CORE": 0,
+      "MC_RENDER_PROFILE": 1,
+      "MC_PERF_PROBE": 1,
+      "app_bytes": 509276,
+      "data_bss_bytes": 50776,
+      "pool_bytes": 77168,
+      "ram_text_bytes": 5568,
+      "cpu1_ram_text_bytes": 0,
+      "app_sha256": "12fd8425ef34cd9ee142984aec5a818946e72a2bf64a5daf11a6bfeea41da13e"
+    },
+    {
+      "configuration": "dual-profile",
+      "MC_DUAL_CORE": 1,
+      "MC_RENDER_PROFILE": 1,
+      "MC_PERF_PROBE": 1,
+      "app_bytes": 510524,
+      "data_bss_bytes": 59852,
+      "pool_bytes": 77168,
+      "ram_text_bytes": 5568,
+      "cpu1_ram_text_bytes": 56,
+      "app_sha256": "856ce5f9111d19e5eed3d7caeb07524d898c9feb8993a53fad33c2dbb9aa4b80"
+    }
+  ],
+  "pre_change_nonprobe_baseline": {
+    "source_commit": "869ed1265000075d0a52011d379e3da8060fcd70",
+    "app_bytes": 505004,
+    "data_bss_bytes": 50052,
+    "pool_bytes": 77168,
+    "app_sha256": "b412b2718562408876644a25676db4c0db4b05dff8b9642fe85b7d762ca04e55"
+  },
+  "candidate_package": {
+    "configuration": "dual-profile",
+    "path": "build/dualcore-package/mc-1-EXPERIMENTAL.fwsc",
+    "bytes": 610089,
+    "sha256": "d38f476719ed6f50e089653c3b7f5a8fd2c43b73ecd692d4f53c58cd861bfe13",
+    "app_sha256": "856ce5f9111d19e5eed3d7caeb07524d898c9feb8993a53fad33c2dbb9aa4b80",
+    "loader_bytes": 8212,
+    "sdk_commit": "d179b4484759423312073f5fbb232501aa491047",
+    "format_crc_lz4_sdk_checks": "pass",
+    "ota_and_loader_fault_simulations": "pass",
+    "device_installed": false
+  },
+  "checks": {
+    "native_c_executables": 27,
+    "python_tests": 50,
+    "native_exit_code": 0,
+    "asan_ubsan_all_c_exit_code": 0,
+    "thread_sanitizer_exit_code": 0,
+    "dualcore_frames_bit_identical": 1303670,
+    "complete_engine_bytes_compared_each_block": 77168,
+    "render_frames": 705600,
+    "render_peak": 26649,
+    "render_clips": 0,
+    "render_steals": 0,
+    "host_render_cpu_seconds_not_device_evidence": 0.114,
+    "shared_c_and_test_lsp": "no diagnostics",
+    "target_lsp": "host clang lacks pi32v2 include/section context; actual -Werror builds passed",
+    "python_lsp": "basedpyright unavailable; runtime tests passed",
+    "initial_sanitizer_attempt": "environment-only failure: Homebrew default config referenced absent MacOSX27.sdk",
+    "successful_sanitizer_toolchain": "Homebrew clang 23.1.3 --no-default-config -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.1.sdk -mmacosx-version-min=15.0"
+  },
+  "coverage": [
+    "8 melodic + 6 drums, Acid counts 0/1/2; 3 Acid separately",
+    "8 kits and all 64 R/D-C/F combinations",
+    "long releases, residual tails with sends removed, stopped live ARP and overlapping glide",
+    "both demos, MIDI control bytes, UI strip generation, repeated STOP/PLAY and preset changes",
+    "CPU1 no-start, delayed job, partial private-state write, wrong completion number, wrong result",
+    "stuck timer with bounded spin cap, sequence wrap, invalid frame count, permanent quarantine",
+    "existing USB publication-order, MIDI routing, storage and OTA entry regressions",
+    "stage nonce, matched 8192-block window, 64-bit sum encoding, page bounds, backpressure, stale/OTA rejection",
+    "pi32v2 stack reservation and RAM-only idle-loop disassembly; not hardware high-water"
+  ],
+  "evidence_sha256": {
+    "tests/dualcore.c": "f392b7b6bd5ded93a0bc19c249113dff8ca6479af33396446a6d68d39996703b",
+    "tests/stage_probe.c": "598bdf5a6884c9a4ee1a16c1e2bbab99375594a13e74d924c45a95e012901dd4",
+    "tests/stage_capture_test.py": "c0210a90e7ccd8e333fb9fffebc915fef7aa2ba51899525053bf1dbf2aed2484",
+    "build/dualcore-native.log": "891416c78185127fc2e5c6ce7f3b5dbce3da129d9b464135f70b5c9fc4106bc0",
+    "build/dualcore-sanitizers-sdk.log": "2537cbf128c6ec5c6d567600e636f243e2ae1710a2c8fa02dd5303e75faec84f",
+    "build/dualcore-tsan-sdk.log": "105530779a1893dad7b786fdb642bc4082406e963798ce4d0b49b50c130d1dac"
+  },
+  "hardware_unverified": [
+    "CPU1 startup and inherited supply stability",
+    "actual shared SRAM/XIP/cache contention and cross-core ordering on silicon",
+    "whole-ISR deadlines, DMA-half changes and actual USB underruns",
+    "CPU0/CPU1 stack high-water and guard safety under IRQ nesting",
+    "safe-hold delayed bus flags, no-response behavior and transition glitches",
+    "physical save/update/UBOOT behavior with CPU1 active",
+    "usable additional FX time and any performance improvement"
+  ]
+}

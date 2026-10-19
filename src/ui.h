@@ -12,6 +12,13 @@ typedef struct { uint8_t page, sound, preset[3], editing, save_pending, save_req
     uint32_t pattern_keys;
     uint8_t pattern_hold, pattern_used, pattern_bank;
 } McUi;
+typedef struct {
+    uint32_t received[2];
+    uint16_t bpm, automation_count, playhead;
+    uint8_t playing, pattern, queued, step, mute, selected, recording, edit_step;
+    uint8_t song_position, song_repeat, song_finished, automation_full;
+    uint8_t drum_kit, song_mode, song_length, song_loop, clock_source;
+} McUiFrame;
 extern const char *const mc_drum_names[16];
 void mc_ui_init(McUi *u);
 void mc_ui_button(McEngine *e,McUi *u,unsigned button);
@@ -25,6 +32,11 @@ void mc_ui_key(McEngine *e,McUi *u,unsigned key,int down);
 void mc_ui_key_velocity(McEngine *e,McUi *u,unsigned key,unsigned velocity,int down);
 /* Optional once-per-frame pitch-range cache; projects and engine state are untouched. */
 void mc_ui_prepare_frame(const McEngine *e,McUi *u);
+/* Capture scalars only, under the caller's transport lock; no pitch scan. */
+void mc_ui_capture_frame(const McEngine *e,McUiFrame *frame);
+/* Reuse one captured frame and a copied/prepared UI for every strip.
+ * Project content remains live; rendering never changes the engine or UI. */
+void mc_ui_strip_frame(const McEngine *e,const McUi *u,const McUiFrame *frame,unsigned y,unsigned height,uint16_t *pixels);
 /* Host and device render the same RGB565 screen, at most eight rows at a time. */
 void mc_ui_strip(const McEngine *e,const McUi *u,unsigned y,unsigned height,uint16_t *pixels);
 #endif

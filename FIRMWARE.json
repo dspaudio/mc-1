@@ -1,7 +1,18 @@
 {
-  "version": "1.0.2",
+  "version": "1.1.0",
   "identity": "FM-1_900",
-  "file": "mc-1-1.0.2.fwsc",
+  "file": "mc-1-1.1.0.fwsc",
   "bytes": 610089,
-  "sha256": "a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5"
+  "sha256": "e0afbf5254eb910133cfab170928dd306d5d9e8eb5a47afc29094c4906649228",
+  "core_mode": "dual",
+  "alternatives": [
+    {
+      "version": "1.0.2",
+      "identity": "FM-1_900",
+      "file": "mc-1-1.0.2.fwsc",
+      "bytes": 610089,
+      "sha256": "a09e763e6000f25dec63eb5feeb6251389dce33bf5abe2eb4746f1f1c7091ab5",
+      "core_mode": "single"
+    }
+  ]
 }

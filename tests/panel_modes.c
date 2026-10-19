@@ -106,17 +106,17 @@ static void fx_pages(void) {
 }
 
 static void glo_pages(void) {
-    static const unsigned pages[5]={5,2,4,7,9};
+    static const unsigned pages[6]={5,2,4,7,9,10};
     init();
     press(UI_EDIT);
-    for(unsigned i=0;i<5;i++) {
+    for(unsigned i=0;i<6;i++) {
         press(UI_GLO);
         assert(u.page==pages[i]&&!u.editing&&mask()==F_GLO);
         if(u.page==7) {
             press(UI_EDIT);
             assert(!u.editing&&mask()==F_GLO);
         }
-        if(u.page==9) {
+        if(u.page==9||u.page==10) {
             press(UI_EDIT);
             assert(!u.editing&&mask()==F_GLO);
         }
@@ -320,6 +320,36 @@ static void external_transport(unsigned bpm,unsigned swing) {
     assert(e.step==0&&mask()==(F_HOME|F_REC));
 }
 
+static void button_lighting(void) {
+    static const unsigned page_leds[11]={
+        F_HOME,F_ENV,F_GLO,F_FX,F_GLO,F_GLO,F_ARP,F_GLO,F_SEQ,F_GLO,F_GLO
+    };
+    static const uint32_t times[]={0,249,250,499,500,749,750,999};
+    static const unsigned dark_phase[]={0,0,1,1,0,0,1,1};
+    for(unsigned page=0;page<11;page++)for(unsigned recording=0;recording<2;recording++)
+        for(unsigned playing=0;playing<2;playing++)for(unsigned step=0;step<16;step++) {
+            init();u.page=(uint8_t)page;e.recording=(uint8_t)recording;
+            e.playing=(uint8_t)playing;e.step=(uint8_t)step;
+            const Snapshot before=snapshot();
+            for(unsigned i=0;i<8;i++) {
+                unsigned expected=0x3fffu;
+                unsigned selected=page_leds[page]|(recording?F_REC:0u);
+                if(playing)selected&=~F_HOME;
+                if(dark_phase[i])expected&=~selected;
+                if(playing&&MC_PLAY_LED_PULSE&&(step==2||step==3||step==6||step==7||
+                    step==10||step==11||step==14||step==15))expected&=~F_PLAY;
+                unsigned actual=mc_panel_led_mask(&e,&u,times[i]);
+                assert(actual==expected);
+                assert((actual&3u)==3u);
+                assert((actual&F_SEL)!=0);
+                if(playing)assert((actual&F_HOME)!=0);
+            }
+            assert(!memcmp(before.engine,&e,sizeof e));
+            assert(!memcmp(before.ui,&u,sizeof u));
+        }
+    puts("PASS: all12 buttons plus OCT pair lit at rest; selected menus/REC blink at2Hz; independent audio-phase PLAY, all pages and strip-independent state");
+}
+
 int main(void) {
     static const unsigned bpms[3]={96,120,240};
     static const unsigned swings[2]={0,45};
@@ -331,6 +361,7 @@ int main(void) {
     song_mode();
     all_steps();
     retained_transport();
+    button_lighting();
     for(unsigned i=0;i<3;i++) {
         for(unsigned j=0;j<2;j++) {
             internal_transport(bpms[i],swings[j]);
