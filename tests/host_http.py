@@ -19,7 +19,7 @@ try:
         base=address.group().decode()
     html=request('/')
     assert b'MC-1' in html
-    original=request('/project');assert len(original)==35124 and original[4]==7
+    original=request('/project');assert len(original)==35137 and original[4]==8
     request('/action',json.dumps({'kind':5,'a':63}).encode())
     request('/action',json.dumps({'kind':0,'a':4}).encode())
     request('/action',json.dumps({'kind':2,'a':0,'b':1}).encode())
@@ -32,7 +32,7 @@ try:
     request('/action',json.dumps({'kind':1,'a':6,'b':2}).encode())
     request('/action',json.dumps({'kind':1,'a':4,'b':63}).encode())
     request('/action',json.dumps({'kind':1,'a':5,'b':1}).encode())
-    song=request('/project');song_offset=len(song)-274
+    song=request('/project');song_offset=len(song)-287
     assert song[song_offset:song_offset+2]==bytes([63,2])
     assert song[song_offset+256:song_offset+259]==bytes([2,0,1])
     request('/project',song);assert request('/project')==song
