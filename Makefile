@@ -2,7 +2,7 @@
 CC ?= cc
 CFLAGS ?= -O2 -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion
 CORE = src/effects.c src/demo.c src/engine.c src/midi.c src/factory.c src/project.c src/store.c src/ui.c
-HEADERS = src/mcfm.h src/parallel.h src/fixed.h src/midi.h src/presets.h src/recorded_pcm.h src/store.h src/ui.h src/tables.h
+HEADERS = src/mcfm.h src/parallel.h src/fixed.h src/midi.h src/presets.h src/recorded_pcm.h src/hybrid_pcm.h src/store.h src/ui.h src/tables.h
 .PHONY: all test test-ota render clean assets target
 all: build/mc1-host
 build:
@@ -11,6 +11,12 @@ build/mc1-host: $(CORE) $(HEADERS) tools/host.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tools/host.c -o $@
 build/render-demos: $(CORE) $(HEADERS) tools/render_demos.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tools/render_demos.c -o $@
+build/render-instruments: $(CORE) $(HEADERS) tools/render_instruments.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tools/render_instruments.c -o $@
+build/render-pcm-bank: $(CORE) $(HEADERS) tools/render_pcm_bank.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tools/render_pcm_bank.c -o $@
+build/render-release-samples: $(CORE) $(HEADERS) tools/render_release_samples.c | build
+	$(CC) $(CFLAGS) -Isrc $(CORE) tools/render_release_samples.c -o $@
 build/test: $(CORE) $(HEADERS) tests/test.c tests/presets_012.h | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/test.c -o $@
 build/test-ui-input: $(CORE) $(HEADERS) tests/ui_input.c | build
@@ -65,6 +71,8 @@ build/test-mixer-pan: $(CORE) $(HEADERS) tests/mixer_pan.c | build
 	$(CC) $(CFLAGS) -Isrc $(CORE) tests/mixer_pan.c -o $@
 build/test-pcm-cache: $(CORE) $(HEADERS) tests/pcm_cache.c | build
 	$(CC) $(CFLAGS) -Isrc $(filter-out src/engine.c,$(CORE)) tests/pcm_cache.c -o $@
+build/test-la-quality: $(CORE) $(HEADERS) tests/la_quality.c | build
+	$(CC) $(CFLAGS) -Isrc $(filter-out src/engine.c,$(CORE)) tests/la_quality.c -lm -o $@
 build/test-dualcore: $(CORE) $(HEADERS) tests/dualcore.c firmware/perf_fixture.h | build
 	$(CC) $(CFLAGS) -pthread -Isrc $(CORE) tests/dualcore.c -o $@
 build/test-stage-probe: tests/stage_probe.c firmware/stage_probe.h firmware/perf_probe.h $(HEADERS) | build
@@ -75,7 +83,7 @@ build/test-memory: tests/memory.c firmware/libc.c | build
 	$(CC) $(CFLAGS) -fno-builtin -Wno-unused-function tests/memory.c -o $@
 build/test-routing: $(CORE) $(HEADERS) tests/routing.c | build
 	$(CC) $(CFLAGS) -Isrc $(filter-out src/engine.c,$(CORE)) tests/routing.c -o $@
-test: build/test-dualcore build/test-stage-probe build/test-analog build/test-memory build/test-routing
+test: build/test-dualcore build/test-stage-probe build/test-analog build/test-memory build/test-routing build/test-la-quality
 test-ota: build/test-ota build/ldr-test
 	./build/test-ota build/mc-1-EXPERIMENTAL.fwsc
 	./build/ldr-test build/previous-test-only.fwsc build/mc-1-EXPERIMENTAL.fwsc
@@ -110,6 +118,7 @@ test: build/test build/test-ui-input build/test-performance build/test-patterns 
 	./build/test-analog
 	./build/test-memory
 	./build/test-routing
+	./build/test-la-quality
 	python3 -B tests/perf_capture_test.py
 	python3 -B tests/stage_capture_test.py
 render: build/mc1-host

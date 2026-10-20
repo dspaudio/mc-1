@@ -1,15 +1,23 @@
-# MC-1 1.1.0
+# MC-1 1.2.0 - rebuilt LA-PCM engine and sound bank
 
-**An original four-part groovebox for the M-VAVE FM-1.**
+**A rebuilt LA-PCM engine. All 112 LA sounds replaced.**
+
+MC-1 is an original four-part groovebox for the M-VAVE FM-1. This release
+replaces both the LA sound-generation path and its instrument data, rather than
+adding a few presets. Real recorded attacks restore piano, guitar and orchestral
+identity; phase-coherent synthesized sustain removes the old detuned beating.
 
 **Dual-core firmware for the FM-1:** CPU0 handles sequencing, controls and five
 melodic DSP voices; CPU1 handles three melodic voices, six drums and four shared
-FX banks. Version 1.1.0 adds per-part Analog variance and refreshed PCM-forward
-demos while retaining eight melodic voices. The installer also offers the
-unchanged **1.0.2 single-core** release. See [release notes](docs/RELEASE_1.1.0.md),
+FX banks. Version 1.2.0 replaces all 112 LA sounds with a source-backed
+**LA-PCM engine: real recorded attacks plus phase-coherent synthesized sustain**.
+It corrects sustain beating, restores instrument-specific attacks and separates
+ROOM/HALL reverb character, within the previous PCM budget. The 16 Acid sounds,
+synthesized drums and eight melodic voices are retained. The installer also
+offers the unchanged **1.0.2 single-core** release. See [release notes](docs/RELEASE_1.2.0.md),
 [four-bank design](docs/FOUR_BANKS.md) and [device validation](docs/VALIDATION.md).
 
-Version 1.1.0 uses readable white 6x9 small text and flowing green playback
+Version 1.2.0 retains readable white 6x9 small text and flowing green playback
 underlines only below populated tracks/drum rows. All twelve menu buttons and both OCT buttons are lit;
 selected menus blink at 2 Hz, and running PLAY blinks green at the sequencer BPM.
 HOME remains steadily lit during playback.
@@ -20,6 +28,18 @@ melodic parts with a sixteen-lane drum part, 128 melodic presets, eight drum
 kits, song arrangement, arpeggiation and recorded knob movement. Its sound,
 sequencer, display and project format come from the same C core on the device,
 native host and browser emulator.
+
+## Hear the rebuilt LA-PCM engine
+
+- [Hip-hop piano](docs/audio/mc-1-hip-hop-piano.mp3): an original swung piano melody and chords.
+- [Pop nylon guitar](docs/audio/mc-1-pop-guitar.mp3): an original picked/strummed hook.
+- [Chamber strings](docs/audio/mc-1-chamber-strings.mp3): cello, viola and violin ensemble.
+
+These are current shared-C engine renders, not FM-1 recordings. The
+[product page](https://dspaudio.github.io/mc-1/#listen) includes native players,
+downloads and the two updated full-groove demos. Sources and licenses are
+documented in [NOTICE.md](NOTICE.md); export settings and hashes are in
+[the audio manifest](docs/release-audio.json).
 
 [Explore MC-1](https://dspaudio.github.io/mc-1/) ·
 [Install firmware on an FM-1](https://dspaudio.github.io/mc-1/install.html) ·
@@ -76,10 +96,10 @@ notes, controllers and clock through the supported MIDI connections.
 
 ## What is included
 
-| Area | MC-1 1.1.0 |
+| Area | MC-1 1.2.0 |
 |---|---|
-| Melodic sound | LA-inspired dual oscillators with PCM attacks/recordings, or a monophonic 303-inspired saw/square engine with accent and slide |
-| Presets | 64 original synthesis patches and 64 presets from 16 CC0 instrument recordings, in 14 families |
+| Melodic sound | Source-backed LA hybrid PCM with real attacks and two same-phase spectral sustain frames, or a monophonic 303-inspired saw/square engine with accent and slide |
+| Presets | 112 source-backed LA patches from 17 CC0 instrument families and 16 original Acid patches, in 14 categories |
 | Drums | Eight synthesized kits, each with 16 common lane roles |
 | Patterns | 64 patterns, 16 steps and four parts; three-note melodic steps; 40-240 BPM, swing, gate, accent and slide |
 | Songs | Up to 128 ordered pattern/repeat entries, 1-16 repeats each, with end stop or looping |
@@ -108,7 +128,7 @@ to this repository's GitHub Pages site. **mc-1-web is only the emulator.**
 2. Open the installer in a secure browser with Web MIDI SysEx support, such as
    desktop Chrome or Edge. Choose **Connect FM-1** to discover the instrument
    automatically and read its identity; no MIDI port selection is needed.
-3. Choose **1.1.0 dual-core** or **1.0.2 single-core**, check the verified package,
+3. Choose **1.2.0 dual-core** or **1.0.2 single-core**, check the verified package,
    then choose **Install firmware**.
    Keep the page, USB and power connected until restart verification finishes.
 
@@ -123,10 +143,12 @@ A raw `.app.bin` is not an installer. Updating does not reformat MC-1's project
 banks, but it is not a backup or a saved-data verification protocol. Electrical
 power-loss recovery remains unverified. See [the package boundary](BUILDING.md#experimental-fwsc-package).
 
-**Downgrading is not project conversion:** 1.1.0 saves format 8; 1.0.2 cannot
+**Downgrading is not project conversion:** 1.2.0 saves format 8; 1.0.2 cannot
 load those saves. The firmware switch retains the project banks, but saving
 after a downgrade can overwrite earlier projects. Keep a compatible backup
 where available and do not assume the older firmware will open a newer save.
+Even though 1.1.0 also uses format 8, it rejects projects containing 1.2.0's new
+nylon-guitar PCM source (ID 40).
 
 ### Runtime faults and rebooting
 
@@ -417,10 +439,16 @@ node tests/firmware-install.mjs
 python3 tests/site_test.py build/site
 ```
 
-Code and original generated assets are **GPL-3.0-only**. The sixteen VSCO 2
-Community Edition recordings and their converted PCM are **CC0-1.0**; see
-[NOTICE.md](NOTICE.md), the [sample manifest](assets/recorded/manifest.json) and
-[retained license](LICENSES/CC0-VSCO.txt). Hardware and update support derive from
+Code, original patches, compositions and mathematical assets are **GPL-3.0-only**.
+The replacement LA-PCM bank derives from **CC0-1.0** recordings: six piano
+and three nylon-guitar zones from Meta Open Sound, plus 15 other instrument
+families from VSCO 2 Community Edition. Its 24 zones cover 17 instrument families
+in 384,240 PCM bytes. Real attacks and synthesized harmonic sustain arrays are
+derived from those recordings, not Roland ROMs or a GM SoundFont.
+See [NOTICE.md](NOTICE.md), the [current source/processing manifest](assets/hybrid/manifest.json),
+[retained VSCO source manifest](assets/recorded/manifest.json),
+[Meta license](LICENSES/CC0-Meta.txt) and [VSCO license](LICENSES/CC0-VSCO.txt).
+Hardware and update support derive from
 [dspaudio/orbit](https://github.com/dspaudio/orbit), tracing to SLOOP/Felucca by
 Leo Kuroshita and Hügelton Instruments. Required attribution is retained;
 restricted upstream artwork and sample packs are excluded.
@@ -428,13 +456,17 @@ restricted upstream artwork and sample packs are excluded.
 <!-- BEGIN PRESETS -->
 ## Complete factory preset list
 
-128 melodic presets: 64 original synthesis presets and 64 presets based on real instrument recordings. The engine allocation is 112 LA-inspired and 16 303-inspired, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
+128 melodic presets: 112 source-backed LA hybrid PCM presets from 17 real instrument families and 16 original 303-inspired Acid presets, plus eight original synthesized drum kits with 16 lanes each. These are MC-1 presets, not Roland patch data.
 
 The [official MC-505 patch listing (MC505PTC.pdf)](https://cdn.roland.com/assets/media/pdf/MC505PTC.pdf) informed broad sound families such as acid sequences, house keys and organs, voice-like tones and percussion hits. MC-1 uses original patch names and parameters; no Roland patches, ROMs or samples are copied.
 
-The bank is ordered by category. All 64 earlier synthesis names, patch values and family descriptions are preserved. The 24 original mathematical PCM attacks and eight drum kits are unchanged. The 64 additions use 16 CC0 VSCO instrument recordings, with PCM mix set to 127 for recorded-only playback by default. Filter and envelope variations provide distinct presets from each recording. These compact excerpts and sustain loops are instrument sketches rather than full multisampled instruments. The Voice category additions process flute, oboe and clarinet recordings; they are not human vocal recordings.
+All 128 names, symbolic IDs and category positions are retained. All 112 LA patch definitions are replaced, including the 48 previously mathematical synthesis patches; the 64 previously recorded presets keep their intended instrument families. The 16 Acid definitions and their source metadata, and all eight drum kits, are unchanged. Earlier LA renders are historical audio, not bit-identical examples of this bank.
 
-The Source column identifies the actual recorded instrument. See the [recording manifest](assets/recorded/manifest.json) for source files and processing, and the [CC0 source license](LICENSES/CC0-VSCO.txt).
+Each LA sound uses a real recorded attack and two same-phase spectral sustain frames from its source family. PCM mix 127 retains the full recorded attack; the hybrid engine does not blend generic saw or square oscillators at any mix. Plucked sources use their natural per-source decay; bowed strings, organ and winds retain held sustain. Natural, one-pole soft and two-pole rounded attack colours preserve each source while distinguishing felt keys, rounded basses, breath-led winds and clear percussion. Attack contribution and ADSR articulation are tuned per preset; natural pluck decay remains independent. Held-frame evolution is level-matched instead of adding an accent or fade. Approved representative presets remain fixed while the other 106 presets are audited by category. The PCM data budget remains at most 390,144 bytes globally; source generation and engine validation establish the actual allocation.
+
+The 17 source families are Piano, Organ, Marimba, Glockenspiel, Xylophone, Harp, Solo violin, Viola section, Cello section, Contrabass, Flute, Oboe, Clarinet, Bassoon, Trumpet, French horn and Nylon guitar (PCM IDs 24–40 in that order). Voice presets are processed woodwinds, not human vocal recordings. The names describe register and performance intent; they do not add transpose parameters, new instruments or General MIDI protocol support. These compact source-derived sounds are not full multisampled instruments, and this table is not a listening-validation claim.
+
+The Source column identifies the actual recorded instrument. See the [recording manifest](assets/hybrid/manifest.json) for source files and processing, and the [licensing and provenance](NOTICE.md).
 
 ### Category index
 
@@ -457,12 +489,12 @@ The Source column identifies the actual recorded instrument. See the [recording 
 
 | # | Category | Sound engine | Preset name | Family | Source |
 |---|---|---|---|---|---|
-| 001 | Bass | LA-inspired | ROUND BASS | Bass | original synthesis |
-| 002 | Bass | LA-inspired | DEEP CELL | Bass | original synthesis |
-| 003 | Bass | LA-inspired | CLUB PULSE | Bass | original synthesis |
-| 004 | Bass | LA-inspired | CLICK FLOOR | Bass | original synthesis |
-| 005 | Bass | LA-inspired | WIRE PICK | Bass | original synthesis |
-| 006 | Bass | LA-inspired | DUB CHAMBER | Bass | original synthesis |
+| 001 | Bass | LA-inspired | ROUND BASS | Bass | recorded PCM: Contrabass |
+| 002 | Bass | LA-inspired | DEEP CELL | Bass | recorded PCM: Cello section |
+| 003 | Bass | LA-inspired | CLUB PULSE | Bass | recorded PCM: Organ |
+| 004 | Bass | LA-inspired | CLICK FLOOR | Bass | recorded PCM: Xylophone |
+| 005 | Bass | LA-inspired | WIRE PICK | Bass | recorded PCM: Nylon guitar |
+| 006 | Bass | LA-inspired | DUB CHAMBER | Bass | recorded PCM: Contrabass |
 | 007 | Bass | LA-inspired | CONTRABASS ROOT | Bass | recorded PCM: Contrabass |
 | 008 | Bass | LA-inspired | CONTRABASS ROUND | Bass | recorded PCM: Contrabass |
 | 009 | Bass | LA-inspired | CONTRABASS SNAP | Bass | recorded PCM: Contrabass |
@@ -485,10 +517,10 @@ The Source column identifies the actual recorded instrument. See the [recording 
 | 026 | Acid | 303-inspired | COIL WALK | Acid sequence | original synthesis |
 | 027 | Acid | 303-inspired | SQUELCH GRID | Acid sequence | original synthesis |
 | 028 | Acid | 303-inspired | RUBBER CHASE | Acid sequence | original synthesis |
-| 029 | Lead | LA-inspired | VECTOR LEAD | Lead | original synthesis |
-| 030 | Lead | LA-inspired | WIDE SAW | Lead | original synthesis |
-| 031 | Lead | LA-inspired | SOFT PIPE | Lead | original synthesis |
-| 032 | Lead | LA-inspired | POLY CHROME | Poly synth | original synthesis |
+| 029 | Lead | LA-inspired | VECTOR LEAD | Lead | recorded PCM: Trumpet |
+| 030 | Lead | LA-inspired | WIDE SAW | Lead | recorded PCM: Solo violin |
+| 031 | Lead | LA-inspired | SOFT PIPE | Lead | recorded PCM: Flute |
+| 032 | Lead | LA-inspired | POLY CHROME | Poly synth | recorded PCM: Trumpet |
 | 033 | Lead | LA-inspired | TRUMPET LEAD | Lead | recorded PCM: Trumpet |
 | 034 | Lead | LA-inspired | HORN SOLO | Lead | recorded PCM: French horn |
 | 035 | Lead | LA-inspired | FLUTE LEAD | Lead | recorded PCM: Flute |
@@ -497,9 +529,9 @@ The Source column identifies the actual recorded instrument. See the [recording 
 | 038 | Lead | LA-inspired | OBOE SOLO | Lead | recorded PCM: Oboe |
 | 039 | Lead | LA-inspired | CLARINET ARC | Lead | recorded PCM: Clarinet |
 | 040 | Lead | LA-inspired | CLARINET BRIGHT | Lead | recorded PCM: Clarinet |
-| 041 | Sequence | LA-inspired | SEQUENCE KEY | Sequence | original synthesis |
-| 042 | Sequence | LA-inspired | SPARK SEQ | Sequence | original synthesis |
-| 043 | Sequence | LA-inspired | RATCHET PLUCK | Sequence | original synthesis |
+| 041 | Sequence | LA-inspired | SEQUENCE KEY | Sequence | recorded PCM: Piano |
+| 042 | Sequence | LA-inspired | SPARK SEQ | Sequence | recorded PCM: Glockenspiel |
+| 043 | Sequence | LA-inspired | RATCHET PLUCK | Sequence | recorded PCM: Nylon guitar |
 | 044 | Sequence | LA-inspired | PIANO STEPS | Sequence | recorded PCM: Piano |
 | 045 | Sequence | LA-inspired | MARIMBA RUN | Sequence | recorded PCM: Marimba |
 | 046 | Sequence | LA-inspired | GLOCK GRID | Sequence | recorded PCM: Glockenspiel |
@@ -507,43 +539,43 @@ The Source column identifies the actual recorded instrument. See the [recording 
 | 048 | Sequence | LA-inspired | HARP PATTERN | Sequence | recorded PCM: Harp |
 | 049 | Sequence | LA-inspired | CLARINET GATE | Sequence | recorded PCM: Clarinet |
 | 050 | Sequence | LA-inspired | VIOLIN PULSE | Sequence | recorded PCM: Solo violin |
-| 051 | Keys | LA-inspired | HAMMER KEY | Keys | original synthesis |
-| 052 | Keys | LA-inspired | SOFT TINES | Keys | original synthesis |
-| 053 | Keys | LA-inspired | CLAVI CLICK | Keys | original synthesis |
-| 054 | Keys | LA-inspired | VELVET CHORD | House keys | original synthesis |
-| 055 | Keys | LA-inspired | AMBER PIANO | Keys | original synthesis |
-| 056 | Keys | LA-inspired | PRISM KEY | Keys | original synthesis |
+| 051 | Keys | LA-inspired | HAMMER KEY | Keys | recorded PCM: Piano |
+| 052 | Keys | LA-inspired | SOFT TINES | Keys | recorded PCM: Glockenspiel |
+| 053 | Keys | LA-inspired | CLAVI CLICK | Keys | recorded PCM: Nylon guitar |
+| 054 | Keys | LA-inspired | VELVET CHORD | House keys | recorded PCM: Piano |
+| 055 | Keys | LA-inspired | AMBER PIANO | Keys | recorded PCM: Piano |
+| 056 | Keys | LA-inspired | PRISM KEY | Keys | recorded PCM: Glockenspiel |
 | 057 | Keys | LA-inspired | PIANO FELT | Keys | recorded PCM: Piano |
 | 058 | Keys | LA-inspired | PIANO BRIGHT | Keys | recorded PCM: Piano |
 | 059 | Keys | LA-inspired | PIANO ROOM | Keys | recorded PCM: Piano |
 | 060 | Keys | LA-inspired | PIANO SHORT | Keys | recorded PCM: Piano |
-| 061 | Organ | LA-inspired | DRAWBAR KEY | Organ | original synthesis |
-| 062 | Organ | LA-inspired | PERC ORGAN | Organ | original synthesis |
-| 063 | Organ | LA-inspired | CELLAR ORGAN | House organ | original synthesis |
+| 061 | Organ | LA-inspired | DRAWBAR KEY | Organ | recorded PCM: Organ |
+| 062 | Organ | LA-inspired | PERC ORGAN | Organ | recorded PCM: Organ |
+| 063 | Organ | LA-inspired | CELLAR ORGAN | House organ | recorded PCM: Organ |
 | 064 | Organ | LA-inspired | ORGAN MELLOW | Organ | recorded PCM: Organ |
 | 065 | Organ | LA-inspired | ORGAN CHAPEL | Organ | recorded PCM: Organ |
 | 066 | Organ | LA-inspired | ORGAN PERC | Organ | recorded PCM: Organ |
 | 067 | Organ | LA-inspired | ORGAN FULL | Organ | recorded PCM: Organ |
 | 068 | Organ | LA-inspired | ORGAN BRIGHT | Organ | recorded PCM: Organ |
-| 069 | Brass/Reed | LA-inspired | REED STACK | Reed | original synthesis |
-| 070 | Brass/Reed | LA-inspired | BRASS BLOCK | Brass | original synthesis |
-| 071 | Brass/Reed | LA-inspired | SOFT HORNS | Brass | original synthesis |
+| 069 | Brass/Reed | LA-inspired | REED STACK | Reed | recorded PCM: Oboe |
+| 070 | Brass/Reed | LA-inspired | BRASS BLOCK | Brass | recorded PCM: Trumpet |
+| 071 | Brass/Reed | LA-inspired | SOFT HORNS | Brass | recorded PCM: French horn |
 | 072 | Brass/Reed | LA-inspired | TRUMPET SECTION | Brass/Reed | recorded PCM: Trumpet |
 | 073 | Brass/Reed | LA-inspired | HORN MELLOW | Brass/Reed | recorded PCM: French horn |
 | 074 | Brass/Reed | LA-inspired | BASSOON REED | Brass/Reed | recorded PCM: Bassoon |
 | 075 | Brass/Reed | LA-inspired | TRUMPET FANFARE | Brass/Reed | recorded PCM: Trumpet |
 | 076 | Brass/Reed | LA-inspired | HORN LOW | Brass/Reed | recorded PCM: French horn |
-| 077 | Strings | LA-inspired | STRING VEIL | Strings | original synthesis |
+| 077 | Strings | LA-inspired | STRING VEIL | Strings | recorded PCM: Viola section |
 | 078 | Strings | LA-inspired | VIOLIN BOW | Strings | recorded PCM: Solo violin |
 | 079 | Strings | LA-inspired | VIOLA CHAMBER | Strings | recorded PCM: Viola section |
 | 080 | Strings | LA-inspired | CELLO ENSEMBLE | Strings | recorded PCM: Cello section |
 | 081 | Strings | LA-inspired | VIOLIN SILVER | Strings | recorded PCM: Solo violin |
 | 082 | Strings | LA-inspired | CONTRABASS BOW | Strings | recorded PCM: Contrabass |
-| 083 | Pad | LA-inspired | SILK PAD | Pad | original synthesis |
-| 084 | Pad | LA-inspired | SLOW HALO | Pad | original synthesis |
-| 085 | Pad | LA-inspired | BELL CLOUD | Pad | original synthesis |
-| 086 | Pad | LA-inspired | DUSK SCREEN | Pad | original synthesis |
-| 087 | Pad | LA-inspired | AIR CHAMBER | Pad | original synthesis |
+| 083 | Pad | LA-inspired | SILK PAD | Pad | recorded PCM: Viola section |
+| 084 | Pad | LA-inspired | SLOW HALO | Pad | recorded PCM: French horn |
+| 085 | Pad | LA-inspired | BELL CLOUD | Pad | recorded PCM: Glockenspiel |
+| 086 | Pad | LA-inspired | DUSK SCREEN | Pad | recorded PCM: Cello section |
+| 087 | Pad | LA-inspired | AIR CHAMBER | Pad | recorded PCM: Flute |
 | 088 | Pad | LA-inspired | PIANO CLOUD | Pad | recorded PCM: Piano |
 | 089 | Pad | LA-inspired | ORGAN HORIZON | Pad | recorded PCM: Organ |
 | 090 | Pad | LA-inspired | VIOLIN HALO | Pad | recorded PCM: Solo violin |
@@ -551,9 +583,9 @@ The Source column identifies the actual recorded instrument. See the [recording 
 | 092 | Pad | LA-inspired | CELLO WARM PAD | Pad | recorded PCM: Cello section |
 | 093 | Pad | LA-inspired | FLUTE AURORA | Pad | recorded PCM: Flute |
 | 094 | Pad | LA-inspired | HORN SLOW PAD | Pad | recorded PCM: French horn |
-| 095 | Pluck | LA-inspired | NYLON PLUCK | Pluck | original synthesis |
-| 096 | Pluck | LA-inspired | THUMB PLUCK | Pluck | original synthesis |
-| 097 | Pluck | LA-inspired | WIRE ZITHER | Pluck | original synthesis |
+| 095 | Pluck | LA-inspired | NYLON PLUCK | Pluck | recorded PCM: Nylon guitar |
+| 096 | Pluck | LA-inspired | THUMB PLUCK | Pluck | recorded PCM: Nylon guitar |
+| 097 | Pluck | LA-inspired | WIRE ZITHER | Pluck | recorded PCM: Harp |
 | 098 | Pluck | LA-inspired | HARP BRIGHT | Pluck | recorded PCM: Harp |
 | 099 | Pluck | LA-inspired | HARP RAIN | Pluck | recorded PCM: Harp |
 | 100 | Pluck | LA-inspired | HARP MELLOW | Pluck | recorded PCM: Harp |
@@ -561,29 +593,29 @@ The Source column identifies the actual recorded instrument. See the [recording 
 | 102 | Pluck | LA-inspired | PIANO PLUCK | Pluck | recorded PCM: Piano |
 | 103 | Pluck | LA-inspired | MARIMBA PLUCK | Pluck | recorded PCM: Marimba |
 | 104 | Pluck | LA-inspired | XYLO PLUCK | Pluck | recorded PCM: Xylophone |
-| 105 | Mallet/Bell | LA-inspired | GLASS BELL | Bell | original synthesis |
-| 106 | Mallet/Bell | LA-inspired | WOOD MALLET | Mallet | original synthesis |
-| 107 | Mallet/Bell | LA-inspired | GLASS TINES | Mallet | original synthesis |
+| 105 | Mallet/Bell | LA-inspired | GLASS BELL | Bell | recorded PCM: Glockenspiel |
+| 106 | Mallet/Bell | LA-inspired | WOOD MALLET | Mallet | recorded PCM: Marimba |
+| 107 | Mallet/Bell | LA-inspired | GLASS TINES | Mallet | recorded PCM: Glockenspiel |
 | 108 | Mallet/Bell | LA-inspired | GLOCK BELL | Mallet/Bell | recorded PCM: Glockenspiel |
 | 109 | Mallet/Bell | LA-inspired | MARIMBA HOLLOW | Mallet/Bell | recorded PCM: Marimba |
 | 110 | Mallet/Bell | LA-inspired | GLOCK DROPS | Mallet/Bell | recorded PCM: Glockenspiel |
 | 111 | Mallet/Bell | LA-inspired | XYLO BAR | Mallet/Bell | recorded PCM: Xylophone |
 | 112 | Mallet/Bell | LA-inspired | MARIMBA ROUND | Mallet/Bell | recorded PCM: Marimba |
-| 113 | Voice | LA-inspired | VOWEL CHIME | Voice-like | original synthesis |
-| 114 | Voice | LA-inspired | BREATH STACK | Voice-like | original synthesis |
-| 115 | Voice | LA-inspired | CHOIR FLICK | Voice-like | original synthesis |
+| 113 | Voice | LA-inspired | VOWEL CHIME | Voice-like | recorded PCM: Oboe |
+| 114 | Voice | LA-inspired | BREATH STACK | Voice-like | recorded PCM: Flute |
+| 115 | Voice | LA-inspired | CHOIR FLICK | Voice-like | recorded PCM: Clarinet |
 | 116 | Voice | LA-inspired | FLUTE CHOIR | Processed woodwind | recorded PCM: Flute |
 | 117 | Voice | LA-inspired | OBOE VOWEL | Processed woodwind | recorded PCM: Oboe |
 | 118 | Voice | LA-inspired | CLARINET VOICE | Processed woodwind | recorded PCM: Clarinet |
-| 119 | Hit/Percussion | LA-inspired | CHORD STAB | Stab | original synthesis |
-| 120 | Hit/Percussion | LA-inspired | BRASS IMPACT | Hit | original synthesis |
-| 121 | Hit/Percussion | LA-inspired | TIMBER HIT | Percussion | original synthesis |
-| 122 | Hit/Percussion | LA-inspired | TUBE STRIKE | Percussion | original synthesis |
+| 119 | Hit/Percussion | LA-inspired | CHORD STAB | Stab | recorded PCM: Piano |
+| 120 | Hit/Percussion | LA-inspired | BRASS IMPACT | Hit | recorded PCM: Trumpet |
+| 121 | Hit/Percussion | LA-inspired | TIMBER HIT | Percussion | recorded PCM: Xylophone |
+| 122 | Hit/Percussion | LA-inspired | TUBE STRIKE | Percussion | recorded PCM: Glockenspiel |
 | 123 | Hit/Percussion | LA-inspired | TRUMPET HIT | Hit/Percussion | recorded PCM: Trumpet |
-| 124 | Texture | LA-inspired | ORBITAL MT | Texture | original synthesis |
-| 125 | Texture | LA-inspired | METAL RAIN | Texture | original synthesis |
-| 126 | Texture | LA-inspired | SPACE SHARD | Texture | original synthesis |
-| 127 | Texture | LA-inspired | DIGITAL MIST | Texture | original synthesis |
+| 124 | Texture | LA-inspired | ORBITAL MT | Texture | recorded PCM: French horn |
+| 125 | Texture | LA-inspired | METAL RAIN | Texture | recorded PCM: Glockenspiel |
+| 126 | Texture | LA-inspired | SPACE SHARD | Texture | recorded PCM: Glockenspiel |
+| 127 | Texture | LA-inspired | DIGITAL MIST | Texture | recorded PCM: Flute |
 | 128 | Texture | LA-inspired | VIOLA DRIFT | Texture | recorded PCM: Viola section |
 
 ### Drum kits

@@ -1,5 +1,31 @@
 # MC-1 validation record
 
+## Version 1.2.0 LA-PCM engine and sound-bank replacement
+
+The listener-approved four-tone pieces and all 112 replaced LA presets are
+documented in [LA-PCM quality](LA_PCM_QUALITY.md). Acid definitions/legacy PCM
+and synthesized drum recipes remain unchanged. The local source uses 384,240
+PCM bytes within the previous 390,144-byte budget; the actual pi32v2 app is
+503,980 bytes, smaller than the released 521,784-byte 1.1.0 app.
+Globals/pool are 55,692/303,464 bytes and melodic/worker voices stay 8/3.
+
+Native 31 C +51 Python tests, a separate ASan/UBSan build, deterministic asset
+regeneration and pi32v2 linking pass. The initial 448 LA single-note/chord renders
+had no clips. All 106 corrected remaining-preset auditions have zero clips and
+voice steals; all eight approved piece WAVs remain byte-identical. The final
+16-second factory arrangement also has zero clips and steals at the existing
+eight-voice cap. Only the representative four timbres have listener approval.
+The 610,089-byte FWSC package passes offline OTA and loader simulation; its
+loader/padding are outside the app-size measurement.
+See the quality report for hashes, reverb ROOM/HALL separation and raw paths.
+The final package is installed and tested: eleven captures covering both demos
+and four maximum-load cohorts, with 495 seconds of actual USB audio. Deadline,
+DMA-half, USB and CPU1 failure counts are zero; guards are intact and minimum
+unused worker stack is 3,524 bytes. The initially failing candidates are excluded.
+See [1.2.0 release evidence](RELEASE_1.2.0.md) and
+[raw counters/recording hashes](la-pcm-hardware.json). Physical master-ADC drift
+in three captures precludes matched speed claims for those captures.
+
 ## Version 1.1.0 release identity (2026-10-19)
 
 The release configuration is dual-core 8 melodic / 3 worker, PLAY pulse on,

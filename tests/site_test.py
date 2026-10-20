@@ -77,7 +77,10 @@ def check_site(root: Path, manifest: Path = ROOT / "FIRMWARE.json") -> None:
         for path in root.rglob("*") if path.is_file() and path.name != "SHA256SUMS"
     }
     assert {"firmware-stock.js", "firmware-ota.js", "firmware-install.js"} <= files
-    assert {"audio/mc-1-night-circuit-fx.mp3", "audio/mc-1-neon-spiral-fx.mp3"} <= files
+    assert {"audio/mc-1-night-circuit-fx.mp3", "audio/mc-1-neon-spiral-fx.mp3",
+            "audio/mc-1-hip-hop-piano.mp3", "audio/mc-1-pop-guitar.mp3",
+            "audio/mc-1-chamber-strings.mp3", "LICENSES/CC0-Meta.txt",
+            "LICENSES/CC0-VSCO.txt", "hybrid-samples.json"} <= files
     with tempfile.TemporaryDirectory(prefix="mc1-pages-test-") as temporary:
         temp = Path(temporary)
         for field, value in [("version", "../1"), ("identity", "OTHER_001"),

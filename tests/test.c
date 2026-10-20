@@ -50,7 +50,20 @@ static void engines(void) {
         uint8_t record[MC_RECORD_BYTES];McProject decoded;uint32_t seq;
         assert(mc_encode(&e.project,1,record,sizeof record)>0);assert(!mc_decode(&decoded,&seq,record,sizeof record));
         assert(!memcmp(&decoded.patch[0],&mc_presets[p],sizeof(McPatch)));mc_note(&e,0,60,110,0,MC_RATE);
-        mc_render(&e,x,4096);assert(energy(x,8192)>10000);hashes[p]=mc_crc(x,sizeof x);
+        /* Shared real attacks may match during the first 93 ms. Compare the
+         * complete one-second note, including the distinct synthesized sustain. */
+        uint32_t hash=2166136261u;uint64_t power=0;
+        for(unsigned at=0;at<MC_RATE;) {
+            unsigned n=MC_RATE-at;if(n>4096)n=4096;
+            mc_render(&e,x,n);power+=energy(x,n*2);
+            for(unsigned i=0;i<n*2;i++) {
+                unsigned sample=(uint16_t)x[i];
+                hash=(hash^(sample&255))*16777619u;
+                hash=(hash^(sample>>8))*16777619u;
+            }
+            at+=n;
+        }
+        assert(power>10000);hashes[p]=hash;
         render_n(&e,MC_RATE*5);for(unsigned i=0;i<MC_VOICES;i++) assert(!e.voice[i].active);
         assert(!e.clips);
     }
@@ -80,9 +93,18 @@ static void knob_audio(void) {
     /* Every displayed melodic performance knob must alter rendered sound.
        PCM is tested at note attack; glide requires a legato destination note. */
     for(unsigned engine=0;engine<2;engine++) for(unsigned knob=0;knob<4;knob++) {
-        mc_init(&a);mc_ui_init(&ua);mc_preset(&a,0,engine?MC_PRESET_ACID_SAW:MC_PRESET_VECTOR_LEAD);b=a;ub=ua;
+        mc_init(&a);mc_ui_init(&ua);mc_preset(&a,0,engine?MC_PRESET_ACID_SAW:MC_PRESET_VECTOR_LEAD);
+        if(!engine&&knob==2) {
+            /* Observe decay itself, after an immediate attack toward a lower sustain. */
+            a.project.patch[0].attack=0;a.project.patch[0].sustain=64;
+        }
+        b=a;ub=ua;
         mc_ui_encoder(&a,&ua,knob+3,-127);mc_ui_encoder(&b,&ub,knob+3,127);
         mc_note(&a,0,48,110,0,0);mc_note(&b,0,48,110,0,0);
+        if(!engine&&knob<2) {
+            /* LA cutoff/resonance shape the synthesized body, after the PCM attack. */
+            render_n(&a,MC_RATE/2);render_n(&b,MC_RATE/2);
+        }
         if(engine&&knob==3) {
             render_n(&a,512);render_n(&b,512);
             mc_note(&a,0,72,110,MC_SLIDE,0);mc_note(&b,0,72,110,MC_SLIDE,0);
@@ -91,6 +113,7 @@ static void knob_audio(void) {
         assert(memcmp(x,y,sizeof x));
         uint64_t difference=0;
         for(unsigned i=0;i<8192;i++) { int32_t d=x[i]-y[i];difference+=(uint64_t)((int64_t)d*d); }
+        if(difference<=100000)printf("Performance knob engine=%u knob=%u difference=%llu\n",engine,knob,(unsigned long long)difference);
         assert(difference>100000);assert(!a.clips&&!b.clips);
     }
     /* LA resonance at maximum remains bounded over the complete keyboard/cutoff range. */
@@ -409,9 +432,13 @@ static void sorted_bank(void) {
     assert(at==MC_PRESETS);
     for(unsigned old=0;old<64;old++) {
         unsigned found=MC_PRESETS;for(unsigned p=0;p<MC_PRESETS;p++)if(!strcmp(presets_012[old].name,mc_preset_names[p]))found=p;
-        assert(found<MC_PRESETS&&!memcmp(&presets_012[old].patch,&mc_presets[found],sizeof(McPatch)));
+        assert(found<MC_PRESETS);
+        if(presets_012[old].patch.engine==MC_ACID)
+            assert(!memcmp(&presets_012[old].patch,&mc_presets[found],sizeof(McPatch)));
+        else assert(mc_presets[found].engine==MC_LA&&mc_presets[found].pcm>=MC_PCM_ATTACKS);
         mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);e.master=28000;mc_preset(&e,0,found);mc_note(&e,0,60,110,0,MC_RATE);mc_render(&e,x,4096);
-        assert(mc_crc(x,sizeof x)==presets_012[old].pcm_crc);
+        assert(mc_crc(x,sizeof x)==(presets_012[old].patch.engine==MC_LA?
+            la_quality_crc[old]:presets_012[old].pcm_crc));
     }
     uint8_t record[MC_RECORD_BYTES];for(unsigned demo=0;demo<2;demo++) {
         McProject roundtrip;uint32_t sequence;
@@ -419,10 +446,14 @@ static void sorted_bank(void) {
         assert(!mc_decode(&roundtrip,&sequence,record,sizeof record)&&sequence==1);
         assert(!memcmp(&roundtrip,&e.project,sizeof roundtrip));
         /* Keep the independent 0.1.2 composition fixture despite the requested
-         * new PCM/Analog demos; the original patch/PCM snapshots stay exact. */
-        if(!demo)mc_factory(&e.project);
+         * new PCM/Analog demos; the original patch parameters stay exact. */
+        if(!demo) {
+            mc_factory(&e.project);
+            e.project.patch[1]=presets_012[2].patch;
+            e.project.patch[2]=presets_012[3].patch;
+        }
         else {
-            e.project.patch[2]=mc_presets[MC_PRESET_VECTOR_LEAD];
+            e.project.patch[2]=presets_012[0].patch;
             e.project.patch[2].attack=1;e.project.patch[2].decay=35;
             e.project.patch[2].sustain=15;e.project.patch[2].release=22;e.project.patch[2].pcm_mix=30;
             e.project.level[1]=112;e.project.level[2]=82;
@@ -448,19 +479,19 @@ static void sorted_bank(void) {
         assert(!mc_decode(&e.project,&seq,record,sizeof record));e.selected=(uint8_t)part;mc_ui_init(&u);
         mc_ui_encoder(&e,&u,2,1);assert(u.preset[part]==0);
     }
-    puts("PASS: 128 presets in14 families, original64 patch/PCM and legacy demo snapshots exact; new demos roundtrip");
+    puts("PASS: 128 names/14 families, original Acid patches/PCM, replaced LA PCM and legacy demo serialization; new demos roundtrip");
     puts("PASS: all128 preset forward/backward wrap on each melodic part and browsing relative to loaded patch");
 }
 static void recorded_samples(void) {
     unsigned count=0,used=0;
     for(unsigned p=0;p<MC_PRESETS;p++)if(mc_presets[p].pcm>=MC_PCM_ATTACKS) {
-        assert(mc_presets[p].engine==MC_LA&&mc_presets[p].pcm_mix==127);
+        assert(mc_presets[p].engine==MC_LA);
         used|=1u<<(mc_presets[p].pcm-MC_PCM_ATTACKS);count++;
         mc_init(&e);mc_preset(&e,0,p);uint8_t record[MC_RECORD_BYTES];McProject q;uint32_t seq;
         assert(mc_encode(&e.project,1,record,sizeof record)>0&&!mc_decode(&q,&seq,record,sizeof record));
         assert(!memcmp(&e.project,&q,sizeof q));
     }
-    assert(count==64&&used==65535);
+    assert(count==112&&used==131071);
     for(unsigned id=0;id<MC_RECORDED_SAMPLES;id++) {
         const McRecordedSample *sample=&mc_recorded[id];
         for(unsigned mip=0;mip<7;mip++) {
@@ -471,7 +502,7 @@ static void recorded_samples(void) {
         unsigned preset=0;while(mc_presets[preset].pcm!=id+MC_PCM_ATTACKS)preset++;
         mc_init(&a);mc_preset(&a,0,preset);b=a;a.project.patch[0].wave=0;b.project.patch[0].wave=2;
         mc_note(&a,0,60,110,0,0);mc_note(&b,0,60,110,0,0);
-        mc_render(&a,x,4096);mc_render(&b,y,4096);assert(!memcmp(x,y,sizeof x)&&energy(x,8192)>0);
+        mc_render(&a,x,4096);mc_render(&b,y,4096);assert(memcmp(x,y,sizeof x)&&energy(x,8192)>0);
         mc_init(&b);mc_preset(&b,0,preset);b.project.patch[0].pcm_mix=0;mc_note(&b,0,60,110,0,0);
         mc_render(&b,y,4096);assert(memcmp(x,y,sizeof x));
         for(unsigned note=12;note<=108;note+=24) {
@@ -494,7 +525,7 @@ static void recorded_samples(void) {
     for(unsigned fx=0;fx<4;fx++) { e.project.fx[fx]=127;for(unsigned p=0;p<4;p++)e.project.track_fx[p][fx]=127; }
     for(unsigned n=0;n<8;n++)mc_note(&e,n%3,108-n,127,MC_ACCENT,0);
     render_n(&e,MC_RATE*10);
-    printf("PASS: 64 recorded presets,16 sources,112 mip bounds/peaks,80 pitch/loop/release cases, PCM-only and blend, persistence;10s sampled stress %.3fs host CPU\n",(double)(clock()-begin)/CLOCKS_PER_SEC);
+    printf("PASS: 112 LA presets,17 real sources,119 attack mip bounds,85 pitch/release cases, real attack mix and persistence;10s sampled stress %.3fs host CPU\n",(double)(clock()-begin)/CLOCKS_PER_SEC);
 }
 static void recorded_mix_transitions(void) {
     static const uint8_t mix[6]={127,0,127,63,0,127};
@@ -507,7 +538,7 @@ static void recorded_mix_transitions(void) {
             mc_note(&a,0,note,100,0,0);mc_note(&b,0,note,100,0,0);
             for(unsigned step=0;step<6;step++) {
                 assert(!mc_parameter_set(&a,0,3,mix[step]));
-                /* 126은 오실레이터를 평가하는 기존 혼합 경로를 유지한다. */
+                /* Adjacent real-attack weights must preserve all voice clocks. */
                 assert(!mc_parameter_set(&b,0,3,mix[step]==127?126:mix[step]));
                 a.midi.bend[0]=b.midi.bend[0]=bend[step%3];
                 mc_render(&a,x,4096);mc_render(&b,y,4096);
@@ -533,7 +564,8 @@ static void q15_truncation(void) {
     for(unsigned c=0;c<sizeof cutoff;c++)for(unsigned i=0;i<sizeof state/sizeof *state;i++) {
         mc_init(&e);mc_note(&e,0,60,100,0,0);
         McVoice *v=&e.voice[0];
-        v->patch.engine=MC_LA;v->patch.wave=2;v->patch.pcm=0;v->patch.pcm_mix=0;
+        v->patch.engine=MC_ACID;v->patch.wave=2;v->patch.pcm=0;v->patch.pcm_mix=0;
+        v->stage=1;v->envelope=0;v->patch.sustain=0;
         v->patch.cutoff=cutoff[c];v->patch.resonance=0;
         v->phase=v->phase2=v->increment=v->target=0;
         v->filter[0]=state[i];v->filter[1]=-state[i];

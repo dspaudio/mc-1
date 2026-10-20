@@ -67,7 +67,7 @@ footer { margin-top: var(--s6); font-size: 12px; }
   <h2 id="package-heading">1. Verified release</h2>
   <label class="file-label" for="firmware-version">Firmware version</label>
   <select id="firmware-version" aria-describedby="version-guidance" disabled></select>
-  <p id="version-guidance">1.1.0 dual-core is the default: eight melodic voices, six drum voices, four FX banks and optional Analog variance. Choose the immutable original 1.0.2 single-core release as a fallback.</p>
+  <p id="version-guidance">1.2.0 dual-core replaces all 112 LA sounds with real PCM attacks and synthesized sustain, retaining eight melodic voices, six drum voices and four FX banks. Choose the immutable original 1.0.2 single-core release as a fallback.</p>
   <p id="package-status" role="status">Loading release metadata…</p>
   <dl id="package-details" hidden>
     <dt>Version</dt><dd id="package-version"></dd>
@@ -89,7 +89,7 @@ footer { margin-top: var(--s6); font-size: 12px; }
 <section aria-labelledby="install-heading">
   <h2 id="install-heading">3. Install and verify</h2>
   <p>Keep USB and power connected until the instrument has restarted and verification is complete.</p>
-  <p>1.1.0 saves projects in format 8. 1.0.2 cannot load format 8. Switching firmware is not project conversion or a backup; saving after a downgrade can overwrite prior project banks. Preserve your projects before switching versions.</p>
+  <p>1.2.0 saves projects in format 8. 1.0.2 cannot load format 8. Switching firmware is not project conversion or a backup; saving after a downgrade can overwrite prior project banks. Preserve your projects before switching versions. Earlier LA patches load with the new source bank and sound different.</p>
   <div class="actions"><button id="install-firmware" class="primary" type="button" disabled>Install firmware</button></div>
   <progress id="install-progress" max="100" value="0" aria-label="Firmware installation progress" hidden></progress>
   <p id="install-status" role="status" aria-live="polite">Verify a release and connect an instrument to continue.</p>
@@ -115,6 +115,6 @@ footer { margin-top: var(--s6); font-size: 12px; }
 </section>
 <footer>Code: <a href="LICENSE.txt">GPL-3.0-only</a>. USB MIDI update protocol derived from Felucca / ORBIT. <a href="NOTICE.md">Licenses and source notices</a>. Not affiliated with M-VAVE.</footer>
 </main>
-<script type="module" src="firmware-install.js?v=1.1.0"></script>
+<script type="module" src="firmware-install.js?v=1.2.0"></script>
 </body>
 </html>

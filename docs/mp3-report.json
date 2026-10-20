@@ -1,4 +1,5 @@
 {
+  "status": "Historical export; current 1.2.0 files are recorded in release-audio.json",
   "file": "mc-1-neon-spiral-fx.mp3",
   "encoder": "lameenc 1.8.1 / LAME",
   "bitrate_kbps": 320,

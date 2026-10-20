@@ -213,14 +213,14 @@ const char *const mc_fx_cf_names[8]={
     "CHORUS1","CHORUS2","CHORUS3","CHORUS4","FB CHORUS","FLANGER","SHORT DLY","FB SHORT DLY"};
 static const struct {
     uint16_t length[4],diffusion;
-    uint8_t damping,feedback;
+    uint8_t damping,feedback,return_gain;
 } mc_rd_profile[6]={
-    {{331,457,673,911},0,2,9},
-    {{751,809,947,1031},8192,2,10},
-    {{997,1153,1301,1451},12288,3,11},
-    {{1557,1617,1491,1422},16384,2,13},
-    {{2039,1999,1867,1747},20480,3,14},
-    {{887,1061,1217,1367},24576,1,13}};
+    {{331,457,673,911},0,1,152,16},
+    {{751,809,947,1031},8192,1,184,16},
+    {{997,1153,1301,1451},12288,1,208,16},
+    {{1557,1617,1491,1422},16384,1,236,16},
+    {{2039,1999,1867,1747},20480,1,248,10},
+    {{887,1061,1217,1367},24576,1,224,16}};
 
 /* 공유 뱅크는 직접음을 포함하지 않으며, 타입 변경 때 해당 뱅크만 초기화한다. */
 void mc_fx_rd_block(McSharedFx *f,unsigned bpm,unsigned type,int32_t stereo[][2],unsigned frames) {
@@ -251,25 +251,37 @@ void mc_fx_rd_block(McSharedFx *f,unsigned bpm,unsigned type,int32_t stereo[][2]
         McReverb *r=&f->rd.reverb;
         unsigned damping=mc_rd_profile[type].damping;
         int32_t feedback=mc_rd_profile[type].feedback,diffusion=mc_rd_profile[type].diffusion,rounding=(1<<damping)-1;
+        int32_t return_gain=mc_rd_profile[type].return_gain;
         for(unsigned n=0;n<frames;n++) {
             int32_t input=mc_div_pow2(fx_limit(stereo[n][0])+fx_limit(stereo[n][1]),2);
-            int32_t wet[2]={0,0};
+            int32_t wet[2]={0,0},tap[4],mixed[4];
+            for(unsigned i=0;i<4;i++) {
+                tap[i]=r->comb[i][r->comb_pos[i]];
+                /* 1 LSB 미만의 감쇠도 진행시켜 무입력 잔류 DC를 없앤다. */
+                int32_t delta=tap[i]-r->damp[i];
+                r->damp[i]+=delta<0?-((-delta+rounding)>>damping):(delta+rounding)>>damping;
+                wet[i&1]+=tap[i];
+            }
+            /* Orthogonal feedback spreads each reflection across all four existing
+             * lines. Q8 loop gains separate decay from room size, without raising
+             * the dry/early-return gain or adding delay storage. */
+            int32_t a=r->damp[0]+r->damp[1],b=r->damp[0]-r->damp[1];
+            int32_t c=r->damp[2]+r->damp[3],d=r->damp[2]-r->damp[3];
+            mixed[0]=a+c;mixed[1]=b+d;mixed[2]=a-c;mixed[3]=b-d;
             for(unsigned i=0;i<4;i++) {
                 unsigned pos=r->comb_pos[i];
-                int32_t tap=r->comb[i][pos];
-                /* 1 LSB 미만의 감쇠도 진행시켜 무입력 잔류 DC를 없앤다. */
-                int32_t delta=tap-r->damp[i];
-                r->damp[i]+=delta<0?-((-delta+rounding)>>damping):(delta+rounding)>>damping;
-                r->comb[i][pos]=(int16_t)fx_limit(input+mc_div_pow2(r->damp[i]*feedback,4));
+                r->comb[i][pos]=(int16_t)fx_limit(input+mc_div_pow2(mixed[i]*feedback,9));
                 if(++pos>=mc_rd_profile[type].length[i])pos=0;
                 r->comb_pos[i]=(uint16_t)pos;
-                wet[i&1]+=tap;
             }
             if(diffusion) {
                 wet[0]=fx_allpass(wet[0],diffusion,&r->ap[0]);
                 wet[1]=fx_allpass(wet[1],diffusion,&r->ap[1]);
             }
-            stereo[n][0]=wet[0];stereo[n][1]=wet[1];
+            /* The mixer halves shared returns. Restore reverb's wet-only level
+             * here, with lower gain for HALL2's greater accumulated energy. */
+            stereo[n][0]=mc_div_pow2(wet[0]*return_gain,3);
+            stereo[n][1]=mc_div_pow2(wet[1]*return_gain,3);
         }
     }
 }

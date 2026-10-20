@@ -37,7 +37,7 @@ static void both(McPcmCache *c,McVoice *v,McVoice *o,uint32_t ratio) {
     McPcmCache before=*c;
     const McRecordedLevel *level=level_of(v->patch.pcm-MC_PCM_ATTACKS,v->sample_level);
     uint32_t pcm_step=(uint32_t)(((uint64_t)v->sample_step*ratio)>>16);
-    int32_t got=recorded(c,v,pcm_step,level),want=oracle(o,ratio);
+    int32_t got=recorded(c,v,pcm_step,level,v->patch.pcm-MC_PCM_ATTACKS),want=oracle(o,ratio);
     assert(got==want);
     assert(v->pcm_pos==o->pcm_pos);
     calls++;
@@ -82,7 +82,7 @@ static void sweep_all_levels(void) {
             for(unsigned n=0;n<300;n++) both(c,&v,&o,motion[m].ratio);
         }
     }
-    assert(levels==112);
+    assert(levels==MC_RECORDED_SAMPLES*7u);
 }
 static void swap_sources(void) {
     McVoice v,o;uint32_t ratio;
@@ -115,7 +115,7 @@ static void sequential_bound(void) {
         memset(&eng.pcm_cache[0],0,sizeof eng.pcm_cache[0]);
         retarget(&v,&o,k,mip,0,65536);
         for(unsigned n=0;n<(unsigned)lv->length+2u;n++) both(&eng.pcm_cache[0],&v,&o,65536);
-        assert(misses-m0<=lv->length/127u+2u);
+        assert(misses-m0<=lv->length/(MC_PCM_WINDOW-1u)+2u);
         printf("sequential one-shot k=%u mip=%u: calls=%lu misses=%lu\n",k,mip,calls-c0,misses-m0);
         return;
     }

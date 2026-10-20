@@ -21,22 +21,36 @@ The new sequencer, engines and pixel renderer replace ORBIT's product layers. On
 startup, HAL, LCD-transfer and libc support is inherited. There is no hidden legacy sampler,
 FM6, tape, radio, editor or ROM bank in the image.
 
-Eight melodic voice structs are shared by three parts. LA uses two detuned band-limited
-lookup oscillators, 24 short PCM attack choices with a crossfade to synthesized sustain,
-an envelope and two lowpass stages. PCM IDs 24–39 instead play 16 recorded instrument
-excerpts from CC0 VSCO 2 Community Edition, with linear interpolation, one-shot or
-crossfaded sustain loops and seven offline anti-aliased mip levels. Each voice chooses
-a level with Q16 advance at most one sample per output frame; SFZ pitch keycenters
-determine tuning. The PCM mix retains its blend meaning; all 64 recorded presets
-default to 127, so no oscillator contributes until the user lowers the mix.
-Samples are mono 16-bit at a 16 kHz base rate, 6,144 frames each before mip reduction.
-All levels are peak-bounded to 16,000, keeping interpolation products in signed 32-bit
-range. The 390,144 bytes of PCM plus 8,320 bytes of 32-bit metadata reside in XIP.
-각 엔진은 소스·mip·범위 태그를 포함해 2,112바이트인 128샘플 PCM 읽기 창
-8개를 추가로 소유한다. 미스 때 유효한 연속 샘플만 복사하고 창 밖의 루프
-보간점은 원본을 직접 읽는다. 캐시는 프로젝트에 저장하지 않는 내부 실행
-데이터다. 실제 FM-1의 전체 후보 처리 시간과 기한은 별도 원시 계측으로
-대조하며 캐시 단독의 기여율로 해석하지 않는다.
+Eight melodic voice structs are shared by three parts. All 112 LA presets combine
+a real PCM attack with an independently synthesized sustain, not a full-note sample
+loop. Twenty-four zones cover 17 source families, including six piano registers
+and three nylon-guitar registers. Attacks are mono 16-bit at a 16 kHz base rate,
+with seven offline anti-aliased mip levels. Sustain uses two source-derived harmonic
+frames with common partial phases and one pitch accumulator. A one-way spectral
+transition and a measured, non-cyclic pluck decay preserve body and natural release
+without fixed detune, repeated source vibrato or sample-loop pumping.
+
+PCM mix controls the real attack's contribution before the synthesized body;
+zero still retains the source-derived sustain. Factory presets use individual
+mix and envelope settings. Natural attacks bypass the sustain lowpass; soft and
+round colours use one or two broad attack-filter stages in existing voice state.
+Reduced-mix synthesized bodies start with a 64-frame ramp. The sustain lowpass's
+full-open range retains upper partials, with feedback bounded by the two-pole
+stability condition. Held early/late frames are energy-matched, and the remaining
+families' attack/body joins are level-matched. Envelope attack remains an
+independent editable control.
+
+All data are peak-bounded to 16,000. The bank uses 384,240 PCM bytes,
+20,386 bytes of 32-bit hybrid metadata and 1,428 bytes of source-ID aliases in XIP.
+Legacy PCM IDs remain accepted and select the corresponding new family; no old
+mathematical attack or detuned generic oscillator is mixed into LA. Acid and drum
+recipes remain unchanged. See `assets/hybrid/manifest.json` for exact sources.
+Each engine owns eight 32-sample attack windows, 576 bytes including source,
+mip and range tags. Refills copy only valid samples; interpolation outside a
+window reads the original source. Short snapshots reduce CPU1 transfer and
+refill spikes without changing PCM. Family-indexed lookup searches only the
+selected instrument's zones. These caches are transient, not saved project data.
+Actual device deadlines are measured separately from host rendering.
 Acid uses a monophonic voice per part, destination-step
 legato slide, accent and a bounded original four-stage feedback filter. This is a musical
 approximation, not a circuit model. Controls are 0–127 macros. Envelopes are quantized linear

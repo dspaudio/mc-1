@@ -5,11 +5,11 @@
 #include <stdint.h>
 #include "presets.h"
 #include "midi.h"
-#define MC_VERSION "1.1.0"
+#define MC_VERSION "1.2.0"
 #define MC_RATE 44100
 #define MC_MASTER_MAX (6u*32768u)
 #define MC_MASTER_DEFAULT (6u*28000u)
-#define MC_PCM_WINDOW 128
+#define MC_PCM_WINDOW 32
 #define MC_OUTPUT_CEILING 30000
 #ifndef MC_VOICES
 #define MC_VOICES 8
@@ -22,7 +22,7 @@
 #define MC_FX_BANKS 4
 #define MC_PRESETS 128
 #define MC_PCM_ATTACKS 24
-#define MC_RECORDED_SAMPLES 16
+#define MC_RECORDED_SAMPLES 17
 #define MC_PCM_SOURCES (MC_PCM_ATTACKS + MC_RECORDED_SAMPLES)
 #define MC_KITS 8
 #define MC_AUTOMATION 384
@@ -104,7 +104,7 @@ typedef struct {
     McTrackFx cf;
     uint8_t rd_type, cf_type, rd_active, cf_active;
 } McSharedFx;
-/* 보이스별 PCM 읽기 창 캐시. count==0이면 비어 있다. 264바이트. */
+/* Per-voice attack window; short snapshots bound dual-core transfer and refill cost. */
 typedef struct { int16_t data[MC_PCM_WINDOW]; uint16_t window, count, pcm, level; } McPcmCache;
 /* Exact phase increments keyed by the source increment and Q16 bend ratio. */
 typedef struct { uint32_t base, ratio, increment, second; } McPitchCache;

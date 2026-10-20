@@ -67,9 +67,10 @@ nav a:hover { text-decoration: underline; }
 .text-link { display: inline-block; padding-block: var(--s3); font-weight: 700; }
 .kit-line { margin-top: var(--s12); padding-top: var(--s8); border-top: 1px solid var(--line); display: grid; gap: var(--s4); }
 .kit-line p { max-width: none; font-family: var(--mono); }
-.kit-line span { color: var(--orange); margin-inline: var(--s2); }
+.kit-line span span { color: var(--orange); margin-inline: var(--s2); }
+.keep-together { white-space: nowrap; }
 .listening, .performance { background: var(--panel); }
-.listening-grid { display: grid; gap: var(--s12); align-items: center; }
+.listening-grid { display: grid; gap: var(--s12); align-items: start; }
 .listening .eyebrow { color: var(--green); }
 .listening .lead { margin-block: var(--s6); }
 .listening p:not(.lead):not(.eyebrow):not(.audio-label) { color: var(--muted); }
@@ -78,6 +79,7 @@ nav a:hover { text-decoration: underline; }
 audio { display: block; width: 100%; min-width: 0; }
 .audio-block .text-link { margin-top: var(--s4); }
 .screen-grid { display: grid; gap: var(--s8); }
+.screen-grid + .screen-grid { margin-top: var(--s8); }
 .effects-list { display: grid; gap: var(--s6) var(--s12); margin-top: var(--s12); }
 .effects-list div { border-top: 1px solid var(--line); padding-top: var(--s4); }
 .effects-list dt { font-family: var(--mono); margin-bottom: var(--s2); }

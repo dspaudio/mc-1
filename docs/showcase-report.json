@@ -4,18 +4,18 @@
     {
       "file": "la-showcase.wav",
       "frames": 705600,
-      "raw_peak": 9654,
-      "audition_gain": 2.400041,
+      "raw_peak": 9182,
+      "audition_gain": 2.523415,
       "normalized_peak": 23170,
-      "sha256": "88bb9fa996cf923263924a3bd612baf2695b4d80c47d45283a6e86c2ade635d1"
+      "sha256": "567b00262da7da8457263172218e6c5b650404c88bb4387a601626322475bebb"
     },
     {
       "file": "303-showcase.wav",
       "frames": 705600,
-      "raw_peak": 4388,
-      "audition_gain": 5.28031,
+      "raw_peak": 4383,
+      "audition_gain": 5.286334,
       "normalized_peak": 23170,
-      "sha256": "518e72c29049bb5b7a50088ba24ad85457fcb7177f7be7b514edce2d3b95ed7f"
+      "sha256": "4ec8eb6ea1c9582f97fce8da2eb6b49fe145708c20af930d4f4c9538954a933f"
     },
     {
       "file": "808-showcase.wav",
@@ -23,23 +23,23 @@
       "raw_peak": 29999,
       "audition_gain": 0.772359,
       "normalized_peak": 23170,
-      "sha256": "a97f1bf3b827712ca53daa8ea5e58fd81e91e463935158e5d9faeb009c53c3ac"
+      "sha256": "ed9cb5e6790b16568f259554e7bc8b96527581514aa1d9b514e993257d68264e"
     },
     {
       "file": "full-mix-preview.wav",
       "frames": 705600,
-      "raw_peak": 26649,
-      "audition_gain": 0.869451,
+      "raw_peak": 24717,
+      "audition_gain": 0.937411,
       "normalized_peak": 23170,
-      "sha256": "040b2af173430180bb5894132bbc06b95334b91ac24e2f83708bea008ed41b1b"
+      "sha256": "928eabdd799858fd9c5081c71d932b0e8bd229b8555197e5b2d83c1664cf9d57"
     },
     {
       "file": "neon-spiral.wav",
       "frames": 2595600,
-      "raw_peak": 17400,
-      "audition_gain": 1.331609,
+      "raw_peak": 17975,
+      "audition_gain": 1.289013,
       "normalized_peak": 23170,
-      "sha256": "b904a523f416ff231122c3638c756b12265ca3c8f1ef16069ed94c5b5b74ad5d"
+      "sha256": "e2df7f83368255949fa33f611ab14610677ccc7e3780d1c4ecc9533c5e5801b2"
     },
     {
       "file": "kit-showcase.wav",
@@ -47,15 +47,15 @@
       "raw_peak": 24435,
       "audition_gain": 0.94823,
       "normalized_peak": 23170,
-      "sha256": "2d43d1a8e1e64e5fa9ae01bac66b93b29c31034611183161fcb73129006e375e"
+      "sha256": "3c271e694fb2d2dfea390acc3eb74e57b8adfed7185da0ca02bf7d1841d8940e"
     },
     {
       "file": "recorded-showcase.wav",
-      "frames": 2116800,
-      "raw_peak": 4906,
-      "audition_gain": 4.722788,
+      "frames": 2249100,
+      "raw_peak": 7833,
+      "audition_gain": 2.957998,
       "normalized_peak": 23170,
-      "sha256": "40612dbccd3bfa4feadee9438489947954e8bd7effb2bbd67bd9a0d3afc97c53"
+      "sha256": "b6f1ce235591b42fcaf368f96c5909863675037539bcbead85a5f3f03282ba45"
     }
   ]
 }

@@ -4,7 +4,22 @@
 #include "parallel.h"
 #include "tables.h"
 #include "recorded_pcm.h"
+#include "hybrid_pcm.h"
 #include "fixed.h"
+static const McHybridZone *hybrid_zone(const McPatch *patch,unsigned note) {
+    static const uint8_t legacy[MC_PCM_ATTACKS]={
+        16,3,10,7,9,3,0,16,1,6,14,3,1,0,0,3,12,10,6,14,2,4,3,16
+    };
+    unsigned family=patch->pcm<MC_PCM_ATTACKS?legacy[patch->pcm]:patch->pcm-MC_PCM_ATTACKS;
+    const McHybridZone *best=0;unsigned distance=255;
+    unsigned first=mc_hybrid_family_first[family],end=first+mc_hybrid_family_count[family];
+    for(unsigned i=first;i<end;i++) {
+        unsigned root=mc_hybrid[i].root;
+        unsigned delta=note>root?note-root:root-note;
+        if(delta<distance) { distance=delta;best=&mc_hybrid[i]; }
+    }
+    return best;
+}
 const char *const mc_kit_names[MC_KITS]={"BASE 808","CLUB 909","TIGHT 606","VINTAGE","HOUSE","BREAK JUNGLE","IRON WORKS","ELECTRO LATIN"};
 typedef struct {
     uint16_t hz[MC_DRUMS],decay[MC_DRUMS],sweep,click,clap;
@@ -125,8 +140,8 @@ void mc_note(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned 
     zero(v,sizeof *v); v->midi_out=(uint8_t)!e->midi.receiving;v->active=1; v->part=(uint8_t)part; v->note=(uint8_t)note;
     v->velocity=(uint8_t)velocity; v->accent=(flags&MC_ACCENT)!=0;
     v->patch=*p; v->increment=v->target=mc_frequency[note];
-    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS) {
-        v->sample_step=mc_recorded[p->pcm-MC_PCM_ATTACKS].step[note];
+    if(p->engine==MC_LA) {
+        v->sample_step=hybrid_zone(p,note)->step[note];
         while(v->sample_step>65536&&v->sample_level<6) { v->sample_step=(v->sample_step+1)/2;v->sample_level++; }
     }
     v->phase2=0x31000000u; v->gate_left=gate;
@@ -136,6 +151,7 @@ void mc_note(McEngine *e,unsigned part,unsigned note,unsigned velocity,unsigned 
     v->decay_step=1+32767/(880+p->decay*p->decay*6);
     v->release_step=1+32767/(440+p->release*p->release*6);
     unsigned index=(unsigned)(v-e->voice);
+    e->pcm_cache[index].count=0;
     if(e->project.analog[part])analog_trigger(&e->analog_voice[index],index,note);
     else zero(&e->analog_voice[index],sizeof e->analog_voice[index]);
 }
@@ -495,15 +511,15 @@ static int32_t oscillator(uint32_t phase,unsigned wave,const int16_t *table) {
     unsigned i=phase>>24, frac=(phase>>16)&255;
     return table[i]+mc_div_pow2((table[(i+1)&255]-table[i])*(int32_t)frac,8);
 }
-/* 미스 때만 level->data[base..]에서 최대 128샘플을 복사한다. 끝 창은 length까지만. */
+/* Refill only the bounded attack window, stopping at the source length. */
 static void pcm_fill(McPcmCache *c,const McRecordedLevel *level,unsigned id,unsigned mip,unsigned base) {
     unsigned n=level->length-base;
     if(n>MC_PCM_WINDOW) n=MC_PCM_WINDOW;
     for(unsigned i=0;i<n;i++) c->data[i]=level->data[base+i];
     c->window=(uint16_t)base;c->count=(uint16_t)n;c->pcm=(uint16_t)id;c->level=(uint16_t)mip;
 }
-static inline __attribute__((always_inline)) int32_t recorded(McPcmCache *c,McVoice *v,uint32_t pcm_step,const McRecordedLevel *level) {
-    unsigned id=v->patch.pcm-MC_PCM_ATTACKS,mip=v->sample_level;
+static inline __attribute__((always_inline)) int32_t recorded(McPcmCache *c,McVoice *v,uint32_t pcm_step,const McRecordedLevel *level,unsigned id) {
+    unsigned mip=v->sample_level;
     unsigned pos=v->pcm_pos>>16;
     if(pos>=level->length) return 0;
     unsigned next=pos+1;
@@ -530,28 +546,45 @@ typedef struct {
     McPcmCache *cache;
     McPitchCache *pitch;
     McAnalogVoice *analog;
+    const McHybridZone *hybrid;
+    const McHybridWave *wave;
     McRecordedLevel pcm;
-    uint32_t ratio,increment,second,pcm_step;
+    uint32_t ratio,increment,second,pcm_step,morph_step;
     uint32_t analog_increment,analog_second,analog_ratio;
-    int32_t cutoff,sustain,analog_adjustment;
-    uint8_t fixed_pitch,refresh,analog_ready,analog_amount,amount;
+    int32_t cutoff,sustain,feedback,analog_adjustment;
+    uint8_t fixed_pitch,refresh,analog_ready,analog_amount,amount,wave_bits;
 } McVoiceRender;
 static void prepare_voice(const McVoice *v,McPcmCache *cache,McPitchCache *pitch,
     McAnalogVoice *analog,unsigned amount,uint32_t ratio,McVoiceRender *r) {
     const McPatch *p=&v->patch;
     r->cache=cache;r->pitch=pitch;r->analog=analog;r->amount=(uint8_t)amount;
-    r->ratio=ratio;r->refresh=1;r->analog_ready=0;r->pcm_step=0;
+    r->ratio=ratio;r->refresh=1;r->analog_ready=0;r->pcm_step=0;r->hybrid=0;
     r->cutoff=250+mc_div_pow2(p->cutoff*p->cutoff,1);
-    if(p->engine!=MC_ACID)r->cutoff=clamp(r->cutoff,250,14000);
+    if(p->engine!=MC_ACID)r->cutoff=clamp(250+p->cutoff*p->cutoff*2,250,32700);
+    r->feedback=p->resonance*3;
+    if(p->engine==MC_LA) {
+        /* For two cascaded poles, k < ((2-a)/a)^2. The tangent 5-4a
+         * stays below that bound; four feedback units leave rounding margin. */
+        int32_t limit=631-mc_div_pow2(r->cutoff*508,15);
+        if(r->feedback>limit)r->feedback=limit;
+    }
     r->sustain=p->sustain*258;
     r->table=mc_sine;
     if(p->wave!=2) {
         unsigned note=v->note,band=note>=96?6:note<36?0:(((note-36)*171u)>>11)+1;
         r->table=p->wave?mc_square[band]:mc_saw[band];
     }
-    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS) {
-        r->pcm=mc_recorded[p->pcm-MC_PCM_ATTACKS].levels[v->sample_level];
+    if(p->engine==MC_LA) {
+        r->hybrid=hybrid_zone(p,v->note);
+        const McHybridAttack *attack=&r->hybrid->attack[v->sample_level];
+        r->pcm=(McRecordedLevel){attack->data,attack->length,0,0};
         r->pcm_step=(uint32_t)(((uint64_t)v->sample_step*ratio)>>16);
+        r->morph_step=2147418112u/r->hybrid->morph_frames;
+        unsigned level=0;
+        uint32_t advance=(uint32_t)(((uint64_t)v->increment*ratio)>>16);
+        while(level<6&&((uint64_t)advance*r->hybrid->wave[level].length)>0x100000000ull)level++;
+        r->wave=&r->hybrid->wave[level];r->wave_bits=2;
+        while((1u<<r->wave_bits)<r->wave->length)r->wave_bits++;
     }
     r->fixed_pitch=(uint8_t)(p->engine==MC_LA&&v->increment==v->target);
     if(r->fixed_pitch) {
@@ -621,7 +654,7 @@ static __attribute__((noinline)) int32_t melodic(McVoice *v,unsigned index,McVoi
                 r->analog_increment=analog_increment(increment,r->analog_adjustment);
                 r->analog_second=analog_increment(second,r->analog_adjustment);
             }
-            if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS)
+            if(p->engine==MC_LA)
                 r->pcm_step=(uint32_t)(((uint64_t)v->sample_step*r->analog_ratio)>>16);
             r->analog_ready=1;r->analog_amount=(uint8_t)analog;
         }
@@ -630,26 +663,48 @@ static __attribute__((noinline)) int32_t melodic(McVoice *v,unsigned index,McVoi
         ratio=r->analog_ratio;
     }
     v->phase+=increment;v->phase2+=second;
-    int32_t sample;
-    if(p->engine==MC_LA&&p->pcm>=MC_PCM_ATTACKS&&p->pcm_mix==127) {
-        sample=recorded(r->cache,v,r->pcm_step,&r->pcm);
-    } else {
-        sample=oscillator(v->phase,p->wave,r->table);
-        if(p->engine==MC_LA) {
-            sample=mc_div_pow2(sample+oscillator(v->phase2,p->wave,r->table),1);
-            unsigned pos=v->pcm_pos>>16;
-            if(p->pcm>=MC_PCM_ATTACKS) {
-                int32_t pcm=recorded(r->cache,v,r->pcm_step,&r->pcm);
-                sample=mc_div127_signal(sample*(127-p->pcm_mix)+pcm*p->pcm_mix);
-            } else if(pos<511) {
-                int32_t pcm=mc_attack[p->pcm][pos];
-                pcm+=mc_div_pow2((mc_attack[p->pcm][pos+1]-pcm)*(int32_t)(v->pcm_pos&65535),16);
-                int32_t weight=mc_div_pow2(p->pcm_mix*(512-(int32_t)pos),9);
-                sample=mc_div127_signal(sample*(127-weight))+mc_div127_signal(pcm*weight);
-                v->pcm_pos+=(uint32_t)(((uint64_t)mc_pcm_rate[v->note]*ratio)>>16);
-            }
+    int32_t sample,transient=0,weight=0;
+    if(r->hybrid) {
+        const McHybridZone *zone=r->hybrid;
+        uint32_t phase=v->phase+zone->phase_start;
+        unsigned i=phase>>(32-r->wave_bits),next=(i+1u)&(r->wave->length-1u);
+        int32_t fraction=(int32_t)((phase>>(16-r->wave_bits))&65535u);
+        int32_t early=r->wave->early[i],late=r->wave->late[i];
+        early+=mc_div_pow2((r->wave->early[next]-early)*fraction,16);
+        late+=mc_div_pow2((r->wave->late[next]-late)*fraction,16);
+        int32_t morph=v->age>=zone->morph_frames?32767:(int32_t)((v->age*r->morph_step)>>16);
+        if(p->wave==0)morph=mc_div_pow2(morph*3,2);
+        else if(p->wave==1)morph=16384+mc_div_pow2(morph,1);
+        sample=early+mul(late-early,morph);
+        unsigned at=v->age>>11;
+        int32_t gain;
+        if(at>=127)gain=zone->decay[127];
+        else {
+            gain=zone->decay[at];
+            gain+=mc_div_pow2((zone->decay[at+1]-gain)*(int32_t)(v->age&2047u),11);
         }
-    }
+        sample=mul(sample,gain);
+        if(p->pcm_mix<127&&v->age<64)
+            sample=mc_div_pow2(sample*(int32_t)v->age,6);
+        unsigned pos=v->pcm_pos>>(16-v->sample_level);
+        if(pos<zone->fade_end) {
+            transient=recorded(r->cache,v,r->pcm_step,&r->pcm,
+                MC_RECORDED_SAMPLES+(unsigned)(zone-mc_hybrid));
+            if(p->wave!=2) {
+                /* Source-preserving attack colours: one broad pole for SOFT,
+                 * two for ROUND. Natural attacks take the exact bypass path. */
+                int32_t coefficient=8192+mc_div_pow2(r->cutoff*3,2);
+                v->filter[2]+=mul(transient-v->filter[2],coefficient);
+                transient=v->filter[2];
+                if(!p->wave) {
+                    v->filter[3]+=mul(transient-v->filter[3],coefficient);
+                    transient=v->filter[3];
+                }
+            }
+            int32_t fade=pos<=zone->fade_start?32767:(int32_t)((zone->fade_end-pos)*128u);
+            weight=mc_div_pow2(p->pcm_mix*(fade+1),15);
+        }
+    } else sample=oscillator(v->phase,p->wave,r->table);
     /* Bounded four-stage feedback lowpass. Original approximation, not circuit emulation. */
     int32_t cutoff=r->cutoff;
     if(p->engine==MC_ACID) {
@@ -657,13 +712,15 @@ static __attribute__((noinline)) int32_t melodic(McVoice *v,unsigned index,McVoi
         cutoff=clamp(cutoff,250,14000);
     }
     unsigned stages=p->engine==MC_ACID?4u:2u;
-    int32_t x=clamp(sample-mc_div127_signal(v->filter[stages-1]*(p->resonance*3)),-24000,24000);
+    int32_t x=clamp(sample-mc_div127_signal(v->filter[stages-1]*r->feedback),-24000,24000);
     v->filter[0]+=mul(x-v->filter[0],cutoff);x=v->filter[0];
     v->filter[1]+=mul(x-v->filter[1],cutoff);x=v->filter[1];
     if(stages==4) {
         v->filter[2]+=mul(x-v->filter[2],cutoff);x=v->filter[2];
         v->filter[3]+=mul(x-v->filter[3],cutoff);x=v->filter[3];
     }
+    /* LA attacks retain their spectrum; only the oscillator sustain is filtered. */
+    if(weight)x=mc_div127_signal(x*(127-weight))+mc_div127_signal(transient*weight);
     v->age++;
     x=mul(x,v->envelope); x=mc_div127_signal(x*v->velocity);
     x=mc_div127_signal(x*p->level);

@@ -102,7 +102,8 @@ static void demos(void) {
             }
             /* Golden dry level for the requested PCM/Analog demo arrangement. */
             double dry_rms=10*log10((double)dry/(frames*2.0*32768.0*32768.0));
-            if(demo==1)assert(fabs(dry_rms+22.756273789)<0.1);
+            printf("Demo %u dry RMS=%.9f dBFS\n",demo,dry_rms);
+            if(demo==1)assert(fabs(dry_rms+21.490773266)<0.1);
             assert(difference>dry/10000&&!a.clips&&!b.clips);
             printf("Demo %u wet/dry difference energy=%.6f, both shared banks active\n",
                 demo,(double)difference/(double)dry);

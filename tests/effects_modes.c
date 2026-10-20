@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-only */
 #include "mcfm.h"
+#include "parallel.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -346,16 +347,16 @@ static void shared_block(McSharedFx *f,unsigned bank,unsigned bpm,unsigned type,
     if(bank)mc_fx_cf_block(f,type,stereo,frames);
     else mc_fx_rd_block(f,bpm,type,stereo,frames);
 }
-/* Hard output bound: delay, C/F keep 24000; reverb returns are no longer halved (allpass 48000, ROOM1 two 16000 taps). */
+/* Raw bank bounds; the engine halves these wet-only returns before dry mixing. */
 static int32_t shared_bound(unsigned bank,unsigned type) {
     if(bank||type>=6)return 24000;
-    return type?48000:32000;
+    return type?96000:64000;
 }
 /* Independent reference of the shared reverb; old = pre-1.0.1 feedback and halved return. */
 typedef struct { int16_t comb[4][2048]; int32_t damp[4],ap[2]; unsigned pos[4]; } RefReverb;
 static const struct { uint16_t length[4],diffusion; uint8_t damping,old_fb,new_fb; } ref_profile[6]={
-    {{331,457,673,911},0,2,9,9},{{751,809,947,1031},8192,2,10,10},{{997,1153,1301,1451},12288,3,11,11},
-    {{1557,1617,1491,1422},16384,2,12,13},{{2039,1999,1867,1747},20480,3,13,14},{{887,1061,1217,1367},24576,1,12,13}};
+    {{331,457,673,911},0,2,9,152},{{751,809,947,1031},8192,2,10,184},{{997,1153,1301,1451},12288,3,11,208},
+    {{1557,1617,1491,1422},16384,2,12,236},{{2039,1999,1867,1747},20480,3,13,248},{{887,1061,1217,1367},24576,1,12,224}};
 static int32_t ref_clip(int32_t x,int32_t limit) { return x<-limit?-limit:x>limit?limit:x; }
 static int32_t rv_allpass(int32_t in,int32_t c,int32_t *s) {
     int32_t out=ref_clip(*s-mc_div_pow2(in*c,15),48000);
@@ -363,16 +364,27 @@ static int32_t rv_allpass(int32_t in,int32_t c,int32_t *s) {
 }
 static void ref_reverb(RefReverb *s,unsigned type,int is_new,int32_t l,int32_t r,int32_t out[2]) {
     int32_t feedback=is_new?ref_profile[type].new_fb:ref_profile[type].old_fb,wet[2]={0,0};
-    int32_t round=(1<<ref_profile[type].damping)-1,input=mc_div_pow2(ref_clip(l,16000)+ref_clip(r,16000),2);
+    unsigned damping=is_new?1:ref_profile[type].damping;
+    int32_t round=(1<<damping)-1,input=mc_div_pow2(ref_clip(l,16000)+ref_clip(r,16000),2);
     for(unsigned i=0;i<4;i++) {
         int32_t tap=s->comb[i][s->pos[i]],delta=tap-s->damp[i];
-        s->damp[i]+=delta<0?-((-delta+round)>>ref_profile[type].damping):(delta+round)>>ref_profile[type].damping;
-        s->comb[i][s->pos[i]]=(int16_t)ref_clip(input+mc_div_pow2(s->damp[i]*feedback,4),16000);
-        if(++s->pos[i]>=ref_profile[type].length[i])s->pos[i]=0;
+        s->damp[i]+=delta<0?-((-delta+round)>>damping):(delta+round)>>damping;
         wet[i&1]+=tap;
     }
+    static const int32_t matrix[4][4]={{1,1,1,1},{1,-1,1,-1},{1,1,-1,-1},{1,-1,-1,1}};
+    for(unsigned i=0;i<4;i++) {
+        int32_t loop=s->damp[i];
+        if(is_new) {
+            loop=0;
+            for(unsigned j=0;j<4;j++)loop+=matrix[i][j]*s->damp[j];
+        }
+        s->comb[i][s->pos[i]]=(int16_t)ref_clip(input+mc_div_pow2(loop*feedback,is_new?9:4),16000);
+        if(++s->pos[i]>=ref_profile[type].length[i])s->pos[i]=0;
+    }
     if(ref_profile[type].diffusion)for(unsigned c=0;c<2;c++)wet[c]=rv_allpass(wet[c],ref_profile[type].diffusion,&s->ap[c]);
-    out[0]=is_new?wet[0]:mc_div_pow2(wet[0],1);out[1]=is_new?wet[1]:mc_div_pow2(wet[1],1);
+    int32_t gain=type==4?10:16;
+    out[0]=is_new?wet[0]*gain/8:mc_div_pow2(wet[0],1);
+    out[1]=is_new?wet[1]*gain/8:mc_div_pow2(wet[1],1);
 }
 static RefReverb ref_state[2];
 static int32_t reverb_actual[MC_RATE*4][2],reverb_old[MC_RATE*4][2],reverb_new[MC_RATE*4][2];
@@ -406,14 +418,8 @@ static void shared_reverb_strength(void) {
         printf("reverb metric type=%u energy=%.0f peak=%d last_ms=%.3f ref_old_energy=%.0f ref_old_peak=%d ref_old_last_ms=%.3f ratio=%.4f\n",
             type,e_act,p_act,l_act*1000.0/MC_RATE,e_old,p_old,l_old*1000.0/MC_RATE,e_act/e_old);
         assert(!memcmp(reverb_actual,reverb_new,sizeof reverb_actual));
-        assert(p_act<=shared_bound(0,type)&&l_act>=l_old);
-        /* Return gain is strengthened: energy ~4x for unchanged feedback (+6.02 dB), more with longer tails. */
-        if(type<3) {
-            assert(l_act>=l_old&&e_act>3.9*e_old&&e_act<4.1*e_old&&p_act>=2*p_old-2);
-            for(unsigned n=0;n<MC_RATE*4;n++)for(unsigned c=0;c<2;c++) {
-                int32_t d=reverb_new[n][c]-2*reverb_old[n][c];assert(d>=-1&&d<=1);
-            }
-        } else assert(l_act>l_old&&e_act>4.0*e_old);
+        assert(p_act<=shared_bound(0,type));
+        assert(e_act>e_old);
         assert(!l_act||l_act<MC_RATE*3);
     }
     /* Hot sustained input reaches the strengthened bound that the old 24000 contract could not. */
@@ -425,8 +431,8 @@ static void shared_reverb_strength(void) {
         mc_fx_rd_block(&shared[0],120,0,block,64);
         for(unsigned n=0;n<64;n++)for(unsigned c=0;c<2;c++)if(block[n][c]>peak)peak=block[n][c];
     }
-    assert(peak>24000&&peak<=32000);
-    puts("Shared reverb: independent reference, +6.02 dB return, longer HALL1/HALL2/PLATE tails, bounds PASS");
+    assert(peak>24000&&peak<=64000);
+    puts("Shared reverb: independent matrix reference, return energy and bounds PASS");
 }
 static void shared_impulses(void) {
     for(unsigned bank=0;bank<2;bank++) {
@@ -548,16 +554,16 @@ static void shared_bounds(void) {
     for(unsigned bank=0;bank<2;bank++)for(unsigned type=0;type<8;type++) {
         memset(&shared[0],0,sizeof shared[0]);
         uint64_t tail=0;
-        for(unsigned at=0;at<MC_RATE*5;) {
+        for(unsigned at=0;at<MC_RATE*12;) {
             int32_t block[128][2]={0};
-            unsigned frames=MC_RATE*5-at;if(frames>128)frames=128;
+            unsigned frames=MC_RATE*12-at;if(frames>128)frames=128;
             for(unsigned n=0;n<frames&&at+n<MC_RATE;n++) {
                 block[n][0]=input[(at+n)/17%6];block[n][1]=input[(at+n)/31%6];
             }
             shared_block(&shared[0],bank,40,type,block,frames);
             for(unsigned n=0;n<frames;n++)for(unsigned c=0;c<2;c++) {
                 assert(block[n][c]>=-shared_bound(bank,type)&&block[n][c]<=shared_bound(bank,type));
-                if(at+n>=MC_RATE*4)tail+=(uint64_t)(block[n][c]<0?-block[n][c]:block[n][c]);
+                if(at+n>=MC_RATE*11)tail+=(uint64_t)(block[n][c]<0?-block[n][c]:block[n][c]);
             }
             at+=frames;
         }
@@ -566,8 +572,70 @@ static void shared_bounds(void) {
     }
     puts("Shared FX: full int32 send bounds and sustained-input tail decay PASS");
 }
+static void shared_reverb_ambience(void) {
+    double decay[6]={0},tail_fraction[6]={0};
+    static double energy[MC_RATE*8];
+    for(unsigned type=0;type<6;type++) {
+        memset(&shared[0],0,sizeof shared[0]);double total=0,tail=0;
+        unsigned density=0;
+        for(unsigned n=0;n<MC_RATE*8;n++) {
+            int32_t block[1][2]={{n?0:7559,n?0:7559}};
+            mc_fx_rd_block(&shared[0],120,type,block,1);
+            block[0][0]=mc_div_pow2(block[0][0],1);block[0][1]=mc_div_pow2(block[0][1],1);
+            energy[n]=(double)block[0][0]*block[0][0]+(double)block[0][1]*block[0][1];
+            total+=energy[n];if(n>=MC_RATE/4)tail+=energy[n];
+            if(n>=MC_RATE/10&&n<MC_RATE/2&&(block[0][0]||block[0][1]))density++;
+            if(n>=MC_RATE*7)assert(!block[0][0]&&!block[0][1]);
+        }
+        double sum=0;unsigned t10=0,t30=0;
+        for(unsigned n=0;n<MC_RATE*8;n++) {
+            sum+=energy[n];if(!t10&&sum>=total*0.9)t10=n;
+            if(sum>=total*0.999){t30=n;break;}
+        }
+        decay[type]=(double)(t30-t10)/MC_RATE;tail_fraction[type]=tail/total;
+        printf("ambience %s send80 wet/dry=%.4f tail250=%.4f T20=%.4f density=%.4f\n",
+            mc_fx_rd_names[type],total/288000000.0,tail_fraction[type],decay[type],density/(MC_RATE*0.4));
+        assert(total>288000000.0*0.12&&total<288000000.0*1.5);
+        if(type==3||type==4) {
+            assert(tail_fraction[type]>0.05);
+            assert(density>MC_RATE/5);
+        }
+    }
+    assert(decay[1]>decay[0]*1.2&&decay[2]>decay[1]*1.2);
+    assert(decay[3]>decay[2]*1.4&&decay[4]>decay[3]*1.4);
+    assert(tail_fraction[4]>tail_fraction[3]*1.3);
+    puts("Shared reverb: audible send80 return, dense halls and ordered energy decay PASS");
+}
+static void four_bank_snapshots(void) {
+    static McSharedFx canonical[2],reference[2],worker[2];
+    memset(canonical,0,sizeof canonical);memset(reference,0,sizeof reference);memset(worker,0,sizeof worker);
+    uint32_t random=7;
+    for(unsigned batch=0;batch<4096+16384;batch++) {
+        unsigned frames=1+batch%16;
+        for(unsigned pair=0;pair<2;pair++) {
+            uint8_t type[2]={(uint8_t)(batch<4096?(batch/(pair?64u:1u))%8:((batch-4096)/2048+pair)%8),
+                (uint8_t)(batch<4096?(batch/(pair?512u:8u))%8:((batch-4096)/2048+pair+3)%8)};
+            mc_fx_prepare(&worker[pair],&canonical[pair],120,type,frames,3);
+            for(unsigned bank=0;bank<2;bank++) {
+                int32_t block[16][2],expected[16][2];
+                for(unsigned n=0;n<frames;n++)for(unsigned c=0;c<2;c++) {
+                    random=random*1664525u+1013904223u;
+                    block[n][c]=batch%7?(int32_t)(random>>16)-32768:0;
+                }
+                memcpy(expected,block,frames*sizeof *block);
+                shared_block(&worker[pair],bank,120,type[bank],block,frames);
+                shared_block(&reference[pair],bank,120,type[bank],expected,frames);
+                assert(!memcmp(block,expected,frames*sizeof *block));
+            }
+            mc_fx_commit(&canonical[pair],&worker[pair],frames,3);
+            assert(!memcmp(&canonical[pair],&reference[pair],sizeof canonical[pair]));
+        }
+    }
+    puts("Four banks: all 4096 type combinations preserve sparse snapshot/commit PCM and state PASS");
+}
 int main(void) {
+    shared_reverb_ambience();
     legacy();impulse();filters();phaser();zero_to_wet();zero_amount_history();transitions();filter_history();prepared_tempo();blocks();stress();
-    shared_impulses();shared_reverb_strength();shared_resets();shared_blocks();shared_bounds();
+    shared_impulses();shared_reverb_strength();shared_resets();shared_blocks();shared_bounds();four_bank_snapshots();
     puts("effects modes PASS");return 0;
 }

@@ -52,7 +52,8 @@ Body measure is 62 characters; labels may wrap. No text hidden behind ellipses.
 - Action: native anchor, filled orange primary or neutral outlined secondary. Equal padding and target size; hover/active use opacity, focus uses a ring. No disabled/loading state because destinations are immediate links.
 - Screen figure: image with intrinsic 240px dimensions, descriptive alt, caption, pixelated scaling. Hero eager/high priority; remaining images lazy. No fabricated controls or clickable affordance on still images.
 - Feature: section heading and short lead followed by open image grid or a two-column article. Dividers separate sections; no card nesting. Numeric summaries use definition lists.
-- Audio: native audio controls, preload none, visible title and download fallback. Browser supplies keyboard/focus/transport states. No autoplay or custom transport.
+- Audio: native audio controls, preload none, visible title and download fallback. Browser supplies keyboard/focus/transport states. No autoplay or custom transport. With multiple examples, align the introduction with the first player rather than vertically centering it.
+- Inline sound lists: keep each multiword kit/effect name and its following separator together; wrap between complete items. Adjacent screen grids retain the same 2rem gap as their internal tracks.
 - Control guide: semantic definition list with physical control labels and plain-language behavior. No simulated interactive knobs.
 
 ## 6. Motion and interaction

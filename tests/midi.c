@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-only
  * Copyright (C) 2026 dspaudio */
 #include "../src/mcfm.h"
+#include "presets_012.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -8,7 +9,7 @@
 static McEngine e,a;
 static int16_t buffer[4096];
 static int16_t split[4096];
-_Static_assert(offsetof(McEngine,live_keys)==offsetof(McEngine,pcm_cache)+2112,"Transient state must follow the PCM cache");
+_Static_assert(offsetof(McEngine,live_keys)==offsetof(McEngine,pcm_cache)+sizeof(((McEngine *)0)->pcm_cache),"Transient state must follow the PCM cache");
 _Static_assert(sizeof(McEngine)-offsetof(McEngine,pcm_cache)<=2400+2*sizeof(McSharedFx)+sizeof(((McEngine *)0)->analog_voice),"Transient state budget exceeded");
 _Static_assert(sizeof(McVoice)==84,"Voice layout must not change");
 static void render(unsigned n) { while(n) { unsigned k=n>2048?2048:n;mc_render(&e,buffer,k);n-=k; } }
@@ -121,11 +122,12 @@ static void factory_default_reverb(void) {
     puts("PASS factory reverb: ROOM2 sends 12/72/24/8, no chorus, bounded wet-vs-dry difference, v7 sends preserved");
 }
 static void legacy_pcm_reference(void) {
-    /* Original PCM references, retained after excluding pressure from this release. */
-    static const uint32_t reference[3]={2313758043u,2814300718u,308011833u};
+    /* Corrected LA bandwidth/attacks; the historical Acid PCM stays exact. */
+    static const uint32_t reference[3]={3964440217u,2814300718u,3003399169u};
     for(unsigned mode=0;mode<3;mode++) {
         mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send); /* dry legacy reference */
         for(unsigned part=0;part<3;part++) {
+            if(mode==1)e.project.patch[part]=presets_012[part==0?6:part==1?2:3].patch;
             e.project.patch[part].engine=(uint8_t)(mode==1?MC_ACID:MC_LA);
             e.project.patch[part].cutoff=43;
             if(mode==2) { e.project.patch[part].pcm=MC_PCM_ATTACKS;e.project.patch[part].pcm_mix=127; }
@@ -142,7 +144,7 @@ static void legacy_pcm_reference(void) {
         }
         assert(hash==reference[mode]);
     }
-    puts("PASS legacy PCM: bit-identical LA, acid and recorded PCM references");
+    puts("PASS PCM references: corrected LA/recorded audio, unchanged legacy Acid");
 }
 static void shared_fx_controls(void) {
     mc_init(&e);memset(e.project.fx_send,0,sizeof e.project.fx_send);

@@ -4,1034 +4,1034 @@
     {
       "file": "demo.wav",
       "frames": 705600,
-      "peak": 26649,
-      "rms": 2764.76,
-      "dc_mean": 29.946,
-      "sha256_pcm": "467b38e9cf8b8859aa1ae4002c892e4ba7e4cc69bf1ec6d03d2c1241466b55eb"
+      "peak": 24717,
+      "rms": 2124.49,
+      "dc_mean": 31.01,
+      "sha256_pcm": "3e960d3120aaf75ea5894fe2555f0a4b1f1ecadccbda4822c82267acfbd41243"
     },
     {
       "file": "preset-00.wav",
       "frames": 176400,
-      "peak": 3035,
-      "rms": 713.6,
-      "dc_mean": 0.783,
-      "sha256_pcm": "4ad417bb7f68b9e7f66d180c455bf9f13234117719917b61f609f0170f22a98f"
+      "peak": 5624,
+      "rms": 1370.66,
+      "dc_mean": -0.101,
+      "sha256_pcm": "e4b4c9b02963c36bb82f87bbfe68a0362e9f62c5fac976ea52dad007c3a18370"
     },
     {
       "file": "preset-01.wav",
       "frames": 176400,
-      "peak": 1732,
-      "rms": 317.54,
-      "dc_mean": 0.898,
-      "sha256_pcm": "bea63d688397a69a8e875a0253e0cc20c750352320b4dac8c47057e38fb4c410"
+      "peak": 7562,
+      "rms": 2232.84,
+      "dc_mean": -0.188,
+      "sha256_pcm": "787f4c1204972b7f28c36f1a39a8f16eb59b10ddec6c22153502948e2914ec09"
     },
     {
       "file": "preset-02.wav",
       "frames": 176400,
-      "peak": 2214,
-      "rms": 532.72,
-      "dc_mean": 0.465,
-      "sha256_pcm": "e0c2963a162fafe6fed6af93487386467c19714cc3ec5d8cf1397fbeb3c9b175"
+      "peak": 6357,
+      "rms": 1405.12,
+      "dc_mean": 0.668,
+      "sha256_pcm": "ad5167ba11b4662427fedda17334054648b4beec99dada13db77de064b7fef34"
     },
     {
       "file": "preset-03.wav",
       "frames": 176400,
-      "peak": 1789,
-      "rms": 195.72,
-      "dc_mean": 0.712,
-      "sha256_pcm": "269d35ac6f5469cc26c49cb481d0b6f7d3ac5a8d3ef8f3eebdce300ebea162b6"
+      "peak": 6618,
+      "rms": 319.46,
+      "dc_mean": 0.054,
+      "sha256_pcm": "516106e788f6f3d44822286b2bbf9c2f4fad7f5925e5d662ebf4e6660ac00bc2"
     },
     {
       "file": "preset-04.wav",
       "frames": 176400,
-      "peak": 3404,
-      "rms": 437.84,
-      "dc_mean": 0.313,
-      "sha256_pcm": "30df22d2a1bdf7329b7c490f5c6eb0b9910cf67185f5eec4b9a22b1d2993271d"
+      "peak": 7833,
+      "rms": 1164.86,
+      "dc_mean": -0.052,
+      "sha256_pcm": "5e215bf499bb88eb9ac6db2e6296db420a5522165c8c64ff68331fd25a1feec0"
     },
     {
       "file": "preset-05.wav",
       "frames": 176400,
-      "peak": 1927,
-      "rms": 446.12,
-      "dc_mean": 0.54,
-      "sha256_pcm": "a16df06511d4921882712ce94aad63f2cddb3d14ee4ed3a79f9a1735a1c8978f"
+      "peak": 4752,
+      "rms": 1470.25,
+      "dc_mean": -0.104,
+      "sha256_pcm": "e44c06b659e10733a4ee1d78ab7c95cecd3162f87c2b7857dc7cd1511185983b"
     },
     {
       "file": "preset-06.wav",
       "frames": 176400,
-      "peak": 4906,
-      "rms": 1107.82,
-      "dc_mean": 0.11,
-      "sha256_pcm": "2b3611e244f073bf25f1ef6bf8eadd6e579bb385a5eec94cac1377c8518f2743"
+      "peak": 7341,
+      "rms": 1595.2,
+      "dc_mean": -0.428,
+      "sha256_pcm": "6c370d77d74eadc7836e1e75665fa69a5da3d0969b0f2fc726405ab9f6a70ef2"
     },
     {
       "file": "preset-07.wav",
       "frames": 176400,
-      "peak": 4111,
-      "rms": 881.56,
-      "dc_mean": 0.041,
-      "sha256_pcm": "354e3994541bd24fc330bd34432f26130996a9aaa739f40371f292f41bb307a3"
+      "peak": 4947,
+      "rms": 1527.03,
+      "dc_mean": -0.041,
+      "sha256_pcm": "abc33664c86f244940714afcc8227f9454b268795ea26c8ae862a7599301efa2"
     },
     {
       "file": "preset-08.wav",
       "frames": 176400,
-      "peak": 3096,
-      "rms": 490.96,
-      "dc_mean": -0.093,
-      "sha256_pcm": "a4120f768c496e487363c5962900ab60e2e1b31596081d2b2069d16069e65993"
+      "peak": 7152,
+      "rms": 1330.96,
+      "dc_mean": -0.46,
+      "sha256_pcm": "d2e941094a25758f19fc3128b762ad4f9f44153fa3f007e0a4c7f5a7be2960d3"
     },
     {
       "file": "preset-09.wav",
       "frames": 176400,
-      "peak": 2671,
-      "rms": 293.96,
-      "dc_mean": 1.881,
-      "sha256_pcm": "e167783e50ec4763e1858610502af292d0ccb81ae4857dcd4011b0fb6336fa32"
+      "peak": 6885,
+      "rms": 2084.04,
+      "dc_mean": -0.202,
+      "sha256_pcm": "044df0a1e68244dd6b942d11334b2e551b5052c61afa1cd3b36135ff0db477cc"
     },
     {
       "file": "preset-10.wav",
       "frames": 176400,
-      "peak": 3752,
-      "rms": 556.42,
-      "dc_mean": 3.523,
-      "sha256_pcm": "164ac2e96190e452e653fbb2aebf86628dca01d0cd3d188e25a07c8b6b4231eb"
+      "peak": 5865,
+      "rms": 1844.84,
+      "dc_mean": -0.212,
+      "sha256_pcm": "dc865cfae72aa6fb29200f48fb626852aa607f9200c164c59be3d37903d74b0d"
     },
     {
       "file": "preset-11.wav",
       "frames": 176400,
-      "peak": 3358,
-      "rms": 790.16,
-      "dc_mean": 1.799,
-      "sha256_pcm": "8c95256d4b8b6cb969a9c11c4bca2ba145c77d9bec9cdca9087166f829660202"
+      "peak": 7193,
+      "rms": 2371.77,
+      "dc_mean": -0.434,
+      "sha256_pcm": "34cc88cb26a7449c78465d88ea10ce96a27ffe92e4a7440948aeb4791b82c837"
     },
     {
       "file": "preset-12.wav",
       "frames": 176400,
-      "peak": 3163,
-      "rms": 340.24,
-      "dc_mean": 1.036,
-      "sha256_pcm": "4f98484a3ff9260928df9110d9b5c7f3354f22f10d41016186fc6d00617646c4"
+      "peak": 3168,
+      "rms": 337.73,
+      "dc_mean": 1.362,
+      "sha256_pcm": "fd8c924e4677485a3d0d67c3c791461af395193eaa70a7a5c573e8bf12fc4528"
     },
     {
       "file": "preset-13.wav",
       "frames": 176400,
-      "peak": 3501,
-      "rms": 891.91,
-      "dc_mean": 1.219,
-      "sha256_pcm": "0dff7424430a4686d381c80f5153f66f1e7eb4fed817442ebfded964e16f8509"
+      "peak": 3517,
+      "rms": 883.56,
+      "dc_mean": 1.363,
+      "sha256_pcm": "ac2a6ab41df3bcc1bc3763465472d874dd5e97adf412941f1622216de6b08bdc"
     },
     {
       "file": "preset-14.wav",
       "frames": 176400,
       "peak": 2594,
-      "rms": 200.36,
-      "dc_mean": 0.816,
-      "sha256_pcm": "16ac849b7d29a6c1f442e8f4ed1882606a345af01845aa4141eaf8993fe444be"
+      "rms": 201.74,
+      "dc_mean": 0.553,
+      "sha256_pcm": "e07e1b95f60cd5bd2c4c386c06df24347bb5b873a44b08e21924688e0fa8648e"
     },
     {
       "file": "preset-15.wav",
       "frames": 176400,
-      "peak": 3993,
-      "rms": 1479.22,
-      "dc_mean": 1.819,
-      "sha256_pcm": "68975873616eee473d0ce130e9600eb8c32e6ceb2a60ad5fdbcc6539cfc783d8"
+      "peak": 4132,
+      "rms": 1461.97,
+      "dc_mean": 2.013,
+      "sha256_pcm": "0e0e0e7d130bf93598b14c95c0694bb7f3c373d278c35345fad9831967aaf3d4"
     },
     {
       "file": "preset-16.wav",
       "frames": 176400,
       "peak": 2876,
-      "rms": 301.65,
-      "dc_mean": 0.681,
-      "sha256_pcm": "de594d3f1c5a2091db000627c4cd4563340b8567e980c4538884dbe6817cb95c"
+      "rms": 298.28,
+      "dc_mean": 0.766,
+      "sha256_pcm": "50c7070565f36204e46bcfd3e69eac8ea809c67e1d1958b1893ae79924c77b67"
     },
     {
       "file": "preset-17.wav",
       "frames": 176400,
       "peak": 3019,
-      "rms": 527.96,
-      "dc_mean": 0.39,
-      "sha256_pcm": "9894fefaa1124feb4f0ccce56ca18533a90cdd5f5fcdf43296fa9e4d32a23fee"
+      "rms": 520.57,
+      "dc_mean": 0.435,
+      "sha256_pcm": "fa717ff00e638ec23feedccba6094d73081afda67198db990f33f73f599d3791"
     },
     {
       "file": "preset-18.wav",
       "frames": 176400,
       "peak": 3332,
-      "rms": 744.39,
-      "dc_mean": 0.308,
-      "sha256_pcm": "f21e36a0a0d2b541dd48f98d47f8f1e4a6b2308f30f27922c7134ad8a301f786"
+      "rms": 732.01,
+      "dc_mean": 0.931,
+      "sha256_pcm": "378fa3934311eb1079be88635f2abf537e9ae60e59dade4d6c3cf8aa87f5da1a"
     },
     {
       "file": "preset-19.wav",
       "frames": 176400,
       "peak": 3881,
-      "rms": 1633.9,
-      "dc_mean": 0.351,
-      "sha256_pcm": "19b438ee2fa31d9a2df80d34bb60a66cf6471eb885fa648b16685f0b99afabc2"
+      "rms": 1608.92,
+      "dc_mean": 0.392,
+      "sha256_pcm": "f7a9f711ceef56a7c7f805a6a95e65f3b8e8852db85a7416c5e50a6b2a4af7e6"
     },
     {
       "file": "preset-20.wav",
       "frames": 176400,
       "peak": 2537,
-      "rms": 141.6,
-      "dc_mean": 0.735,
-      "sha256_pcm": "326f0671e5cc1f7fe6d7c880f950a6386731ed69c7f865d02cd6629a7884e62b"
+      "rms": 140.52,
+      "dc_mean": 0.589,
+      "sha256_pcm": "98ce920ccd97ac9bf85502bbfdf20c8c45915b9f593bac52785e225ea37ea1c3"
     },
     {
       "file": "preset-21.wav",
       "frames": 176400,
-      "peak": 3383,
-      "rms": 521.08,
-      "dc_mean": 0.452,
-      "sha256_pcm": "c4099034aa4683abab8d8a0c1a7be93a17a51913a636539f378d140af8150c1a"
+      "peak": 3388,
+      "rms": 514.3,
+      "dc_mean": 0.506,
+      "sha256_pcm": "38103e8ae16f6c2595d752d11b5b0b8f44215426cda3b61fe99b1a0e9452829a"
     },
     {
       "file": "preset-22.wav",
       "frames": 176400,
-      "peak": 4383,
-      "rms": 1979.38,
-      "dc_mean": 0.051,
-      "sha256_pcm": "da9ee93a89a1575b06d3123a113f7018456e0296fe22b9e320816c4cfc999392"
+      "peak": 4532,
+      "rms": 1949.27,
+      "dc_mean": 0.045,
+      "sha256_pcm": "c1db3621df888d1aaaade7bc254fe0615c7b5dc7ba811b4e59c573b51ec5cf13"
     },
     {
       "file": "preset-23.wav",
       "frames": 176400,
       "peak": 2384,
-      "rms": 466.34,
-      "dc_mean": 0.173,
-      "sha256_pcm": "cb87c27af97ec97c3a25b91607b325c8cedbeede11ba47e0611c3e8a278ff355"
+      "rms": 459.72,
+      "dc_mean": 0.638,
+      "sha256_pcm": "f8a8409b734db289ee025efb05c1fd5ff011445217ef0d7a6a88673c5c5a7546"
     },
     {
       "file": "preset-24.wav",
       "frames": 176400,
       "peak": 2737,
-      "rms": 254.79,
-      "dc_mean": 1.028,
-      "sha256_pcm": "43ad7dc693b8262916bcd458f34103fd1208064c2d6a0e792a8a81f6d80bfde9"
+      "rms": 252.09,
+      "dc_mean": 1.297,
+      "sha256_pcm": "0d720deda29debd6a78169864f6fe2e3e2cd0613d8e3b9626c80771093e992e2"
     },
     {
       "file": "preset-25.wav",
       "frames": 176400,
       "peak": 3112,
-      "rms": 248.15,
-      "dc_mean": 0.345,
-      "sha256_pcm": "43dddb0f9c07c2623ad64a7543e76837a80df3f71c365db1dac8f60727b1e21f"
+      "rms": 245.82,
+      "dc_mean": 0.38,
+      "sha256_pcm": "95fd5c71abaa3249968555e945f9617245162369ce695d7444a7b2aa615ac2f6"
     },
     {
       "file": "preset-26.wav",
       "frames": 176400,
       "peak": 2389,
-      "rms": 76.39,
-      "dc_mean": 0.589,
-      "sha256_pcm": "db201cf523be59ca3a76ed571e16220de6ad0b06fee0a4dbd445ab1f7a7efe6e"
+      "rms": 76.17,
+      "dc_mean": 0.639,
+      "sha256_pcm": "64c899b709e3b79263d8b2aaaa56b42252877cd15ae6f8eed9f440a0cb5cc103"
     },
     {
       "file": "preset-27.wav",
       "frames": 176400,
       "peak": 3137,
-      "rms": 587.17,
-      "dc_mean": 0.454,
-      "sha256_pcm": "1bc11812b42fa017a150732e6ec6b30f8132d67bf1c80558447cc117faf145ea"
+      "rms": 578.74,
+      "dc_mean": 0.496,
+      "sha256_pcm": "839a0768004f68c6dd94aed39b1a579acaa53648ba4c37ae72d25e43620c45c8"
     },
     {
       "file": "preset-28.wav",
       "frames": 176400,
-      "peak": 2404,
-      "rms": 658.09,
-      "dc_mean": 0.344,
-      "sha256_pcm": "799f58f17d8f4e882861e569a10be2d2fb25c9f9e8fa1ce1f3754a2d52cc0351"
+      "peak": 6716,
+      "rms": 1201.41,
+      "dc_mean": 2.28,
+      "sha256_pcm": "912ca6bfdab329fcb7dd6c9f14b41812d548b5804bfb4a9d7166573ee892a8b0"
     },
     {
       "file": "preset-29.wav",
       "frames": 176400,
-      "peak": 2937,
-      "rms": 788.52,
-      "dc_mean": 0.062,
-      "sha256_pcm": "8f949fb6a347a004976dc3675d7026ed9c04a3c6c74f08a730593c59d601b425"
+      "peak": 6526,
+      "rms": 1746.35,
+      "dc_mean": -1.591,
+      "sha256_pcm": "f69024f2a6b4c6ce41aa1dd1e0d79d143ff8e5da65b7dc8fc8f438fa55c42d3b"
     },
     {
       "file": "preset-30.wav",
       "frames": 176400,
-      "peak": 4506,
-      "rms": 1482.44,
-      "dc_mean": 0.194,
-      "sha256_pcm": "83396131f8ade72e7005b7b9934cace19c97ffebc4ee256f246f52f935cd0f4a"
+      "peak": 6367,
+      "rms": 2607.5,
+      "dc_mean": -0.124,
+      "sha256_pcm": "851c475213efac1a68569f41130b5e618ac287b7b8e4a492eaf1b9e9a13675b7"
     },
     {
       "file": "preset-31.wav",
       "frames": 176400,
-      "peak": 1871,
-      "rms": 527.94,
-      "dc_mean": 0.235,
-      "sha256_pcm": "528f0b0f7f2e52938ca791d2a65d3bae434a1301aa8340f8179817878b01eae2"
+      "peak": 6772,
+      "rms": 1214.74,
+      "dc_mean": 2.388,
+      "sha256_pcm": "37dab7800637f16cdb3035204c4ef4f4852b7601a050921c94b4bba595d69bd6"
     },
     {
       "file": "preset-32.wav",
       "frames": 176400,
-      "peak": 2953,
-      "rms": 556.34,
-      "dc_mean": 1.149,
-      "sha256_pcm": "ef5fb1b932f60cc93c3aa0701207dd978af376c0749c6613b79989c99f3ad1fb"
+      "peak": 7254,
+      "rms": 1295.75,
+      "dc_mean": 2.418,
+      "sha256_pcm": "1559f1966e9004f3b280864027c0bc92bcf76ac0431b0e03e3db8099cb131b0c"
     },
     {
       "file": "preset-33.wav",
       "frames": 176400,
-      "peak": 3809,
-      "rms": 1249.32,
-      "dc_mean": -0.569,
-      "sha256_pcm": "0813d2263260fefc419f297e15b7e61369455265f50372324655e86b75415285"
+      "peak": 6531,
+      "rms": 2488.8,
+      "dc_mean": 0.672,
+      "sha256_pcm": "101c439466288f34dffac21f691565b80c2c3060dfa8baf63638f5f554ab5bfc"
     },
     {
       "file": "preset-34.wav",
       "frames": 176400,
-      "peak": 4486,
-      "rms": 1770.04,
-      "dc_mean": -2.823,
-      "sha256_pcm": "2f35cb78052a985f1ea5f08e88715a3ed87fe9844912188885b89ada14a56826"
+      "peak": 6495,
+      "rms": 2593.36,
+      "dc_mean": -0.154,
+      "sha256_pcm": "0b3caed5752b3604efb5cbc168f95eab7f400b687403643951b95fe29c66c6e2"
     },
     {
       "file": "preset-35.wav",
       "frames": 176400,
-      "peak": 3758,
-      "rms": 1451.03,
-      "dc_mean": -2.299,
-      "sha256_pcm": "4da06d00981b4f64d209bb6a3cd88f33cdae2e3382e073992eb64bff3b2582fa"
+      "peak": 6393,
+      "rms": 2556.54,
+      "dc_mean": -0.15,
+      "sha256_pcm": "91915ecce545af7e1aee662f3569f462c6708552bf6c0cf5df5154d7d653e265"
     },
     {
       "file": "preset-36.wav",
       "frames": 176400,
-      "peak": 2753,
-      "rms": 837.98,
-      "dc_mean": -0.211,
-      "sha256_pcm": "478d4c03566780dc736894c194eca17faff7a6ec41b2985c3eb2a5ac93a4a9a3"
+      "peak": 6731,
+      "rms": 1916.7,
+      "dc_mean": -0.367,
+      "sha256_pcm": "5b20a78cb038f32fdd321a63ca09c98465b98873d30479926e59dce5ffbb5df8"
     },
     {
       "file": "preset-37.wav",
       "frames": 176400,
-      "peak": 3132,
-      "rms": 775.26,
-      "dc_mean": -0.138,
-      "sha256_pcm": "36a0e6ac49c31f4f4fcdb3da23033b9dec88e70cca8ab4dad0c4bf8adc98e808"
+      "peak": 7521,
+      "rms": 2151.09,
+      "dc_mean": -0.407,
+      "sha256_pcm": "02fe6ec29479ada7f29f4a5c68ecad99e640eaa9671596960ec969c7cf22d3d3"
     },
     {
       "file": "preset-38.wav",
       "frames": 176400,
-      "peak": 4588,
-      "rms": 1793.51,
-      "dc_mean": -2.432,
-      "sha256_pcm": "d26a46be2eabc4baa6ab4d4e9ecf24fb3b7cb9e21fc593675f2ad4eacaaac058"
+      "peak": 6916,
+      "rms": 2979.23,
+      "dc_mean": -0.039,
+      "sha256_pcm": "70340d877f1ace5fae090948e1d2f34866aebceae29d1955586f83d2465fb06d"
     },
     {
       "file": "preset-39.wav",
       "frames": 176400,
-      "peak": 2989,
-      "rms": 1150.66,
-      "dc_mean": -1.296,
-      "sha256_pcm": "f6f54cc09271fcd62a63bb555ce8aa0dc14dd410b589edbe984b4fffc751a551"
+      "peak": 6598,
+      "rms": 2570.67,
+      "dc_mean": -0.026,
+      "sha256_pcm": "eae3494bc148ccd2d9aca43c79f474361837caa410e9b006d9c3bdad29f8dc7e"
     },
     {
       "file": "preset-40.wav",
       "frames": 176400,
-      "peak": 2296,
-      "rms": 244.56,
-      "dc_mean": 0.243,
-      "sha256_pcm": "fc5eded558e09486ce090abca3382d80eb2c28050b2530e1c0e57b04a3eff2c6"
+      "peak": 7567,
+      "rms": 979.51,
+      "dc_mean": -0.121,
+      "sha256_pcm": "e2a5a49f10e8a370c61570e80061397ac845afb3fccdb0b33b269dd8837d2691"
     },
     {
       "file": "preset-41.wav",
       "frames": 176400,
-      "peak": 1814,
-      "rms": 113.38,
-      "dc_mean": 0.177,
-      "sha256_pcm": "ef6500a021d892dc69e2d0bc38c93da9851d260ce8aaee40f0bd10771203f7d8"
+      "peak": 6926,
+      "rms": 417.09,
+      "dc_mean": -0.096,
+      "sha256_pcm": "f9c67380b1436489fa8925d517e4a3a7ad5b0faa11546f59d8de57700664d36c"
     },
     {
       "file": "preset-42.wav",
       "frames": 176400,
-      "peak": 1850,
-      "rms": 117.92,
-      "dc_mean": 0.36,
-      "sha256_pcm": "ac5a3737e8627931e12c9cb5de22d44fde24a0cd7846a3e64836806bfa2f3dff"
+      "peak": 7541,
+      "rms": 1120.77,
+      "dc_mean": -0.047,
+      "sha256_pcm": "634dcb7eb1ec8a12c501ded86df78db19a55d7e4fe003a74db89a45d852694ae"
     },
     {
       "file": "preset-43.wav",
       "frames": 176400,
-      "peak": 4455,
-      "rms": 230.56,
-      "dc_mean": 0.038,
-      "sha256_pcm": "f825c345fb64b2a11f656f85caf742ec3d553bdc70204622aa60455ef310a004"
+      "peak": 7649,
+      "rms": 994.31,
+      "dc_mean": -0.126,
+      "sha256_pcm": "cc2fb7cc40e9d43d6545e95a3aec783b91b1247b2dffe6925619443013533708"
     },
     {
       "file": "preset-44.wav",
       "frames": 176400,
-      "peak": 2932,
-      "rms": 248.33,
-      "dc_mean": 0.022,
-      "sha256_pcm": "37aa861f26af74196c1100304d1e1f9914f32a953faad7e203fb19fc37502fce"
+      "peak": 7669,
+      "rms": 1237.59,
+      "dc_mean": 0.225,
+      "sha256_pcm": "2f3886f64507130cb7dbe1d2b5ae559f2bc0f2d20603a2b718d8571ddbc148a1"
     },
     {
       "file": "preset-45.wav",
       "frames": 176400,
-      "peak": 1661,
-      "rms": 97.08,
-      "dc_mean": -0.048,
-      "sha256_pcm": "a7d78e90b394e93198a3e799a9b0f22e96c7df5b0163ecaeb7959aea01c298f4"
+      "peak": 6818,
+      "rms": 421.0,
+      "dc_mean": -0.098,
+      "sha256_pcm": "46022081b3885a0d1f9e93ebee704190c96a491b9816bdd0e00311d77eb7e4fe"
     },
     {
       "file": "preset-46.wav",
       "frames": 176400,
-      "peak": 979,
-      "rms": 95.85,
-      "dc_mean": 0.003,
-      "sha256_pcm": "b44312d7c8c110ea919ef37f7ee006b64b552eb8cf8b5e032aefa2f63524b02d"
+      "peak": 6680,
+      "rms": 325.53,
+      "dc_mean": 0.066,
+      "sha256_pcm": "5503584ef7a146332e14598166c19aabccd412d9fc4daee7891579867441cce8"
     },
     {
       "file": "preset-47.wav",
       "frames": 176400,
-      "peak": 4378,
-      "rms": 342.12,
-      "dc_mean": 0.017,
-      "sha256_pcm": "b3a15a53b60af95abb0a815e9ef1d990463f56d5f65503d5c15834347c8868b0"
+      "peak": 7526,
+      "rms": 956.99,
+      "dc_mean": -0.035,
+      "sha256_pcm": "f3b8065292a9880e86e2768dc24b3cc13a6a00e1066bc3214b9963fabaec76c8"
     },
     {
       "file": "preset-48.wav",
       "frames": 176400,
-      "peak": 1491,
-      "rms": 245.38,
-      "dc_mean": -0.274,
-      "sha256_pcm": "47c0a1e367a75bbdf39a08bc82d2d4c6762535625776b1368716a1a2ef22951a"
+      "peak": 6090,
+      "rms": 2361.11,
+      "dc_mean": 0.005,
+      "sha256_pcm": "b86dcedc15844bb28816b7780fdecf5919eb5495c322dc8b76408bd379e918cc"
     },
     {
       "file": "preset-49.wav",
       "frames": 176400,
-      "peak": 2778,
-      "rms": 357.92,
-      "dc_mean": -0.277,
-      "sha256_pcm": "2b2a88805136d3d0e03d0fd2dd7103b9cb2eb25a477000bd3492eeb3497873f3"
+      "peak": 6793,
+      "rms": 1592.29,
+      "dc_mean": -1.591,
+      "sha256_pcm": "d974c8f392bb5a41524a722b8ffb100c5d18b1b244a829876dfb100e95394224"
     },
     {
       "file": "preset-50.wav",
       "frames": 176400,
-      "peak": 5480,
-      "rms": 796.4,
-      "dc_mean": 0.696,
-      "sha256_pcm": "9e84654738725568bc22b81a8009952b124f5198d380dfa48c853843278ee856"
+      "peak": 5634,
+      "rms": 739.8,
+      "dc_mean": -0.156,
+      "sha256_pcm": "ce5835f01d2e3d2c3e67dbf2e8d9f01291b7cebf3da917d68f42b45001384b61"
     },
     {
       "file": "preset-51.wav",
       "frames": 176400,
-      "peak": 4957,
-      "rms": 914.54,
-      "dc_mean": 0.439,
-      "sha256_pcm": "fbd68fea4a959efbf7506d67d2e3642f79c6e216002c8d03bb2a66d24138119f"
+      "peak": 4783,
+      "rms": 337.63,
+      "dc_mean": -0.094,
+      "sha256_pcm": "e4ca175c18d03adb229e9f55dcaa64164a65541ce846e6f63da5420e07cadcfe"
     },
     {
       "file": "preset-52.wav",
       "frames": 176400,
-      "peak": 3347,
-      "rms": 339.42,
-      "dc_mean": 0.258,
-      "sha256_pcm": "b2ec723a03d858b3f713d554da24a50be379eb79fc2d61d087de6caddbfa6347"
+      "peak": 7131,
+      "rms": 403.13,
+      "dc_mean": -0.016,
+      "sha256_pcm": "3101cfd47245ae98bc4c0c9093bbaf53f284c2a8b896cb7cc3e0312adaca336b"
     },
     {
       "file": "preset-53.wav",
       "frames": 176400,
-      "peak": 4460,
-      "rms": 735.67,
-      "dc_mean": 0.685,
-      "sha256_pcm": "b9b09b898824d4857771669491e99bd30051bee65b33a1f3a675b59a033bc784"
+      "peak": 6254,
+      "rms": 814.64,
+      "dc_mean": -0.068,
+      "sha256_pcm": "ad3534caaf0ee5311291dee56f7cc804bbad8966e22e31b05d9c8fbea4b87347"
     },
     {
       "file": "preset-54.wav",
       "frames": 176400,
-      "peak": 5321,
-      "rms": 754.95,
-      "dc_mean": 0.781,
-      "sha256_pcm": "042512210d91d7912b3c0da9ef513308be2fbe85ff8feaea2299fd0ae8ab0e6c"
+      "peak": 7777,
+      "rms": 1019.88,
+      "dc_mean": -0.154,
+      "sha256_pcm": "ca5e6a32644edbccfe85c34fe85d80c848c04537106915b77e7bdb3cf579e642"
     },
     {
       "file": "preset-55.wav",
       "frames": 176400,
-      "peak": 4552,
-      "rms": 616.07,
-      "dc_mean": 0.34,
-      "sha256_pcm": "087f034ef3922687a04f9b54e9f88b3c07a9cd7557c66b07f8510daa2e732fcf"
+      "peak": 6608,
+      "rms": 360.87,
+      "dc_mean": -0.1,
+      "sha256_pcm": "e87924ce7d3134c94bbff319e09adbc71afa637d47a6bebf5649c3cae730c0d0"
     },
     {
       "file": "preset-56.wav",
       "frames": 176400,
-      "peak": 6070,
-      "rms": 423.96,
-      "dc_mean": 0.123,
-      "sha256_pcm": "15a57eb80bbc955651f9925a9528743da4fec65cfbd4c07152df8605d07f996a"
+      "peak": 7300,
+      "rms": 994.63,
+      "dc_mean": -0.053,
+      "sha256_pcm": "94e6e4943417d515cab167287ff1f11ed82aaa2d05966a6469390e054842d1f3"
     },
     {
       "file": "preset-57.wav",
       "frames": 176400,
-      "peak": 6208,
-      "rms": 452.65,
-      "dc_mean": 0.124,
-      "sha256_pcm": "5bd8a79111a20df2ca376cbd369d1f042d887e100e166700fe94e2031b7b1c90"
+      "peak": 8090,
+      "rms": 1051.88,
+      "dc_mean": -0.15,
+      "sha256_pcm": "ceb1319971a4fc1bc5b93e99fc1d693e1a80a511649fab726d1abae2a1ebaf86"
     },
     {
       "file": "preset-58.wav",
       "frames": 176400,
-      "peak": 5003,
-      "rms": 358.39,
-      "dc_mean": 0.1,
-      "sha256_pcm": "79a26cadc1fa418c0efa37d7038258f0a9afdd1f1d77afb0af63b76ca9ff915a"
+      "peak": 7639,
+      "rms": 1001.2,
+      "dc_mean": -0.16,
+      "sha256_pcm": "f29fd7ba2f48b397169bf14fc7c9f34be30d21feb73fd6bfb4e4f7ad418d06a1"
     },
     {
       "file": "preset-59.wav",
       "frames": 176400,
-      "peak": 5829,
-      "rms": 411.62,
-      "dc_mean": 0.118,
-      "sha256_pcm": "3844255a6c2a30b161a85c06f58cb78f87497f9084b7577cea9e2110becde5d6"
+      "peak": 6336,
+      "rms": 561.77,
+      "dc_mean": 0.072,
+      "sha256_pcm": "28947b69d99c3bab308f0eca7aaa539ee192bed997602b9142c48dca716e4333"
     },
     {
       "file": "preset-60.wav",
       "frames": 176400,
-      "peak": 4219,
-      "rms": 1424.14,
-      "dc_mean": 0.701,
-      "sha256_pcm": "a2d7ca3139f1811c3f81f772eb180e781ca8af09cf1402f8cfef2016ddb90852"
+      "peak": 6957,
+      "rms": 1643.46,
+      "dc_mean": 0.783,
+      "sha256_pcm": "67bde0ecb06dde1db3d223a398b57f035eb3ad8813b661e49a011b5d18c6f23e"
     },
     {
       "file": "preset-61.wav",
       "frames": 176400,
-      "peak": 5244,
-      "rms": 1707.57,
-      "dc_mean": 0.528,
-      "sha256_pcm": "44591831142e4b9fb444dcd40ca42789e9946531975329a5b962c6a796366251"
+      "peak": 3604,
+      "rms": 846.1,
+      "dc_mean": 0.604,
+      "sha256_pcm": "1fa2f6ce21e1d4546e92dfa5a0ffe06cb5ce158e9613ed743db397f2aedee1b0"
     },
     {
       "file": "preset-62.wav",
       "frames": 176400,
-      "peak": 3804,
-      "rms": 1279.05,
-      "dc_mean": 0.752,
-      "sha256_pcm": "d81a6977657f475c04bfe5fa4cd6c2a571a8ed9690657761e02e160df7e104ff"
+      "peak": 6049,
+      "rms": 1459.21,
+      "dc_mean": 0.89,
+      "sha256_pcm": "de1e0e4d561129e4a5b189cdccef8d17c8b283cdccce068b2779777370606398"
     },
     {
       "file": "preset-63.wav",
       "frames": 176400,
-      "peak": 4829,
-      "rms": 1171.03,
-      "dc_mean": 0.545,
-      "sha256_pcm": "a06b0a8f5c5a409d770c69961e5a9a4495e5a1b2c4dd59afe6ee6efe033126f3"
+      "peak": 6506,
+      "rms": 1593.23,
+      "dc_mean": 1.296,
+      "sha256_pcm": "7cdc86fe2e1b6b6751e2a7b240a6b0a9d4aa73eb78337bcdc0c27ec02afd7fe3"
     },
     {
       "file": "preset-64.wav",
       "frames": 176400,
-      "peak": 4250,
-      "rms": 1047.34,
-      "dc_mean": 0.729,
-      "sha256_pcm": "c2b522dbac348f24394d88a41e1f53ee08fdad6d78986b1b28d55af60fdd48b0"
+      "peak": 5496,
+      "rms": 1666.71,
+      "dc_mean": 1.052,
+      "sha256_pcm": "a4d3bd15a71c82907ee1b1adb900f03a4b4a69540e378ea6a122e52bb55e1f36"
     },
     {
       "file": "preset-65.wav",
       "frames": 176400,
-      "peak": 3973,
-      "rms": 932.49,
-      "dc_mean": 0.655,
-      "sha256_pcm": "a0d4fc6b8116f05bfa829deac1e42541b6deadf16a0129dac6a1dab1154238a9"
+      "peak": 4824,
+      "rms": 1138.1,
+      "dc_mean": 0.554,
+      "sha256_pcm": "8b63380900ca8b746dd7e986b8a2efe21211990cae716bc07dd274dcaebc2098"
     },
     {
       "file": "preset-66.wav",
       "frames": 176400,
-      "peak": 5055,
-      "rms": 1228.54,
-      "dc_mean": 0.518,
-      "sha256_pcm": "068f53d2a675dea3b29399b530d05d312ff890410447815057585cebe03d67a6"
+      "peak": 7454,
+      "rms": 1774.45,
+      "dc_mean": 0.809,
+      "sha256_pcm": "4f9cc0ca1367bd1ca6e929e106c399aeddd610c72e20352e8d55a7a356875558"
     },
     {
       "file": "preset-67.wav",
       "frames": 176400,
-      "peak": 4968,
-      "rms": 1160.78,
-      "dc_mean": 0.525,
-      "sha256_pcm": "4e7e1f296b247b1db6e7d8415bfac267c9fb9492fbcfa68344e1b33421ece063"
+      "peak": 5624,
+      "rms": 1323.17,
+      "dc_mean": 0.668,
+      "sha256_pcm": "22bfb7f8823a29e10e2fa432309072512d29615233dbc8bae78ed51a280e816e"
     },
     {
       "file": "preset-68.wav",
       "frames": 176400,
-      "peak": 3132,
-      "rms": 952.17,
-      "dc_mean": -0.004,
-      "sha256_pcm": "b33f9118b7d13a3828d0ff1c7080e0b5d8febe1d0f078939b731d1bdd2e0f8ae"
+      "peak": 6936,
+      "rms": 1985.89,
+      "dc_mean": -0.372,
+      "sha256_pcm": "d6bf07b2b4e97e2568722486d0253a6a62a8b31077bfd8b68b53c00bb6e4a89a"
     },
     {
       "file": "preset-69.wav",
       "frames": 176400,
-      "peak": 2148,
-      "rms": 578.52,
-      "dc_mean": 0.196,
-      "sha256_pcm": "21adc328cb6bbd044d81b44f66d76d5ea41320fb97b5d75531083bab21afe784"
+      "peak": 6552,
+      "rms": 1154.5,
+      "dc_mean": 2.308,
+      "sha256_pcm": "6aab39fb1d2284e461a6b6afddd44ea55476c94b634be998cb18a19e8228c08c"
     },
     {
       "file": "preset-70.wav",
       "frames": 176400,
-      "peak": 1784,
-      "rms": 472.39,
-      "dc_mean": 0.34,
-      "sha256_pcm": "e814436fa226ad513762bf1c616ca4428c145c1ed374a5e85e6d6e1a51245a15"
+      "peak": 6690,
+      "rms": 2434.43,
+      "dc_mean": 0.995,
+      "sha256_pcm": "c7b61158db0ac31c6d5681f0a050ee9aaf43401356fc88af26531a426688ec7e"
     },
     {
       "file": "preset-71.wav",
       "frames": 176400,
-      "peak": 2450,
-      "rms": 505.6,
-      "dc_mean": 1.09,
-      "sha256_pcm": "27c9ffc3aac975264a0316c4015669b0ac037144fb8fc3c8c4ec6a655af0c522"
+      "peak": 7013,
+      "rms": 1264.23,
+      "dc_mean": 2.459,
+      "sha256_pcm": "0b0cf1a6690e1917506030f6e6c4fe68b757567ecbd16e11145fa043541b0303"
     },
     {
       "file": "preset-72.wav",
       "frames": 176400,
-      "peak": 3911,
-      "rms": 1297.48,
-      "dc_mean": -0.618,
-      "sha256_pcm": "16176b1d244bdb0166216b1b29e03f0cf371e9537d004c4ff060749b95b49d75"
+      "peak": 6613,
+      "rms": 2395.25,
+      "dc_mean": 1.081,
+      "sha256_pcm": "cc7d71a6e1e7bf8dd2e0c9168b988eccfa14e77c46cabe9d5f21b7715816b6e7"
     },
     {
       "file": "preset-73.wav",
       "frames": 176400,
-      "peak": 2912,
-      "rms": 835.45,
-      "dc_mean": 1.919,
-      "sha256_pcm": "bf8c44f02c4f0fa3fa3e9b332873c594794d6b4daee81b0e3d7151ba34f07f05"
+      "peak": 7208,
+      "rms": 2423.65,
+      "dc_mean": -0.503,
+      "sha256_pcm": "e5d4466c2bb219611fca1dbc9df37ac29abd699a135231685c662a63ca0f1aef"
     },
     {
       "file": "preset-74.wav",
       "frames": 176400,
-      "peak": 2389,
-      "rms": 443.72,
-      "dc_mean": 1.235,
-      "sha256_pcm": "a5af75fd05e599e3b15950a0ce0b6edc2374df1a6bbe39c6701bebf0689e3fec"
+      "peak": 6757,
+      "rms": 1186.13,
+      "dc_mean": 2.321,
+      "sha256_pcm": "02d8053b7ffe8cc8553347a3b63e9c78cb546fdcebea06da33ac6e2e142a9f1f"
     },
     {
       "file": "preset-75.wav",
       "frames": 176400,
-      "peak": 4660,
-      "rms": 1547.88,
-      "dc_mean": -0.715,
-      "sha256_pcm": "03281688905dad8884c14562c3a218613ea7bdfd47d8ea1878c26f5cab17423d"
+      "peak": 6823,
+      "rms": 2646.02,
+      "dc_mean": 0.616,
+      "sha256_pcm": "a21642e558427d9523dca26b84d7d15b8ed9154201359345fd8da46cf443206c"
     },
     {
       "file": "preset-76.wav",
       "frames": 176400,
-      "peak": 2214,
-      "rms": 580.8,
-      "dc_mean": 0.434,
-      "sha256_pcm": "ba5a2127a2fc265acfaed5918c02be1e0d6d6bfe26ccc27e5b77a206feb458c8"
+      "peak": 6383,
+      "rms": 1854.84,
+      "dc_mean": 0.57,
+      "sha256_pcm": "4a2b3bdfce3108c66960a80106b08606407884276039e3757df62ac40967359d"
     },
     {
       "file": "preset-77.wav",
       "frames": 176400,
-      "peak": 4337,
-      "rms": 984.98,
-      "dc_mean": 0.738,
-      "sha256_pcm": "8616340496273e2c0c62b3316ca5e5727154139ea05c649518c78a23c59dead6"
+      "peak": 5665,
+      "rms": 1808.26,
+      "dc_mean": -1.707,
+      "sha256_pcm": "ebda8e3cbd9e9ad8b0413b340c19ad65458259eafea7e8849d1b93c6234d8db2"
     },
     {
       "file": "preset-78.wav",
       "frames": 176400,
-      "peak": 3491,
-      "rms": 914.18,
-      "dc_mean": -0.716,
-      "sha256_pcm": "7525e79cb2b33cec5807585f0658a2332b5ba4ad9fbfa70990cb700d67b1b2b8"
+      "peak": 6731,
+      "rms": 2033.88,
+      "dc_mean": 0.605,
+      "sha256_pcm": "7e5c0e74deca76427431ff8d9c84d1c15210b8b53e65044845f1e3106fd32939"
     },
     {
       "file": "preset-79.wav",
       "frames": 176400,
-      "peak": 3773,
-      "rms": 978.62,
-      "dc_mean": 6.379,
-      "sha256_pcm": "13f71fb5344387402f159d0091dbb303352e1efbc4dcc292f35b6bf5ab0e664b"
+      "peak": 6383,
+      "rms": 2167.2,
+      "dc_mean": -0.235,
+      "sha256_pcm": "6a3abd3bdfa59760b6fbe66d503f2b57d51163725817d4108a4dce6c08ce0ec4"
     },
     {
       "file": "preset-80.wav",
       "frames": 176400,
-      "peak": 4229,
-      "rms": 909.37,
-      "dc_mean": 0.532,
-      "sha256_pcm": "b71260d46554db1012dfbae357e5137c2c80c09c0450bcf4b65be7ca2e77dc86"
+      "peak": 5250,
+      "rms": 1608.22,
+      "dc_mean": -1.691,
+      "sha256_pcm": "4dcf09d8fd63f760545b08ffb26dc60e8b7d53babb50c676145e67680d83d266"
     },
     {
       "file": "preset-81.wav",
       "frames": 176400,
-      "peak": 3281,
-      "rms": 1016.98,
-      "dc_mean": 0.158,
-      "sha256_pcm": "9f6c5aeaf75c39044a6197c16bfe8da66f91e3d3cd9f1b5f2df09ea790644f2e"
+      "peak": 4193,
+      "rms": 1480.56,
+      "dc_mean": -0.517,
+      "sha256_pcm": "c29018979fb9c32baedcc041414d173e58d83afab3efa3a7f094ed3b2a5ffaf5"
     },
     {
       "file": "preset-82.wav",
       "frames": 176400,
-      "peak": 1927,
-      "rms": 505.41,
-      "dc_mean": 0.395,
-      "sha256_pcm": "c21d93e734397ff9498f68db5bce0066bdef0fd1543666f2d946db6bc6bdd495"
+      "peak": 6465,
+      "rms": 1898.29,
+      "dc_mean": 0.543,
+      "sha256_pcm": "b9df4d382bbf343458851756ad8f28a61e5c0deb8b2c2dd00ef9ca715269e4c8"
     },
     {
       "file": "preset-83.wav",
       "frames": 176400,
-      "peak": 1440,
-      "rms": 372.31,
-      "dc_mean": 0.341,
-      "sha256_pcm": "5d0583cfb9220e100df61ee63486fe4a72cfb736097e5a19f92d9a64e8155b9e"
+      "peak": 4947,
+      "rms": 1910.54,
+      "dc_mean": 1.184,
+      "sha256_pcm": "486952d4a549863480a5eb07b8a49e7a783acae3b2c1842ccc7fb2b3bed898ae"
     },
     {
       "file": "preset-84.wav",
       "frames": 176400,
-      "peak": 3476,
-      "rms": 1114.49,
-      "dc_mean": 0.002,
-      "sha256_pcm": "dfd7980fe74e787d10f52e692b4be76d985cdb9e9f00527304608c6b2c9893c8"
+      "peak": 4398,
+      "rms": 316.37,
+      "dc_mean": -0.083,
+      "sha256_pcm": "2c3799ba0b16745d1e658730c76f87658ad3296dbf1f15ed87d34d23fbe6edac"
     },
     {
       "file": "preset-85.wav",
       "frames": 176400,
-      "peak": 1989,
-      "rms": 671.26,
-      "dc_mean": 0.003,
-      "sha256_pcm": "42913108764acea379b0494c088fa3230353b1b88248bc524fc66056eb16a95a"
+      "peak": 5055,
+      "rms": 1616.38,
+      "dc_mean": 0.298,
+      "sha256_pcm": "e098c5e659920d3ee4f39626319c22d2a6bcb235898b0883b361effbca6b12e3"
     },
     {
       "file": "preset-86.wav",
       "frames": 176400,
-      "peak": 3388,
-      "rms": 1098.02,
-      "dc_mean": 0.006,
-      "sha256_pcm": "fa49b09a12ff686d3dfbd8abbc2c9c33519f9f162ff224ec0e7922f67e72db1f"
+      "peak": 6019,
+      "rms": 2390.01,
+      "dc_mean": -0.138,
+      "sha256_pcm": "dc85d25dce6987d2ff1a3e64399981111b854dea3ea4f300c7d5243fa34038ca"
     },
     {
       "file": "preset-87.wav",
       "frames": 176400,
-      "peak": 2614,
-      "rms": 305.58,
-      "dc_mean": 0.115,
-      "sha256_pcm": "5a6012342414a18640272510f0e37dfa635367ef5e309672b135a21b530d2b6b"
+      "peak": 7023,
+      "rms": 922.19,
+      "dc_mean": -0.12,
+      "sha256_pcm": "46508d33bd3f2da6ee75641170ce76aa1fab1dc7a6ad317657afb16ba337bb05"
     },
     {
       "file": "preset-88.wav",
       "frames": 176400,
-      "peak": 4306,
-      "rms": 1082.29,
-      "dc_mean": 0.891,
-      "sha256_pcm": "0de9c9ebdfd154113e481bf88fcbc2bdfa703523bad13293e0b8bff66d736c17"
+      "peak": 4885,
+      "rms": 1325.81,
+      "dc_mean": 1.132,
+      "sha256_pcm": "2447519aa09b2fd89d69c597e3995f9f5fde0419299455b901fc77e43f4f6ad9"
     },
     {
       "file": "preset-89.wav",
       "frames": 176400,
-      "peak": 5080,
-      "rms": 1018.97,
-      "dc_mean": 0.727,
-      "sha256_pcm": "c4568868e4322f73cd21a4094cd08ce3306533dde0e70f0c31480646dcb7e6ea"
+      "peak": 5352,
+      "rms": 1680.89,
+      "dc_mean": -1.644,
+      "sha256_pcm": "725183aab0a814b0af36e484ad16f2c1b86be0304719878d81d213d0a0dfdbb8"
     },
     {
       "file": "preset-90.wav",
       "frames": 176400,
-      "peak": 3522,
-      "rms": 912.77,
-      "dc_mean": -0.599,
-      "sha256_pcm": "815038c59f7cf6360e017b5f2015912b3d1bf20d88385dee88d1d3ff1c87c18d"
+      "peak": 6090,
+      "rms": 1657.68,
+      "dc_mean": 0.409,
+      "sha256_pcm": "f7daa3d88f31fe4927a516968c75734c51755ecbefcd6d4018ef9c9bfe25e4af"
     },
     {
       "file": "preset-91.wav",
       "frames": 176400,
-      "peak": 3450,
-      "rms": 744.75,
-      "dc_mean": 4.601,
-      "sha256_pcm": "2a9205b3702babc04df67a3b9a76cc5d55ee97d03887d2ee81b62be579111f30"
+      "peak": 5993,
+      "rms": 2003.79,
+      "dc_mean": -0.173,
+      "sha256_pcm": "bdea600364338dcca7cffa37cad563169f801920e19ae42455495705b942fdfe"
     },
     {
       "file": "preset-92.wav",
       "frames": 176400,
-      "peak": 3409,
-      "rms": 1171.23,
-      "dc_mean": -1.919,
-      "sha256_pcm": "986ec9067ff0e0c15ff26f203c09f0ba3a7784384e9916845ca6bec4445060ed"
+      "peak": 5793,
+      "rms": 2217.0,
+      "dc_mean": -0.227,
+      "sha256_pcm": "25a7e8727ce738a81e88d76d4171f4db679f803cefa1c7e634bf5f227f329e60"
     },
     {
       "file": "preset-93.wav",
       "frames": 176400,
-      "peak": 4404,
-      "rms": 1498.01,
-      "dc_mean": -0.714,
-      "sha256_pcm": "ac2e39d7229142eec11b3bfd9cc08d68114f933f63821bad6517b4d90f8a23a0"
+      "peak": 5326,
+      "rms": 2374.72,
+      "dc_mean": 0.796,
+      "sha256_pcm": "65419bff77c3ba08874b6c3354f79cf79a0628fba285d484125b551e81bb02c5"
     },
     {
       "file": "preset-94.wav",
       "frames": 176400,
-      "peak": 4255,
-      "rms": 502.35,
-      "dc_mean": 0.306,
-      "sha256_pcm": "d896675635b4666ef110744035160a7c928341816adc3575a0cfee1012a7971d"
+      "peak": 7987,
+      "rms": 1202.09,
+      "dc_mean": -0.055,
+      "sha256_pcm": "61f6efdf58b9752503e9dd7e2a9e47648ea833bb1fbb19a149a317fe5601510c"
     },
     {
       "file": "preset-95.wav",
       "frames": 176400,
-      "peak": 3988,
-      "rms": 391.61,
-      "dc_mean": 0.434,
-      "sha256_pcm": "81751b36d7860b46384fe48f13b18f64c1856d21031f8f7086aaf3d0780f8bbc"
+      "peak": 7146,
+      "rms": 1176.78,
+      "dc_mean": -0.054,
+      "sha256_pcm": "6ac8ca7756956bccb79d99a078190921c9a216a22adcf815c4d83e9be506b36b"
     },
     {
       "file": "preset-96.wav",
       "frames": 176400,
-      "peak": 2225,
-      "rms": 191.67,
-      "dc_mean": 0.326,
-      "sha256_pcm": "5153f6b37d7905f30869dece73f6c1c00df8f91297589ad8939aeed14a19476c"
+      "peak": 7377,
+      "rms": 914.72,
+      "dc_mean": -0.06,
+      "sha256_pcm": "c9be1c55e4b57ba8fd2ed4965bab512818f4121e4e20d65ace976a3967dfe634"
     },
     {
       "file": "preset-97.wav",
       "frames": 176400,
-      "peak": 4732,
-      "rms": 372.13,
-      "dc_mean": 0.02,
-      "sha256_pcm": "4fc8d779768bbb90ba71f5c20ec075c7581368b3fd73e8ddf3d434636876bda3"
+      "peak": 7675,
+      "rms": 963.74,
+      "dc_mean": -0.06,
+      "sha256_pcm": "5a034bcff34bb4131a6d2e8d498e700d48367235190d54ad78a57d17ea878433"
     },
     {
       "file": "preset-98.wav",
       "frames": 176400,
-      "peak": 5957,
-      "rms": 461.79,
-      "dc_mean": 0.021,
-      "sha256_pcm": "6c3dae9cc75d4164f602bedbac58d3088970cca09c421613775370c9113eb3d2"
+      "peak": 6752,
+      "rms": 922.84,
+      "dc_mean": -0.112,
+      "sha256_pcm": "ca40a669acb468b72f5ee6aab4b57c3f6bb09407b3f68b3f51f8258f973a5ca9"
     },
     {
       "file": "preset-99.wav",
       "frames": 176400,
-      "peak": 5398,
-      "rms": 437.13,
-      "dc_mean": 0.022,
-      "sha256_pcm": "aaccad7a916d489d0c96ff748840f6f919fe0121bfbb0ae419406b41462b81ac"
+      "peak": 6142,
+      "rms": 971.93,
+      "dc_mean": -0.179,
+      "sha256_pcm": "5d0dff7e869bae683b469741fa11843062bce9cd33204619b63e5bcf95a5cdc1"
     },
     {
       "file": "preset-100.wav",
       "frames": 176400,
-      "peak": 4885,
-      "rms": 451.42,
-      "dc_mean": 0.025,
-      "sha256_pcm": "b8037f9f626386e84f393a6b2d0635ae5713fa4718037593e5f9b70e8c0a931e"
+      "peak": 6413,
+      "rms": 917.11,
+      "dc_mean": -0.146,
+      "sha256_pcm": "8777bd9526d8ab720db706d1f69bce085d82e8e7e4732dd42b3ebe7b7a13639c"
     },
     {
       "file": "preset-101.wav",
       "frames": 176400,
-      "peak": 5839,
-      "rms": 337.25,
-      "dc_mean": 0.086,
-      "sha256_pcm": "d0bf102cc1367d86d01054faf7ec30657593cdc2d309c82febe8b648b43b9798"
+      "peak": 7500,
+      "rms": 975.15,
+      "dc_mean": -0.132,
+      "sha256_pcm": "70457a9ba01d9bdf1fc533a8af3ce07dd3e85dc7f08e7f67398cc2fa68877cb4"
     },
     {
       "file": "preset-102.wav",
       "frames": 176400,
-      "peak": 4106,
-      "rms": 393.49,
-      "dc_mean": 0.059,
-      "sha256_pcm": "9e3100cea534cd5cf80ffe4a83817fdeaac9a34edd5ecd305cf0dc7f5b23ad48"
+      "peak": 7757,
+      "rms": 1279.89,
+      "dc_mean": 0.21,
+      "sha256_pcm": "3effb670d07f20e04686e4ae470f1e7893a9b8d308fdc9f6332d5fca718a8010"
     },
     {
       "file": "preset-103.wav",
       "frames": 176400,
-      "peak": 948,
-      "rms": 92.35,
-      "dc_mean": 0.003,
-      "sha256_pcm": "6e6bdea017bc99edec9cc296d5e76fb3e4603644ce722f62a04217193077ad14"
+      "peak": 6890,
+      "rms": 330.8,
+      "dc_mean": 0.057,
+      "sha256_pcm": "7c8d5a8271d384585a3dbe14f343eed1b0a91ab79229f2f10bc3a40a76a3cbc4"
     },
     {
       "file": "preset-104.wav",
       "frames": 176400,
-      "peak": 4844,
-      "rms": 637.2,
-      "dc_mean": 0.155,
-      "sha256_pcm": "20bc46595f87ac987b59fb59c7f8ef470ea91ff4f1d5099b18fc97934e026157"
+      "peak": 7075,
+      "rms": 426.07,
+      "dc_mean": -0.096,
+      "sha256_pcm": "256edef895724b71f9bdd014744d94ffe04adffe523989bf7501d176408b45d2"
     },
     {
       "file": "preset-105.wav",
       "frames": 176400,
-      "peak": 4865,
-      "rms": 473.47,
-      "dc_mean": 0.416,
-      "sha256_pcm": "b15882ddfd30895e2305f62f0197bbbda266964904c430de1a7aa12e6cf673cc"
+      "peak": 8100,
+      "rms": 1329.71,
+      "dc_mean": 0.247,
+      "sha256_pcm": "39378ea648ccaccb510937ed79c680ad672c857bf61b1b9ed0e5a795e66f118b"
     },
     {
       "file": "preset-106.wav",
       "frames": 176400,
-      "peak": 5214,
-      "rms": 652.19,
-      "dc_mean": 0.258,
-      "sha256_pcm": "2a8b35f65e241b8153af0949149892b8e788f4cc59e944b87afdba35d90d586e"
+      "peak": 6803,
+      "rms": 414.12,
+      "dc_mean": -0.101,
+      "sha256_pcm": "4d387df5b60c2f8a846c487005416fd7448ecdfb0dd8491503ee550575beb26f"
     },
     {
       "file": "preset-107.wav",
       "frames": 176400,
-      "peak": 1138,
-      "rms": 99.31,
-      "dc_mean": -0.047,
-      "sha256_pcm": "50668cded81e22a53ee255cd959494d1c3606032e838ab10988768d14717a9e4"
+      "peak": 7223,
+      "rms": 435.64,
+      "dc_mean": -0.098,
+      "sha256_pcm": "2bf235b332f4d8f54dd743d1198935e059197d62e728b0b63ea27aa956d85608"
     },
     {
       "file": "preset-108.wav",
       "frames": 176400,
-      "peak": 4752,
-      "rms": 455.81,
-      "dc_mean": 0.07,
-      "sha256_pcm": "1d4280684b11392dc69dd1e6cecb1b71dda20207b6b5c93d9ea160eec01d8c00"
+      "peak": 7710,
+      "rms": 1298.41,
+      "dc_mean": 0.186,
+      "sha256_pcm": "5ff21aceab15c7d750792142f4c34e52c6817972c08741d3019bff47d1a8897e"
     },
     {
       "file": "preset-109.wav",
       "frames": 176400,
-      "peak": 2137,
-      "rms": 151.72,
-      "dc_mean": -0.047,
-      "sha256_pcm": "121b527283e4b3da4253b558887ca03b03e3c20cd4e468e4b7658d9e4e6fc470"
+      "peak": 6926,
+      "rms": 417.77,
+      "dc_mean": -0.099,
+      "sha256_pcm": "b21db50c65cabf265c330541290defe30ff522233afb2fde5595f5bb02add5f1"
     },
     {
       "file": "preset-110.wav",
       "frames": 176400,
-      "peak": 1061,
-      "rms": 125.24,
-      "dc_mean": -0.017,
-      "sha256_pcm": "6f35c810e780f207b87c2718808c861056423c14f1e97da96d4132999a27cd5c"
+      "peak": 6659,
+      "rms": 322.76,
+      "dc_mean": 0.048,
+      "sha256_pcm": "db52181db4128e34b7de41ae18a11b21c4509b53f18d94e7218dc479ddb5db95"
     },
     {
       "file": "preset-111.wav",
       "frames": 176400,
-      "peak": 5408,
-      "rms": 520.34,
-      "dc_mean": 0.086,
-      "sha256_pcm": "88b541cba1681340511ecda934b412c1603973e3b5b56f961501185ec17c0118"
+      "peak": 7598,
+      "rms": 1315.12,
+      "dc_mean": 0.124,
+      "sha256_pcm": "dc64566f639b27159ddef44c9b93ff4437badb4c28ab7702cddd97b01784476f"
     },
     {
       "file": "preset-112.wav",
       "frames": 176400,
-      "peak": 2722,
-      "rms": 511.67,
-      "dc_mean": 0.091,
-      "sha256_pcm": "5ec08fe5cea304e2d030f5be70372b209b086ecaeaaf33e3faaf92e07fa9c22c"
+      "peak": 6347,
+      "rms": 1819.13,
+      "dc_mean": -0.477,
+      "sha256_pcm": "9c83d40d4c90adf0c6be19e53f2959dde2d5c77dab2a0b23dcefe6a252739558"
     },
     {
       "file": "preset-113.wav",
       "frames": 176400,
-      "peak": 1861,
-      "rms": 450.59,
-      "dc_mean": 0.354,
-      "sha256_pcm": "b285a649f299442db72f4beb0706060e75025ab9eee4c29ac7be96890c29095e"
+      "peak": 5875,
+      "rms": 2352.85,
+      "dc_mean": -0.095,
+      "sha256_pcm": "72fff88c8548b0b02d39ec96d71d8d8dd3ffcc6df4d96b14f239a31c2e0abfe0"
     },
     {
       "file": "preset-114.wav",
       "frames": 176400,
-      "peak": 3911,
-      "rms": 598.06,
-      "dc_mean": 0.066,
-      "sha256_pcm": "c31e5447d211c23731a91f7a2440331641ed718d936bccc1ec1d326101b0197c"
+      "peak": 5993,
+      "rms": 2448.32,
+      "dc_mean": 0.03,
+      "sha256_pcm": "a3e922be579363bb2c6205ba5f5711b6805ff10b38219f1e6289d31898dafeca"
     },
     {
       "file": "preset-115.wav",
       "frames": 176400,
-      "peak": 3101,
-      "rms": 1115.83,
-      "dc_mean": -1.8,
-      "sha256_pcm": "8dde50a1af1bbb7e82f844689ffbf30e93d5d43a6a952b3a43869f7813291ede"
+      "peak": 6054,
+      "rms": 2481.76,
+      "dc_mean": -0.135,
+      "sha256_pcm": "e3ca95f5a8baa69f27eebda2903c08d41984e6986a5fbbe57a419c4c9bd50ec3"
     },
     {
       "file": "preset-116.wav",
       "frames": 176400,
-      "peak": 2932,
-      "rms": 875.13,
-      "dc_mean": 0.113,
-      "sha256_pcm": "125fdf7c8f8be1fd266e08e5a4c6ad281f757b5fe7d599d297bbfbaff637dca0"
+      "peak": 6372,
+      "rms": 1938.46,
+      "dc_mean": -0.5,
+      "sha256_pcm": "2b2cb99037380682e6803dd9dec373e19c97c54df63d1bbfc46d86d893c09adc"
     },
     {
       "file": "preset-117.wav",
       "frames": 176400,
-      "peak": 2942,
-      "rms": 854.55,
-      "dc_mean": -1.003,
-      "sha256_pcm": "f04440616cfe7abe5fb76b8f63107747793da90b64321f8c8b72424a50e5af0c"
+      "peak": 6747,
+      "rms": 2815.11,
+      "dc_mean": 0.004,
+      "sha256_pcm": "5bee3800aab98904edd1125643046a8e32d69ece5fcef24e011f2e5eef77cc6e"
     },
     {
       "file": "preset-118.wav",
       "frames": 176400,
-      "peak": 1871,
-      "rms": 104.4,
-      "dc_mean": 0.181,
-      "sha256_pcm": "db39562acb7599037bb42a674e21b06004571f8892514a0ca3c0ea18de3ba15c"
+      "peak": 7500,
+      "rms": 969.43,
+      "dc_mean": -0.131,
+      "sha256_pcm": "cd7a83e50b5b8813e11f11ade1dd45c7c7ef5b2464b1a351a74629fe619f400a"
     },
     {
       "file": "preset-119.wav",
       "frames": 176400,
-      "peak": 2881,
-      "rms": 88.45,
-      "dc_mean": 0.454,
-      "sha256_pcm": "b0b4b3bc15db942e408a163235be4dfb1438adc20c8ac7835afcfdad83337131"
+      "peak": 2086,
+      "rms": 58.42,
+      "dc_mean": -0.009,
+      "sha256_pcm": "623dde326c230046e6ae8b4903dfbe9b3ae9d178f6189bdb911a76e67d269703"
     },
     {
       "file": "preset-120.wav",
       "frames": 176400,
-      "peak": 3604,
-      "rms": 206.64,
-      "dc_mean": 0.559,
-      "sha256_pcm": "fe803cdbecc20303e43382730da427b2bfec3ae465d4c5b107e9223a973c0bdc"
+      "peak": 6680,
+      "rms": 324.34,
+      "dc_mean": 0.045,
+      "sha256_pcm": "98afacc8df3a22ba76a808eba047ab35addc6101830ffe8e667b46084159dccc"
     },
     {
       "file": "preset-121.wav",
       "frames": 176400,
-      "peak": 4245,
-      "rms": 387.46,
-      "dc_mean": 0.304,
-      "sha256_pcm": "5ab7eccf65f512b9d1a1a8c6825a72c867c5b07f36abdf39c66ef2734e1c4d0d"
+      "peak": 7075,
+      "rms": 425.33,
+      "dc_mean": -0.098,
+      "sha256_pcm": "eabff60943bd8178202303e42d636836b75f70839d5ae8b389c3ce7d5aebc5fc"
     },
     {
       "file": "preset-122.wav",
       "frames": 176400,
-      "peak": 3137,
-      "rms": 179.57,
-      "dc_mean": 1.161,
-      "sha256_pcm": "86fd79fe8dc9f3a9b80a47c01f913eee977ff0759a120aa07b79007edbaae7f7"
+      "peak": 3829,
+      "rms": 148.42,
+      "dc_mean": 0.11,
+      "sha256_pcm": "d975a42323c8f19d875680612d422e981af44947be01ccdb699541fc8864a3bf"
     },
     {
       "file": "preset-123.wav",
       "frames": 176400,
-      "peak": 3286,
-      "rms": 768.45,
-      "dc_mean": 0.019,
-      "sha256_pcm": "92a2aebb0f9803cebac36316d05c36389cbeb24b7de608c1007707f84740e9b7"
+      "peak": 5039,
+      "rms": 2128.53,
+      "dc_mean": 0.826,
+      "sha256_pcm": "aca6279595d69ecfe0b97968f0bd1c6c4e50bcd64f8adbaec8c54cc14a3f0443"
     },
     {
       "file": "preset-124.wav",
       "frames": 176400,
-      "peak": 3235,
-      "rms": 423.23,
-      "dc_mean": 0.135,
-      "sha256_pcm": "6e44497ff15364f67f5e535e92b15563ba974f17d7bd12c3aa6b0ae676d84f4e"
+      "peak": 6782,
+      "rms": 407.56,
+      "dc_mean": -0.089,
+      "sha256_pcm": "da3d773a6f85d3da1ac62476c670c00848771ec902fad6faeac30cecc8a4f075"
     },
     {
       "file": "preset-125.wav",
       "frames": 176400,
-      "peak": 2614,
-      "rms": 323.52,
-      "dc_mean": 0.04,
-      "sha256_pcm": "bb53ca216bb2dedf4ac33844f1143b1543d0b7ad8910b7a3f06c990f331a3294"
+      "peak": 5788,
+      "rms": 353.63,
+      "dc_mean": -0.088,
+      "sha256_pcm": "0d8f920abc8352752934e356380ceb29d50851e1f658f7ddd8a58511589d234c"
     },
     {
       "file": "preset-126.wav",
       "frames": 176400,
-      "peak": 2112,
-      "rms": 562.06,
-      "dc_mean": 0.002,
-      "sha256_pcm": "cc8d1bd804059a596c76addc29f2c351a77f2c65e580a99cf0dbca2163971fe4"
+      "peak": 5316,
+      "rms": 1981.78,
+      "dc_mean": -0.302,
+      "sha256_pcm": "704af5e0532f4dfbd00ed2de7076d879ebc6c05537d74d114b4f39541ce880e3"
     },
     {
       "file": "preset-127.wav",
       "frames": 176400,
-      "peak": 2968,
-      "rms": 597.9,
-      "dc_mean": -0.263,
-      "sha256_pcm": "5ef41827f07531a9d4283e73ef80fe586c4949053de4fad06535c235d070cd24"
+      "peak": 6572,
+      "rms": 1837.93,
+      "dc_mean": 0.563,
+      "sha256_pcm": "56b9ab417cfb19336c44edf479e57a78d2e53b4157844d403efb3a5cccbc100b"
     }
   ]
 }

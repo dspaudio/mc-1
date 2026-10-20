@@ -95,10 +95,14 @@ if (pkg.product !== process.argv[2]) throw new Error('Release identity mismatch'
     shutil.copytree(root / "LICENSES", out / "LICENSES", dirs_exist_ok=True)
     (out / "audio").mkdir(exist_ok=True)
     (out / "licenses").mkdir(exist_ok=True)
-    for name in ("mc-1-night-circuit-fx.mp3", "mc-1-neon-spiral-fx.mp3"):
+    for name in ("mc-1-night-circuit-fx.mp3", "mc-1-neon-spiral-fx.mp3",
+                 "mc-1-hip-hop-piano.mp3", "mc-1-pop-guitar.mp3",
+                 "mc-1-chamber-strings.mp3"):
         shutil.copyfile(root / "docs/audio" / name, out / "audio" / name)
     shutil.copyfile(root / "LICENSES/CC0-VSCO.txt", out / "licenses/CC0-VSCO.txt")
+    shutil.copyfile(root / "LICENSES/CC0-Meta.txt", out / "licenses/CC0-Meta.txt")
     shutil.copyfile(root / "assets/recorded/manifest.json", out / "recorded-samples.json")
+    shutil.copyfile(root / "assets/hybrid/manifest.json", out / "hybrid-samples.json")
     shutil.copyfile(root / "LICENSE", out / "LICENSE.txt")
     shutil.copyfile(root / "NOTICE.md", out / "NOTICE.md")
     for expected, data in packages:

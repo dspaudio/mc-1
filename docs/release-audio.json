@@ -1,0 +1,47 @@
+{
+  "version": "1.2.0",
+  "source": "Original compositions, actual shared C engine; host renders, not FM-1 recordings.",
+  "encoder": "lameenc 1.8.1 / LAME, 320 kbps stereo, no normalization or post effects",
+  "files": [
+    {
+      "file": "mc-1-hip-hop-piano.mp3",
+      "frames": 1205058,
+      "rate": 44100,
+      "bytes": 1095053,
+      "sha256": "87cc9bc3eabddeada458604d21bb86e23e4ee30477fe97f96f7440158e36c8d7",
+      "wav_sha256": "de3827a8a3e5548955b0d457c31baec925be0b7461aa21087e88d4421ebfe209"
+    },
+    {
+      "file": "mc-1-pop-guitar.mp3",
+      "frames": 990245,
+      "rate": 44100,
+      "bytes": 899657,
+      "sha256": "0619134ceaf42bb0a84e3512014e619efe86cd1e557e556eb29fe32617ac0dd2",
+      "wav_sha256": "763157aa31767b9b2c5f1dbb42e2fcd5c6d4c581b85e327ba20cf1833c150e18"
+    },
+    {
+      "file": "mc-1-chamber-strings.mp3",
+      "frames": 1161300,
+      "rate": 44100,
+      "bytes": 1055347,
+      "sha256": "601eb1af2faf2cca08faddfc1228cbd4ddaedef967e85080f8ab6dbdb978a72b",
+      "wav_sha256": "87cfec29cb11cfaa31e69b0d9c5f8d8584471eb1731882e8db854fc0cce14acd"
+    },
+    {
+      "file": "mc-1-night-circuit-fx.mp3",
+      "frames": 3090737,
+      "rate": 44100,
+      "bytes": 2804506,
+      "sha256": "f1fe135e56320bc0f67963f9f309f43579f9a4ba318b32dd44a7005cf9e2d239",
+      "wav_sha256": "1fc326e2312d59d9089b36e605febdeba22b749fd8c52b1321b64c6e57eb9c0c"
+    },
+    {
+      "file": "mc-1-neon-spiral-fx.mp3",
+      "frames": 2639700,
+      "rate": 44100,
+      "bytes": 2395951,
+      "sha256": "3a5af10593013b7f8d7d21fa9b1893c6b5c8163375f7ab256128e696dbd365b0",
+      "wav_sha256": "993fd963fda84500c3db68783595d56e4db0eb52d53681b088a17c9e92d65a72"
+    }
+  ]
+}
